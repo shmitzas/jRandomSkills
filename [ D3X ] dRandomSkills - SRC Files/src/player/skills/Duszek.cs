@@ -9,6 +9,8 @@ namespace dRandomSkills
     {
         public static void LoadDuszek()
         {
+            Utils.RegisterSkill("Duszek", "Jesteś całkowicie niewidzialny", "#FFFFFF");
+
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
                 Instance.AddTimer(0.1f, () => 

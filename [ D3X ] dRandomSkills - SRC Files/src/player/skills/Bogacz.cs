@@ -8,6 +8,8 @@ namespace dRandomSkills
     {
         public static void LoadBogacz()
         {
+            Utils.RegisterSkill("Bogacz", "Otrzymujesz losową ilość kasy na start rundy", "#D4AF37");
+            
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
                 Instance.AddTimer(0.1f, () => 

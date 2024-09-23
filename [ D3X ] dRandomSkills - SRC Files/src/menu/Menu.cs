@@ -13,7 +13,7 @@ namespace dRandomSkills
         {
             CenterHtmlMenu menu = new($"[ ★ Lista Super Mocy ★ ]");
             
-            for (int i = 0; i < SkillData.Skills.Length; i++)
+            for (int i = 0; i < SkillData.Skills.Count; i++)
             {
                 var skill = SkillData.Skills[i];
                 string skillName = $"{skill.Name}";

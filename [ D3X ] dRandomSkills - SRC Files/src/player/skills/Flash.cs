@@ -8,16 +8,18 @@ namespace dRandomSkills
     {
         public static void LoadFlash()
         {
+            Utils.RegisterSkill("Flash", "Otrzymujesz losową ilość speed na start rundy", "#A31912");
+            
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
                 Instance.AddTimer(0.1f, () => 
                 {
                     foreach (var player in Utilities.GetPlayers())
                     {
-                        if (!IsPlayerValid(player)) continue;
+                        if (!IsPlayerValid(player)) return;
 
                         var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != "Flash") continue;
+                        if (playerInfo?.Skill != "Flash") return;
 
                         var playerPawn = player.PlayerPawn?.Value;
 

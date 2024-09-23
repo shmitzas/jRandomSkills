@@ -5,9 +5,10 @@ namespace dRandomSkills
 {
     public static class NieskonczoneAmmo
     {
-
         public static void LoadNieskonczoneAmmo()
         {
+            Utils.RegisterSkill("Nieskończone Ammo", "Otrzymujesz nieskończoną ilość ammo do wszystkich swoich broni", "#0000FF");
+
             Instance.RegisterEventHandler<EventWeaponFire>((@event, info) =>
             {
                 var player = @event.Userid;

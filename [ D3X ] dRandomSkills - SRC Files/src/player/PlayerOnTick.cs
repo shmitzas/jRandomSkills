@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using static CounterStrikeSharp.API.Core.Listeners;
@@ -8,13 +7,8 @@ namespace dRandomSkills
 {
     public static class PlayerOnTick
     {
-        private static readonly Stopwatch DrawStopwatch = new Stopwatch();
-        private static readonly float DrawUpdateInterval = 0.5f;
-
         public static void Load()
         {
-            DrawStopwatch.Start();
-
             Instance.RegisterListener<OnTick>(() =>
             {
                 foreach (var player in Utilities.GetPlayers())
@@ -37,12 +31,11 @@ namespace dRandomSkills
             string infoLine = "";
             string skillLine = "";
 
-            if (skillPlayer.IsDrawing && DrawStopwatch.Elapsed.TotalSeconds >= DrawUpdateInterval)
+            if (skillPlayer.IsDrawing)
             {
-                var randomSkill = SkillData.Skills[Instance.Random.Next(SkillData.Skills.Length)];
+                var randomSkill = SkillData.Skills[Instance.Random.Next(SkillData.Skills.Count)];
                 infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>Losowanie mocy:</font> <br>";
                 skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{randomSkill.Color}'>{randomSkill.Name}</font> <br>";
-                DrawStopwatch.Restart();
             }
             else if (!skillPlayer.IsDrawing)
             {

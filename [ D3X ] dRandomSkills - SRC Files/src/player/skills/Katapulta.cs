@@ -8,6 +8,8 @@ namespace dRandomSkills
 
         public static void LoadKatapulta()
         {
+            Utils.RegisterSkill("Katapulta", "Masz 25% szans na podrzucenie wroga", "#FF4500");
+            
             Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
             {
                 var attacker = @event.Attacker;
@@ -19,7 +21,7 @@ namespace dRandomSkills
 
                 var attackerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
 
-                if (attackerInfo?.Skill == "Katapulta" && attacker.PawnIsAlive)
+                if (attackerInfo?.Skill == "Katapulta" && victim.PawnIsAlive)
                 {
                     if (Instance.Random.NextDouble() <= 0.25)
                     {

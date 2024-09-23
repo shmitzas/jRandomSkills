@@ -8,11 +8,13 @@ namespace dRandomSkills
     {
         public static void LoadEliminator()
         {
+            Utils.RegisterSkill("Eliminator", "Możesz szybciej podłożyć bombę oraz ją zdefować", "#8A2BE2");
+            
             Instance.RegisterEventHandler<EventBombBeginplant>((@event, info) =>
             {
                 foreach (var player in Utilities.GetPlayers())
                 {
-                    if (!IsPlayerValid(player)) continue;
+                    if (!IsPlayerValid(player)) return HookResult.Continue;
 
                     var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill == "Eliminator")

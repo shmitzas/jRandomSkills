@@ -14,11 +14,13 @@ namespace dRandomSkills
 
         public static void LoadPawelJumper()
         {
+            Utils.RegisterSkill("Paweł Jumper", "Otrzymujesz dodatkowy Skok", "#FFA500");
+            
             Instance.RegisterListener<OnTick>(() =>
             {
                 foreach (var player in Utilities.GetPlayers())
                 {
-                    if (!IsPlayerValid(player)) continue;
+                    if (!IsPlayerValid(player)) return;
                     var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill == "Paweł Jumper")
                     {

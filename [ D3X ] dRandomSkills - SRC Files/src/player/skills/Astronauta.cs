@@ -8,6 +8,8 @@ namespace dRandomSkills
     {
         public static void LoadAstronauta()
         {
+            Utils.RegisterSkill("Astronauta", "Otrzymujesz losową ilość grawitacji na start rundy", "#7E10AD");
+            
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
                 Instance.AddTimer(0.1f, () => 

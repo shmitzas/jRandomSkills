@@ -12,6 +12,8 @@ namespace dRandomSkills
 
         public static void LoadPilot()
         {
+            Utils.RegisterSkill("Pilot", "Latanie na noclip przez dany czas", "#1466F5");
+            
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
                 Instance.AddTimer(0.1f, () => 
@@ -38,9 +40,14 @@ namespace dRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
-                if (PlayerPilotInfo.ContainsKey(player.SteamID))
+                
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill == "Pilot")
                 {
-                    PlayerPilotInfo.Remove(player.SteamID);
+                    if (PlayerPilotInfo.ContainsKey(player.SteamID))
+                    {
+                        PlayerPilotInfo.Remove(player.SteamID);
+                    }
                 }
 
                 return HookResult.Continue;

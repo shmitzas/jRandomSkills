@@ -12,6 +12,8 @@ namespace dRandomSkills
 
         public static void LoadMuhammed()
         {
+            Utils.RegisterSkill("Muhammed", "Po śmierci wybucha i zabija graczy w obrębie", "#F5CB42");
+            
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 CCSPlayerController player = @event.Userid;
@@ -19,9 +21,10 @@ namespace dRandomSkills
                 if (!IsPlayerValid(player)) return HookResult.Continue;
                 
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill != "Muhammed") return HookResult.Continue;
-
-                SpawnExplosion(player);
+                if (playerInfo?.Skill == "Muhammed")
+                {
+                    SpawnExplosion(player);
+                }
 
                 return HookResult.Continue;
             });

@@ -8,6 +8,8 @@ namespace dRandomSkills
 
         public static void LoadZelaznaGlowa()
         {
+            Utils.RegisterSkill("Żelazna Głowa", "Nie otrzymujesz obrażeń w głowę", "#8B4513");
+            
             Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
             {
                 var attacker = @event.Attacker;

@@ -13,6 +13,8 @@ namespace dRandomSkills
 
         public static void LoadBunnyHop()
         {
+            Utils.RegisterSkill("BunnyHop", "Otrzymujesz auto BunnyHopa", "#EB4034");
+            
             Instance.RegisterListener<OnTick>(OnTick);
         }
 

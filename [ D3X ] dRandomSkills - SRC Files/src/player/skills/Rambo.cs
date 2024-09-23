@@ -8,6 +8,8 @@ namespace dRandomSkills
     {
         public static void LoadRambo()
         {
+            Utils.RegisterSkill("Rambo", "Otrzymujesz losową ilość zdrowia na start rundy", "#009905");
+            
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
                 Instance.AddTimer(0.1f, () => 

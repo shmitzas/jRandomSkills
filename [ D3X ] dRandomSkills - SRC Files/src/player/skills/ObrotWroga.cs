@@ -6,9 +6,10 @@ namespace dRandomSkills
 {
     public static class ObrotWroga
     {
-
         public static void LoadObrotWroga()
         {
+            Utils.RegisterSkill("Obrót Wroga", "Masz 25% szans na obrócenie wroga o 180 stopni po trafieniu", "#00FF00");
+
             Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
             {
                 var attacker = @event.Attacker;
@@ -19,7 +20,7 @@ namespace dRandomSkills
 
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
 
-                if (playerInfo?.Skill == "Obrót Wroga" && attacker.PawnIsAlive)
+                if (playerInfo?.Skill == "Obrót Wroga" && victim.PawnIsAlive)
                 {
                     if (Instance.Random.NextDouble() <= 0.25)
                     {

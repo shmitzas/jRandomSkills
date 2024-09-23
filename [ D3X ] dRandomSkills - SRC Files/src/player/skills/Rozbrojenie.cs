@@ -8,6 +8,8 @@ namespace dRandomSkills
 
         public static void LoadRozbrojenie()
         {
+            Utils.RegisterSkill("Rozbrojenie", "Masz 25% szans na wyrzucenie broni wroga po trafieniu", "#FF4500");
+            
             Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
             {
                 var attacker = @event.Attacker;
@@ -19,7 +21,7 @@ namespace dRandomSkills
 
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
 
-                if (playerInfo?.Skill == "Rozbrojenie" && attacker.PawnIsAlive)
+                if (playerInfo?.Skill == "Rozbrojenie" && victim.PawnIsAlive)
                 {
                     if (Instance.Random.NextDouble() <= 0.25)
                     {

@@ -10,6 +10,8 @@ namespace dRandomSkills
 
         public static void LoadCien()
         {
+            Utils.RegisterSkill("Cień", "Teleportujesz się za plecy losowego wroga", "#18171A");
+            
             Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
             {
                 var attacker = @event.Attacker;

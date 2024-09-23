@@ -10,6 +10,8 @@ namespace dRandomSkills
 
         public static void LoadDrakula()
         {
+            Utils.RegisterSkill("Drakula", "Po trafieniu ofiary otrzymujesz zwrot zdrowia w postaci danego procentu zadanych obrażeń", "#FA050D");
+            
             Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
             {
                 var attacker = @event.Attacker;
@@ -19,7 +21,7 @@ namespace dRandomSkills
 
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
 
-                if (playerInfo?.Skill == "Drakula" && attacker.PawnIsAlive)
+                if (playerInfo?.Skill == "Drakula" && victim.PawnIsAlive)
                 {
                     HealAttacker(attacker, @event.DmgHealth);
                 }

@@ -70,7 +70,7 @@ namespace dRandomSkills
                     {
                         skillPlayer.IsDrawing = false;
 
-                        var randomSkill = SkillData.Skills[Instance.Random.Next(SkillData.Skills.Length)];
+                        var randomSkill = SkillData.Skills[Instance.Random.Next(SkillData.Skills.Count)];
                         skillPlayer.Skill = randomSkill.Name;
 
                         Utils.PrintToChat(player, $"{ChatColors.DarkRed}{randomSkill.Name}{ChatColors.Lime}: {randomSkill.Description}", false);
@@ -90,8 +90,8 @@ namespace dRandomSkills
 
                                 if (!string.IsNullOrEmpty(teammateSkills))
                                 {
-                                    player.PrintToChat($" {ChatColors.Lime}Supermoce twoich sojuszników:");
-                                    player.PrintToChat(teammateSkills.TrimEnd('\n'));
+                                    Utils.PrintToChat(player, $" {ChatColors.Lime}Supermoce twoich sojuszników:", false);
+                                    Utils.PrintToChat(player, teammateSkills.TrimEnd('\n'), false);
                                 }
                             });
                         }
@@ -106,19 +106,18 @@ namespace dRandomSkills
                 var victim = @event.Userid;
                 var attacker = @event.Attacker;
 
+                if (victim == null || attacker == null || victim == attacker) return HookResult.Continue;
+
                 if(Config.config.Settings.KillerSkillInfo)
                 {
-                    if (victim != null && victim?.IsValid == true && attacker != null && attacker?.IsValid == true && victim != attacker)
+                    var attackerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+                    if (attackerInfo != null)
                     {
-                        var attackerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
-                        if (attackerInfo != null)
-                        {
-                            var skillData = SkillData.Skills.FirstOrDefault(s => s.Name == attackerInfo.Skill);
-                            string skillDesc = skillData?.Description ?? "Brak opisu";
+                        var skillData = SkillData.Skills.FirstOrDefault(s => s.Name == attackerInfo.Skill);
+                        string skillDesc = skillData?.Description ?? "Brak opisu";
 
-                            victim.PrintToChat($"{ChatColors.Lime}Supermoc przeciwnika który cię zabił:");
-                            Utils.PrintToChat(victim, $"{ChatColors.DarkRed}{attacker.PlayerName}{ChatColors.Lime} posiada mocy: {ChatColors.DarkRed}{attackerInfo.Skill}{ChatColors.Lime} - {skillDesc}", false);
-                        }
+                        Utils.PrintToChat(victim, $"Supermoc przeciwnika {ChatColors.DarkRed}{attacker.PlayerName}{ChatColors.Lime}:", false);
+                        Utils.PrintToChat(victim, $"{ChatColors.DarkRed}{attackerInfo.Skill}{ChatColors.Lime} - {skillDesc}", false);
                     }
                 }
 

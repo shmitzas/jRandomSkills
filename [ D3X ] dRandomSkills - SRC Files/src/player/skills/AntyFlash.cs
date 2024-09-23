@@ -7,6 +7,8 @@ namespace dRandomSkills
     {
         public static void LoadAntyFlash()
         {
+            Utils.RegisterSkill("Anty Flash", "Posiadasz odporność na flashe", "#D6E6FF");
+            
             Instance.RegisterEventHandler<EventPlayerBlind>((@event, info) =>
             {
                 var player = @event.Userid;

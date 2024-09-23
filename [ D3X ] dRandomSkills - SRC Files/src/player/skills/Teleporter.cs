@@ -7,6 +7,8 @@ namespace dRandomSkills
     {
         public static void LoadTeleporter()
         {
+            Utils.RegisterSkill("Teleportator", "Zamieniasz się miejscami z trafionym wrogiem", "#8A2BE2");
+            
             Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
             {
                 var victim = @event.Userid;

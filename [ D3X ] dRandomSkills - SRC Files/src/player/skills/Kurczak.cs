@@ -9,16 +9,18 @@ namespace dRandomSkills
     {
         public static void LoadKurczak()
         {
+            Utils.RegisterSkill("Kurczak", "Otrzymujesz model kurczaka + jesteś o 10% szybszy", "#FF8B42");
+            
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
                 Instance.AddTimer(0.1f, () => 
                 {
                     foreach (var player in Utilities.GetPlayers())
                     {
-                        if (!IsPlayerValid(player)) continue;
+                        if (!IsPlayerValid(player)) return;
 
                         var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != "Kurczak") continue;
+                        if (playerInfo?.Skill != "Kurczak") return;
 
                         var playerPawn = player.PlayerPawn?.Value;
                         if (playerPawn != null)
