@@ -12,7 +12,7 @@ namespace dRandomSkills
 
         public static void LoadPilot()
         {
-            Utils.RegisterSkill("Pilot", "Latanie na noclip przez dany czas", "#1466F5");
+            Utils.RegisterSkill("Pilot", "Latanie przez okreœlony czas. Przytrzymaj [USE - E], aby lataæ!", "#1466F5");
             
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {

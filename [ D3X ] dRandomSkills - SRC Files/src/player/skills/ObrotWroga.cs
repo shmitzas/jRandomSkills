@@ -1,3 +1,4 @@
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using static dRandomSkills.dRandomSkills;
@@ -8,7 +9,30 @@ namespace dRandomSkills
     {
         public static void LoadObrotWroga()
         {
-            Utils.RegisterSkill("Obrót Wroga", "Masz 25% szans na obrócenie wroga o 180 stopni po trafieniu", "#00FF00");
+            Utils.RegisterSkill("Obrót Wroga", "Masz losową szanse na obrócenie wroga o 180 stopni po trafieniu", "#00FF00", false);
+
+            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+            {
+                Instance.AddTimer(0.1f, () =>
+                {
+                    foreach (var player in Utilities.GetPlayers())
+                    {
+                        if (!IsPlayerValid(player)) continue;
+
+                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        if (playerInfo?.Skill != "Obrót Wroga") continue;
+
+                        float newChance = (float)Instance.Random.NextDouble() * (.40f - .20f) + .20f;
+                        playerInfo.SkillChance = newChance;
+                        newChance = (float)Math.Round(newChance, 2) * 100;
+                        newChance = (float)Math.Round(newChance);
+
+                        Utils.PrintToChat(player, $"{ChatColors.DarkRed}\"Obrót Wroga\"{ChatColors.Lime}: Twoje szanse na obrucenie wroga po trafieniu to: {newChance}%", false);
+                    }
+                });
+
+                return HookResult.Continue;
+            });
 
             Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
             {
@@ -22,10 +46,8 @@ namespace dRandomSkills
 
                 if (playerInfo?.Skill == "Obrót Wroga" && victim.PawnIsAlive)
                 {
-                    if (Instance.Random.NextDouble() <= 0.25)
-                    {
+                    if (Instance.Random.NextDouble() <= playerInfo.SkillChance)
                         RotateEnemy(victim);
-                    }
                 }
                 
                 return HookResult.Continue;

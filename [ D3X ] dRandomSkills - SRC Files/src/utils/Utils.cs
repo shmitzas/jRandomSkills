@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
+using System.Diagnostics;
 
 namespace dRandomSkills
 {
@@ -11,11 +12,11 @@ namespace dRandomSkills
             player.PrintToChat($" {ChatColors.DarkRed}► {ChatColors.Green}[{ChatColors.DarkRed} LOSOWE MOCE {ChatColors.Green}] {checkIcon} {msg}");
         }
 
-        public static void RegisterSkill(string name, string description, string color)
+        public static void RegisterSkill(string name, string description, string color, bool display = true)
         {
             if (!SkillData.Skills.Any(skill => skill.Name == name))
             {
-                SkillData.Skills.Add(new dSkill_SkillInfo(name, description, color));
+                SkillData.Skills.Add(new dSkill_SkillInfo(name, description, color, display));
             }
         }
     }

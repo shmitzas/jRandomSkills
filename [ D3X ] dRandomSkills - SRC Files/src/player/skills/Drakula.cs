@@ -6,8 +6,6 @@ namespace dRandomSkills
 {
     public static class Drakula
     {
-        const float VampirePercentage = 0.3f;
-
         public static void LoadDrakula()
         {
             Utils.RegisterSkill("Drakula", "Po trafieniu ofiary otrzymujesz zwrot zdrowia w postaci danego procentu zadanych obrażeń", "#FA050D");
@@ -34,11 +32,12 @@ namespace dRandomSkills
             var attackerPawn = attacker.PlayerPawn.Value;
             if (attackerPawn == null) return;
 
-            int healing = (int)(damage * VampirePercentage);
-            int newHealth = Math.Min(attackerPawn.Health + healing, attackerPawn.MaxHealth);
+            int newHealth = (int)(attackerPawn.Health + (damage * 0.3));
+
+            attackerPawn.MaxHealth = Math.Max(newHealth, 100);
+            Utilities.SetStateChanged(attackerPawn, "CBaseEntity", "m_iMaxHealth");
 
             attackerPawn.Health = newHealth;
-
             Utilities.SetStateChanged(attackerPawn, "CBaseEntity", "m_iHealth");
         }
 

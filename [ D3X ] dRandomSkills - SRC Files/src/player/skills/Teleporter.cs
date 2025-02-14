@@ -1,5 +1,8 @@
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
+using System.Numerics;
 using static dRandomSkills.dRandomSkills;
+using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 
 namespace dRandomSkills
 {
@@ -16,7 +19,6 @@ namespace dRandomSkills
 
                 if (!IsValidPlayer(victim) || !IsValidPlayer(attacker)) return HookResult.Continue;
 
-                var victimInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
                 var attackerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
 
                 if (attackerInfo?.Skill == "Teleportator")
@@ -38,16 +40,16 @@ namespace dRandomSkills
             var attackerPawn = attacker.PlayerPawn.Value;
             var victimPawn = victim.PlayerPawn.Value;
 
-            var attackerPosition = attackerPawn.AbsOrigin;
-            var attackerAngles = attackerPawn.AbsRotation;
-            var attackerVelocity = attackerPawn.AbsVelocity;
+            Vector attackerPosition = new Vector(attackerPawn.AbsOrigin.X, attackerPawn.AbsOrigin.Y, attackerPawn.AbsOrigin.Z);
+            QAngle attackerAngles = new QAngle(attackerPawn.AbsRotation.X, attackerPawn.AbsRotation.Y, attackerPawn.AbsRotation.Z);
+            Vector attackerVelocity = new Vector(attackerPawn.AbsVelocity.X, attackerPawn.AbsVelocity.Y, attackerPawn.AbsVelocity.Z);
 
-            var victimPosition = victimPawn.AbsOrigin;
-            var victimAngles = victimPawn.AbsRotation;
-            var victimVelocity = victimPawn.AbsVelocity;
+            Vector victimPosition = new Vector(victimPawn.AbsOrigin.X, victimPawn.AbsOrigin.Y, victimPawn.AbsOrigin.Z);
+            QAngle victimAngles = new QAngle(victimPawn.AbsRotation.X, victimPawn.AbsRotation.Y, victimPawn.AbsRotation.Z);
+            Vector victimVelocity = new Vector(victimPawn.AbsVelocity.X, victimPawn.AbsVelocity.Y, victimPawn.AbsVelocity.Z);
 
-            attackerPawn.Teleport(victimPosition, victimAngles, victimVelocity);
             victimPawn.Teleport(attackerPosition, attackerAngles, attackerVelocity);
+            attackerPawn.Teleport(victimPosition, victimAngles, victimVelocity);
         }
     }
 }

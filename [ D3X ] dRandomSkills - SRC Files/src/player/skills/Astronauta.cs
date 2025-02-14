@@ -1,5 +1,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Entities;
+using CounterStrikeSharp.API.Modules.Utils;
 using static dRandomSkills.dRandomSkills;
 
 namespace dRandomSkills
@@ -8,7 +10,7 @@ namespace dRandomSkills
     {
         public static void LoadAstronauta()
         {
-            Utils.RegisterSkill("Astronauta", "Otrzymujesz losową ilość grawitacji na start rundy", "#7E10AD");
+            Utils.RegisterSkill("Astronauta", "Otrzymujesz losową ilość grawitacji na start rundy", "#7E10AD", false);
             
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -21,7 +23,7 @@ namespace dRandomSkills
                         
                         if (playerInfo?.Skill == "Astronauta" && playerPawn != null)
                         {
-                            ApplyGravityModifier(playerPawn);
+                            ApplyGravityModifier(player);
                         }
                     }
                 });
@@ -29,10 +31,11 @@ namespace dRandomSkills
             });
         }
 
-        private static void ApplyGravityModifier(CCSPlayerPawn playerPawn)
+        private static void ApplyGravityModifier(CCSPlayerController player)
         {
-            float gravityModifier = (float)Math.Round(Instance.Random.NextDouble() * (0.7f - 0.2f) + 0.2f, 1);
-            playerPawn.GravityScale = gravityModifier;
+            float gravityModifier = (float)Math.Round(Instance.Random.NextDouble() * (0.7f - 0.1f) + 0.1f, 1);
+            Utils.PrintToChat(player, $"{ChatColors.DarkRed}\"Astronauta\"{ChatColors.Lime}: Twoja losowa grawitacja wynosi: {gravityModifier}x", false);
+            player.Pawn.Value.GravityScale = gravityModifier;
         }
     }
 }

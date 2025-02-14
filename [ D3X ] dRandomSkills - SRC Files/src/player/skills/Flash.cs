@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using static dRandomSkills.dRandomSkills;
 
 namespace dRandomSkills
@@ -8,7 +9,7 @@ namespace dRandomSkills
     {
         public static void LoadFlash()
         {
-            Utils.RegisterSkill("Flash", "Otrzymujesz losową ilość speed na start rundy", "#A31912");
+            Utils.RegisterSkill("Flash", "Losowa prędkośc postaci na początku rundy", "#A31912", false);
             
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -16,18 +17,20 @@ namespace dRandomSkills
                 {
                     foreach (var player in Utilities.GetPlayers())
                     {
-                        if (!IsPlayerValid(player)) return;
+                        if (!IsPlayerValid(player)) continue;
 
                         var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != "Flash") return;
+                        if (playerInfo?.Skill != "Flash") continue;
 
                         var playerPawn = player.PlayerPawn?.Value;
 
                         if (playerPawn != null)
                         {
-                            float velocityModifier = (float)Instance.Random.NextDouble() * (2.5f - 1.2f) + 1.2f;
-                            playerPawn.VelocityModifier = velocityModifier;
-                            Utilities.SetStateChanged(player, "CCSPlayerPawn", "m_flVelocityModifier");
+                            float newSpeed = (float)Instance.Random.NextDouble() * (3.0f - 1.2f) + 1.2f;
+                            newSpeed = (float)Math.Round(newSpeed, 2);
+                            playerPawn.VelocityModifier = newSpeed;
+                            Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_flVelocityModifier");
+                            Utils.PrintToChat(player, $"{ChatColors.DarkRed}\"Flash\"{ChatColors.Lime}: Twój mnożnik prędkości to {newSpeed}x", false);
                         }
                     }
                 });

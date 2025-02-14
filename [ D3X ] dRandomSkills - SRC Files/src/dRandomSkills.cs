@@ -12,7 +12,7 @@ namespace dRandomSkills
         public override string ModuleName => "[CS2] D3X - [ Random Skills ]";
         public override string ModuleAuthor => "D3X";
         public override string ModuleDescription => "Plugin dodaje na serwer losowe moce co runde na serwery CS2 by D3X";
-        public override string ModuleVersion => "1.0.1";
+        public override string ModuleVersion => "1.0.2";
 
         public override void Load(bool hotReload)
         {
@@ -23,30 +23,35 @@ namespace dRandomSkills
             PlayerOnTick.Load();
             Command.Load();
 
+            // ==== NOWE ====
+            MiniMajk.LoadMiniMajk();
+            ZamianaMiejsc.LoadZamianaMiejsc();
+            
+            // ==== POPRAWIONE/NAPRAWIONE ====
+            Flash.LoadFlash();
             PawelJumper.LoadPawelJumper();
-            Duszek.LoadDuszek();
             BunnyHop.LoadBunnyHop();
             Impostor.LoadImpostor();
-            Phoenix.LoadPhoenix();
-            Muhammed.LoadMuhammed();
-            Pilot.LoadPilot();
-            Rambo.LoadRambo();
-            Bogacz.LoadBogacz();
-            Flash.LoadFlash();
-            Astronauta.LoadAstronauta();
-            Medyk.LoadMedyk();
-            Kurczak.LoadKurczak();
             OneShot.LoadOneShot();
-            Drakula.LoadDrakula();
-            AntyFlash.LoadAntyFlash();
+            Muhammed.LoadMuhammed();
+            Bogacz.LoadBogacz();
+            Rambo.LoadRambo();
+            Medyk.LoadMedyk();
+            Duszek.LoadDuszek();
+            Kurczak.LoadKurczak();
+            Astronauta.LoadAstronauta();
             Rozbrojenie.LoadRozbrojenie();
-            ZelaznaGlowa.LoadZelaznaGlowa();
+            AntyFlash.LoadAntyFlash();
+            ObrotWroga.LoadObrotWroga();
             NieskonczoneAmmo.LoadNieskonczoneAmmo();
             Katapulta.LoadKatapulta();
-            ObrotWroga.LoadObrotWroga();
-            Cien.LoadCien();
+            Drakula.LoadDrakula();
             Teleporter.LoadTeleporter();
-            Eliminator.LoadEliminator();
+            Saper.LoadEliminator();
+            Phoenix.LoadPhoenix();
+            Pilot.LoadPilot();
+            Cien.LoadCien();
+            ZelaznaGlowa.LoadZelaznaGlowa();
         }
     }
 
@@ -55,6 +60,7 @@ namespace dRandomSkills
         public required ulong SteamID { get; set; }
         public required string PlayerName { get; set; }
         public string? Skill { get; set; }
+        public float? SkillChance { get; set; }
         public bool IsDrawing { get; set; }
     }
 
@@ -64,11 +70,14 @@ namespace dRandomSkills
         public string Description { get; }
         public string Color { get; }
 
-        public dSkill_SkillInfo(string name, string description, string color)
+        public bool Display { get; }
+
+        public dSkill_SkillInfo(string name, string description, string color, bool display)
         {
             Name = name;
             Description = description;
             Color = color;
+            Display = display;
         }
     }
 

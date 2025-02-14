@@ -21,6 +21,7 @@ namespace dRandomSkills
                     PlayerName = player.PlayerName,
                     Skill = "",
                     IsDrawing = false,
+                    SkillChance = 1,
                 });
 
                 return HookResult.Continue;
@@ -73,7 +74,8 @@ namespace dRandomSkills
                         var randomSkill = SkillData.Skills[Instance.Random.Next(SkillData.Skills.Count)];
                         skillPlayer.Skill = randomSkill.Name;
 
-                        Utils.PrintToChat(player, $"{ChatColors.DarkRed}{randomSkill.Name}{ChatColors.Lime}: {randomSkill.Description}", false);
+                        if (randomSkill.Display)
+                            Utils.PrintToChat(player, $"{ChatColors.DarkRed}{randomSkill.Name}{ChatColors.Lime}: {randomSkill.Description}", false);
 
                         if(Config.config.Settings.TeamMateSkillInfo)
                         {

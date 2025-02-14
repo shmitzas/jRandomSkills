@@ -1,6 +1,7 @@
 using System.Drawing;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using static CounterStrikeSharp.API.Core.Listeners;
 using static dRandomSkills.dRandomSkills;
 
 namespace dRandomSkills
@@ -36,13 +37,42 @@ namespace dRandomSkills
                     if (!IsValidPlayer(player)) continue;
                     var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill == "Duszek")
-                    {
                         SetPlayerVisibility(player, true);
-                    }
                 }
 
                 return HookResult.Continue;
             });
+
+            Instance.RegisterEventHandler<EventItemEquip>((@event, info) =>
+            {
+                var player = @event.Userid;
+                if (!IsValidPlayer(player)) return HookResult.Continue;
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+
+                if (playerInfo?.Skill != "Duszek") return HookResult.Continue;
+                SetWeaponVisibility(player, false);
+                return HookResult.Continue;
+            });
+
+            Instance.RegisterListener<OnTick>(OnTick);
+        }
+
+        private static void OnTick()
+        {
+            foreach (var player in Utilities.GetPlayers())
+            {
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+
+                if (playerInfo?.Skill == "Duszek")
+                {
+                    var activeWeapon = player.Pawn.Value.WeaponServices?.ActiveWeapon.Value;
+                    if (activeWeapon != null && activeWeapon.IsValid && activeWeapon.Clip1 != 0)
+                    {
+                        activeWeapon.Clip1 = 0;
+                        activeWeapon.Clip2 = 0;
+                    }
+                }
+            }
         }
 
         private static bool IsValidPlayer(CCSPlayerController player)
@@ -62,26 +92,37 @@ namespace dRandomSkills
                 playerPawn.ShadowStrength = shadowStrength;
                 Utilities.SetStateChanged(playerPawn, "CBaseModelEntity", "m_clrRender");
 
-                var activeWeapon = playerPawn.WeaponServices?.ActiveWeapon.Value;
-                if (activeWeapon != null && activeWeapon.IsValid)
-                {
-                    activeWeapon.Render = color;
-                    activeWeapon.ShadowStrength = shadowStrength;
-                    Utilities.SetStateChanged(activeWeapon, "CBaseModelEntity", "m_clrRender");
-                }
+                SetWeaponVisibility(player, visible);
+            }
+        }
 
-                var myWeapons = playerPawn.WeaponServices?.MyWeapons;
-                if (myWeapons != null)
+        private static void SetWeaponVisibility(CCSPlayerController player, bool visible)
+        {
+            if (!IsValidPlayer(player)) return;
+            var playerPawn = player.PlayerPawn.Value;
+
+            var color = visible ? Color.FromArgb(255, 255, 255, 255) : Color.FromArgb(0, 255, 255, 255);
+            var shadowStrength = visible ? 1.0f : 0.0f;
+
+            var activeWeapon = playerPawn.WeaponServices?.ActiveWeapon.Value;
+            if (activeWeapon != null && activeWeapon.IsValid)
+            {
+                activeWeapon.Render = color;
+                activeWeapon.ShadowStrength = shadowStrength;
+                Utilities.SetStateChanged(activeWeapon, "CBaseModelEntity", "m_clrRender");
+            }
+
+            var myWeapons = playerPawn.WeaponServices?.MyWeapons;
+            if (myWeapons != null)
+            {
+                foreach (var gun in myWeapons)
                 {
-                    foreach (var gun in myWeapons)
+                    var weapon = gun.Value;
+                    if (weapon != null)
                     {
-                        var weapon = gun.Value;
-                        if (weapon != null)
-                        {
-                            weapon.Render = color;
-                            weapon.ShadowStrength = shadowStrength;
-                            Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_clrRender");
-                        }
+                        weapon.Render = color;
+                        weapon.ShadowStrength = shadowStrength;
+                        Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_clrRender");
                     }
                 }
             }

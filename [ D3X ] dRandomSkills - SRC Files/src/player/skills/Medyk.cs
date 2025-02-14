@@ -16,15 +16,14 @@ namespace dRandomSkills
                 {
                     foreach (var player in Utilities.GetPlayers())
                     {
-                        if (!IsPlayerValid(player)) return;
+                        if (!IsPlayerValid(player)) continue;
+                        player.RemoveItemByDesignerName("weapon_healthshot");
                         var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != "Medyk") return;
+                        if (playerInfo?.Skill != "Medyk") continue;
 
                         int healthshot = Instance.Random.Next(1, 10);
                         for (int i = 0; i < healthshot; i++)
-                        {
                             player.GiveNamedItem("weapon_healthshot");
-                        }
                     }
                 });
 
@@ -36,10 +35,6 @@ namespace dRandomSkills
                 foreach (var player in Utilities.GetPlayers())
                 {
                     if (!IsPlayerValid(player)) return HookResult.Continue;
-
-                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    if (playerInfo?.Skill != "Medyk") return HookResult.Continue;
-
                     player.RemoveItemByDesignerName("weapon_healthshot");
                 }
                 

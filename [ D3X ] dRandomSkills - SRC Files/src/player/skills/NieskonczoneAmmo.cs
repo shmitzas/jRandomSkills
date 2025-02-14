@@ -1,4 +1,5 @@
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using static dRandomSkills.dRandomSkills;
 
 namespace dRandomSkills
@@ -21,6 +22,20 @@ namespace dRandomSkills
                 {
                     ApplyInfiniteAmmo(player);
                 }
+
+                return HookResult.Continue;
+            });
+
+            Instance.RegisterEventHandler<EventGrenadeThrown>((@event, info) =>
+            {
+                var player = @event.Userid;
+
+                if (!IsValidPlayer(player)) return HookResult.Continue;
+
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+
+                if (playerInfo?.Skill == "Nieskończone Ammo")
+                    player.GiveNamedItem($"weapon_{@event.Weapon}");
 
                 return HookResult.Continue;
             });

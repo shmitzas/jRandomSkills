@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "dRandomSkills": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
