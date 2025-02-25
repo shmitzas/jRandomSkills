@@ -48,7 +48,7 @@
   "quickshot_desc": "Brak cooldown przy strzelaniu",
   "teleporter_desc": "Zamieniasz się miejscami z trafionym wrogiem",
   "wallhack_desc": "Widzisz wrogów przez ściany",
-  "killer_flash_desc": "Każdy całkowicie oślepiony twoim granatem umiera (również ty)",
+  "killerflash_desc": "Każdy całkowicie oślepiony twoim granatem umiera (również ty)",
   "weaponsswap_desc": "Zamieniasz się bronią z losowym wrogiem. Kliknij [css_useSkill], cooldown 30s",
   "weaponsswap_hud_info2": "Nie posiadasz broni na zamiane",
   "hud_info_no_enemy": "Nie znaleziono przeciwnika",

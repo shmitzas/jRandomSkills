@@ -48,7 +48,7 @@
   "quickshot_desc": "No cooldown when shooting",
   "teleporter_desc": "You swap places with the hit enemy",
   "wallhack_desc": "You can see enemies through walls",
-  "killer_flash_desc": "Every enemy fully blinded by your flashbang dies (including you)",
+  "killerflash_desc": "Every enemy fully blinded by your flashbang dies (including you)",
   "weaponsswap_desc": "Swap weapons with a random enemy. Press [css_useSkill], cooldown 30s",
   "weaponsswap_hud_info2": "You have no weapon to swap",
   "hud_info_no_enemy": "No enemy found",
