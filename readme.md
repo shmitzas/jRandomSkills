@@ -1,5 +1,5 @@
 # 🤔 Opis
-##### Link do [orginalnego projektu](https://github.com/Juzlus/dRandomSkills) stworzonego przez [jakubbartosik](https://github.com/jakubbartosik).
+##### Link do [orginalnego projektu](https://github.com/jakubbartosik/dRandomSkills) stworzonego przez [jakubbartosik](https://github.com/jakubbartosik).
 
 ## ✨ Aktualne moce (43)
     FrozenDecoy,
