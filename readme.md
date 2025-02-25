@@ -1,7 +1,25 @@
 # 🤔 Opis
 ##### Link do [orginalnego projektu](https://github.com/Juzlus/dRandomSkills) stworzonego przez [jakubbartosik](https://github.com/jakubbartosik).
 
-## ✨ Aktualne moce (26)
+## ✨ Aktualne moce (43)
+    FrozenDecoy,
+    Soldier,
+    Armored,
+    Aimbot,
+    Retreat,
+    EnemySpawn,
+    Zeus,
+    RadarHack,
+    QuickShot,
+    Planter,
+    Silent,
+    KillerFlash,
+    TimeManipulator,
+    GodMode,
+    RandomWeapon,
+    WeaponsSwap,
+    Wallhack,
+    
 - **MiniMajk:** Losowa wielkość postaci na początku rundy (0.6 - 0.95)
 - **ZamianaMiejsc:** Zamiana miejscami z losowym wrogiem. Kliknij [USE - E], cooldown 30s
 - **Flash:** Losowa prędkośc postaci na początku rundy (1.2 - 3.0)
