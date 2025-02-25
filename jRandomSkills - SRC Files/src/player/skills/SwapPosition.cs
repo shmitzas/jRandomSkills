@@ -127,14 +127,6 @@ namespace jRandomSkills
             player.PrintToCenterHtml(hudContent);
         }
 
-        private static void ActiveUse(CCSPlayerController player)
-        {
-            if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-            {
-                skillInfo.CanUse = true;
-            }
-        }
-
         private static void UseSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;

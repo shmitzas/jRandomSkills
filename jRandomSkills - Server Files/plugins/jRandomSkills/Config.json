@@ -40,8 +40,8 @@
       "Name": "Soldier",
       "Active": true,
       "Cooldown": 15.0,
-      "ChanceFrom": 1.0,
-      "ChanceTo": 1.0,
+      "ChanceFrom": 1.15,
+      "ChanceTo": 1.35,
       "Team": 1,
       "Only1v1": false
     },
@@ -400,7 +400,7 @@
   "Settings": {
     "LangCode": "en",
     "Set_Skill": "ustawskill, setskill",
-    "SkillsList_Menu": "supermoc, skille, listamocy, supermoce, losowemoce",
+    "SkillsList_Menu": "supermoc, skills, listamocy, supermoce, losowemoce",
     "KillerSkillInfo": true,
     "TeamMateSkillInfo": true,
     "SummaryAfterTheRound": true

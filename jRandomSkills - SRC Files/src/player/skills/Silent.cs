@@ -23,7 +23,7 @@ namespace jRandomSkills
                 var userIndex = um.ReadUInt("source_entity_index");
 
                 if (userIndex == 0) return HookResult.Continue;
-                
+
                 if (!Instance.footstepSoundEvents.Contains(soundevent) && !Instance.silentSoundEvents.Contains(soundevent))
                     return HookResult.Continue;
 

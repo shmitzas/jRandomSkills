@@ -67,6 +67,9 @@ namespace jRandomSkills
             if (attackerPawn == null || attackerPawn.Controller?.Value == null || victimPawn == null || victimPawn.Controller?.Value == null)
                 return HookResult.Continue;
 
+            if (attackerPawn.DesignerName != "player" || victimPawn.DesignerName != "player")
+                return HookResult.Continue;
+
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
             CCSPlayerController victim = victimPawn.Controller.Value.As<CCSPlayerController>();
 

@@ -75,7 +75,7 @@ namespace jRandomSkills
                 new SkillInfo(Skills.Dwarf, chanceFrom : .6f, chanceTo : .95f),
                 new SkillInfo(Skills.SwapPosition, cooldown: 30),
                 new SkillInfo(Skills.FrozenDecoy),
-                new SkillInfo(Skills.Soldier),
+                new SkillInfo(Skills.Soldier, chanceFrom: 1.15f, chanceTo: 1.35f),
                 new SkillInfo(Skills.Armored, chanceFrom : .65f, chanceTo : .85f),
                 new SkillInfo(Skills.Aimbot, only1v1: true),
                 new SkillInfo(Skills.Retreat, cooldown: 15),

@@ -42,7 +42,11 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            float newScale = (float)Instance.Random.NextDouble() * (1.35f - 1.15f) + 1.15f;
+
+            var skillConfig = Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString());
+            if (skillConfig == null) return;
+
+            float newScale = (float)Instance.Random.NextDouble() * (skillConfig.ChanceTo - skillConfig.ChanceFrom) + skillConfig.ChanceFrom;
             playerInfo.SkillChance = newScale;
             newScale = (float)Math.Round(newScale, 2);
             Utils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("soldier")}{ChatColors.Lime}: " + Localization.GetTranslation("soldier_desc2", newScale), false);
@@ -60,6 +64,9 @@ namespace jRandomSkills
             CCSPlayerPawn victimPawn = new CCSPlayerPawn(param.Handle);
 
             if (attackerPawn == null || attackerPawn.Controller?.Value == null || victimPawn == null || victimPawn.Controller?.Value == null)
+                return HookResult.Continue;
+
+            if (attackerPawn.DesignerName != "player" || victimPawn.DesignerName != "player")
                 return HookResult.Continue;
 
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();

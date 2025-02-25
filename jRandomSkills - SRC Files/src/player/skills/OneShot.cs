@@ -1,4 +1,4 @@
-using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using jRandomSkills.src.player;
@@ -33,18 +33,18 @@ namespace jRandomSkills
             if (attackerPawn == null || attackerPawn.Controller?.Value == null || victimPawn == null || victimPawn.Controller?.Value == null)
                 return HookResult.Continue;
 
+            if (attackerPawn.DesignerName != "player" || victimPawn.DesignerName != "player")
+                return HookResult.Continue;
+
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
             CCSPlayerController victim = victimPawn.Controller.Value.As<CCSPlayerController>();
-            
+
             var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
             if (playerInfo == null) return HookResult.Continue;
-            
-            if (playerInfo.Skill == skillName && attacker.PawnIsAlive)
-            {
-                param2.Damage = 1000f;
-            }
 
-            return HookResult.Continue;
+            if (playerInfo.Skill == skillName && attacker.PawnIsAlive)
+                param2.Damage = 1000f;
+            return HookResult.Changed;
         }
     }
 }

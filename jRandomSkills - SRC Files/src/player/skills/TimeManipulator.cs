@@ -115,14 +115,6 @@ namespace jRandomSkills
             player.PrintToCenterHtml(hudContent);
         }
 
-        private static void ActiveUse(CCSPlayerController player)
-        {
-            if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-            {
-                skillInfo.CanUse = true;
-            }
-        }
-
         private static void UseSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
@@ -136,8 +128,13 @@ namespace jRandomSkills
                     skillInfo.CanUse = false;
                     skillInfo.Cooldown = DateTime.Now;
 
+                    Server.ExecuteCommand("sv_cheats 1");
                     Server.ExecuteCommand("host_timescale 0.1");
-                    Instance.AddTimer(.6f, () => Server.ExecuteCommand("host_timescale 1"));
+                    Instance.AddTimer(.6f, () =>
+                    {
+                        Server.ExecuteCommand("host_timescale 1");
+                        Server.ExecuteCommand("sv_cheats 0");
+                    });
                 }
                 else
                     skillInfo.LastClick = DateTime.Now;
