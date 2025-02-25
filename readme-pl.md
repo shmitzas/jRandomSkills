@@ -22,7 +22,7 @@
 
 ## ✨ Aktualne Supermoce (43)
 > [!NOTE]
-> Jeśli serwer jest postawiony na systemie **Windows** mogą wystąpić problemy z supormecami: Aimbot, Gruby, Żołnierz, Jednostrzałowiec
+> Jeśli serwer jest postawiony na systemie **Windows** mogą wystąpić problemy z supormecami: **Aimbot**, **Gruby**, **Żołnierz**, **Jednostrzałowiec**.
 
 - **Zamrażający Decoy:** Twój decoy zamraża wszystkich pobliskich graczy
 - **Żołnierz:** Masz losowy mnożnik obrażeń (1.15 - 1.35)x
@@ -73,13 +73,13 @@
 > **Bind do używania supermocy:** `bind x css_useSkill`
 
 - **Lista supermocy:** `!skills`
-- **Ustawienie supermocy$^1$:** `!setskill <nickname> <skill>`, `!setskill Juzlus Losowa Broń` 
+- **[*] Ustawienie supermocy:** `!setskill <nickname> <skill>`, `!setskill Juzlus Losowa Broń` 
 $\quad$
-- **Zmiana mapy$^1$:** `!map <nazwa_mapy>`, `!map de_nuke`
-- **Zmiana mapy z warsztatu$^1$:** `!map <id_mapy>`, `!map 3332005394`
-- **Szybkie rozpoczęcie gry$^1$:** `!map start`
+- **[*] Zmiana mapy$^1$:** `!map <nazwa_mapy>`, `!map de_nuke`
+- **[*] Zmiana mapy z warsztatu$^1$:** `!map <id_mapy>`, `!map 3332005394`
+- **[*] Szybkie rozpoczęcie gry$^1$:** `!map start`
 
-_$^1$ - wymaga uprawnień "@css/root", które można ustawić w game/csgo/addons/counterstrikesharp/configs/admins.json_
+_[*] - wymaga uprawnień "@css/root", które można ustawić w game/csgo/addons/counterstrikesharp/configs/admins.json_
 
 ## ⚙️ Konfiguracja
 Możliwość prostej konfiguracji każdej supermocy w pliku "**Config.cfg**"

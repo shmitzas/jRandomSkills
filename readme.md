@@ -21,7 +21,7 @@
 
 ## ✨ Current Skills (43)
 > [!NOTE]
-> If the server is hosted on **Windows** there may be problems with the skills: Aimbot, Tank, Soldier, One-Shot.
+> If the server is hosted on **Windows** there may be problems with the skills: **Aimbot**, **Tank**, **Soldier**, **One-Shot**.
 
 - **Freezing Decoy:** Your decoy freezes all nearby players.
 - **Soldier:** You have a random damage multiplier (1.15 - 1.35)x.
@@ -72,13 +72,13 @@
 > **Bind to use skills:** `bind x css_useSkill`
 
 - **List of skills:** `!skills`
-- **Set skill$^1$:** `!setskill <nickname> <skill>`, `!setskill Juzlus Random Weapon`
+- **[*] Set skill:** `!setskill <nickname> <skill>`, `!setskill Juzlus Random Weapon`
 $\quad$
-- **Change map$^1$:** `!map <map_name>`, `!map de_nuke`
-- **Change workshop map$^1$:** `!map <map_id>`, `!map 3332005394`
-- **Quick game start$^1$:** `!map start`
+- **[*] Change map:** `!map <map_name>`, `!map de_nuke`
+- **[*] Change workshop map:** `!map <map_id>`, `!map 3332005394`
+- **[*] Quick game start:** `!map start`
 
-_$^1$ - Requires "@css/root" permission, which can be set in game/csgo/addons/counterstrikesharp/configs/admins.json_
+_[*] - Requires "@css/root" permission, which can be set in game/csgo/addons/counterstrikesharp/configs/admins.json_
 
 ## ⚙️ Configuration
 Easily configure each skill in the "**Config.cfg**" file:
