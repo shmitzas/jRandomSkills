@@ -12,7 +12,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            Utils.RegisterSkill(skillName, "#8A2BE2");
+            SkillUtils.RegisterSkill(skillName, "#8A2BE2");
             
             Instance.RegisterEventHandler<EventBombBeginplant>((@event, info) =>
             {

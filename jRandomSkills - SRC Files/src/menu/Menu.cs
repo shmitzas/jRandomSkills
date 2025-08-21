@@ -25,7 +25,7 @@ namespace jRandomSkills
                     string skillName = cleanSkillName.Replace($" ★ ", "");
                     int intValue = Array.IndexOf(SkillData.Skills.Select(r => r.Name).ToArray(), skillName);
                     string skillDesc = SkillData.Skills[intValue].Description;
-                    Utils.PrintToChat(player, $"{ChatColors.DarkRed}{skillName}{ChatColors.Lime}: {skillDesc}", false);
+                    SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{skillName}{ChatColors.Lime}: {skillDesc}", false);
                     MenuManager.CloseActiveMenu(player);
                 });
             }

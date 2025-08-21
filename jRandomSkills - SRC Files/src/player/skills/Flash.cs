@@ -17,7 +17,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#A31912", false);
+            SkillUtils.RegisterSkill(skillName, "#A31912", false);
             Instance.RegisterListener<OnTick>(UpdateSpeed);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
@@ -80,7 +80,7 @@ namespace jRandomSkills
 
             playerPawn.VelocityModifier = newSpeed;
             Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_flVelocityModifier");
-            Utils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("flash")}{ChatColors.Lime}: " + Localization.GetTranslation("flash_desc2", newSpeed), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("flash")}{ChatColors.Lime}: " + Localization.GetTranslation("flash_desc2", newSpeed), false);
         }
 
         public static void DisableSkill(CCSPlayerController player)

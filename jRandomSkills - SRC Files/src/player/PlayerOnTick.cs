@@ -1,7 +1,9 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
+using static jRandomSkills.Config;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -67,8 +69,11 @@ namespace jRandomSkills
                     var observeredPlayerSkillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == observeredPlayerSkill.Skill);
                     if (observeredPlayerSkillInfo == null) return;
 
+                    var observeredPlayerSpecialSkillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == observeredPlayerSkill.SpecialSkill);
+                    if (observeredPlayerSpecialSkillInfo == null) return;
+
                     infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("observer_skill")} {observeredPlayerSkill.PlayerName}:</font> <br>";
-                    skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{observeredPlayerSkillInfo.Color}'>{observeredPlayerSkillInfo.Name}</font> <br>";
+                    skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{observeredPlayerSkillInfo.Color}'>{(observeredPlayerSkill.SpecialSkill == Skills.None ? observeredPlayerSkillInfo.Name : $"{observeredPlayerSpecialSkillInfo.Name}({observeredPlayerSkillInfo.Name})")}</font> <br>";
                 }
             }
 

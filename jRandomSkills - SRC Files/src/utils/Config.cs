@@ -1,7 +1,6 @@
 using jRandomSkills.src.player;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Diagnostics.Metrics;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -69,14 +68,37 @@ namespace jRandomSkills
 
         public class ConfigModel
         {
+            // Team: 2 - TT, 3 - CT
+
             public Settings Settings { get; set; } = new Settings();
             public SkillInfo[] SkillsInfo = {
                 new SkillInfo(Skills.None),
-                new SkillInfo(Skills.Dwarf, chanceFrom : .6f, chanceTo : .95f),
+
+                new SkillInfo(Skills.NoRecoil),
+                new SkillInfo(Skills.SecondLife),
+                new SkillInfo(Skills.C4Camouflage),
+                new SkillInfo(Skills.Ninja),
+                new SkillInfo(Skills.SoundMaker, cooldown: 5),
+                new SkillInfo(Skills.Prosthesis),
+                new SkillInfo(Skills.OnlyHead),
+                new SkillInfo(Skills.ReactiveArmor, cooldown: 15),
+                new SkillInfo(Skills.ReturnToSender),
+                new SkillInfo(Skills.Jammer),
+                new SkillInfo(Skills.RobinHood),
+                new SkillInfo(Skills.Hermit),
+                new SkillInfo(Skills.AreaReaper, team: 3),
+                new SkillInfo(Skills.Mute),
+                new SkillInfo(Skills.HolyHandGrenade),
+                new SkillInfo(Skills.Replicator, cooldown: 15),
+                new SkillInfo(Skills.ToxicSmoke),
+                new SkillInfo(Skills.Duplicator),
+                new SkillInfo(Skills.Thief),
+                new SkillInfo(Skills.Deactivator),
+                new SkillInfo(Skills.Dwarf, chanceFrom: .6f, chanceTo : .95f),
                 new SkillInfo(Skills.SwapPosition, cooldown: 30),
                 new SkillInfo(Skills.FrozenDecoy),
                 new SkillInfo(Skills.Soldier, chanceFrom: 1.15f, chanceTo: 1.35f),
-                new SkillInfo(Skills.Armored, chanceFrom : .65f, chanceTo : .85f),
+                new SkillInfo(Skills.Armored, chanceFrom: .65f, chanceTo : .85f),
                 new SkillInfo(Skills.Aimbot, only1v1: true),
                 new SkillInfo(Skills.Retreat, cooldown: 15),
                 new SkillInfo(Skills.EnemySpawn, cooldown: 15),
@@ -91,7 +113,7 @@ namespace jRandomSkills
                 new SkillInfo(Skills.RandomWeapon, cooldown: 15),
                 new SkillInfo(Skills.WeaponsSwap, cooldown: 30),
                 new SkillInfo(Skills.Wallhack),
-                new SkillInfo(Skills.Flash, chanceFrom : 1.2f, chanceTo : 3.0f),
+                new SkillInfo(Skills.Flash, chanceFrom: 1.2f, chanceTo: 3.0f),
                 new SkillInfo(Skills.PawelJumper),
                 new SkillInfo(Skills.BunnyHop),
                 new SkillInfo(Skills.Impostor),
@@ -102,7 +124,7 @@ namespace jRandomSkills
                 new SkillInfo(Skills.Medic),
                 new SkillInfo(Skills.Ghost),
                 new SkillInfo(Skills.Chicken),
-                new SkillInfo(Skills.Astronaut, chanceFrom : .1f, chanceTo : .7f),
+                new SkillInfo(Skills.Astronaut, chanceFrom: .1f, chanceTo: .7f),
                 new SkillInfo(Skills.Disarmament, chanceFrom: .2f, chanceTo: .4f),
                 new SkillInfo(Skills.AntyFlash),
                 new SkillInfo(Skills.Behind, chanceFrom: .2f, chanceTo: .4f),

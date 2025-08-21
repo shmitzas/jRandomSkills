@@ -17,19 +17,16 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#F5CB42");
+            SkillUtils.RegisterSkill(skillName, "#F5CB42");
             
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 CCSPlayerController player = @event.Userid;
+                if (!IsDeadPlayerValid(player)) return HookResult.Continue;
 
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
-                
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                {
                     SpawnExplosion(player);
-                }
 
                 return HookResult.Continue;
             });
@@ -51,7 +48,6 @@ namespace jRandomSkills
             heProjectile.DispatchSpawn();
             heProjectile.AcceptInput("InitializeSpawnFromWorld", player.PlayerPawn.Value, player.PlayerPawn.Value, "");
             heProjectile.DetonateTime = 0;
-
             Server.PrintToChatAll($" {ChatColors.DarkRed}► {ChatColors.Green}[{ChatColors.DarkRed} qRandomSkills {ChatColors.Green}] {ChatColors.DarkRed}{player.PlayerName}: {ChatColors.Lime}ALLAHU AKBAR!!!");
 
             var fileNames = new[] { "radiobotfallback01", "radiobotfallback02", "radiobotfallback04" };
@@ -60,6 +56,11 @@ namespace jRandomSkills
                 var randomFile = fileNames[new Random().Next(fileNames.Length)];
                 player.ExecuteClientCommand($"play vo/agents/balkan/{randomFile}.vsnd");
             });
+        }
+
+        private static bool IsDeadPlayerValid(CCSPlayerController player)
+        {
+            return player != null && player.IsValid && player.PlayerPawn?.Value != null;
         }
     }
 }

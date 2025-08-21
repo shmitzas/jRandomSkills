@@ -18,7 +18,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#EB4034");
+            SkillUtils.RegisterSkill(skillName, "#EB4034");
             Instance.RegisterListener<OnTick>(OnTick);
         }
 
@@ -40,9 +40,9 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn != null)
             {
-                if(Math.Round(playerPawn.AbsVelocity.Length2D()) > MaxSpeed && MaxSpeed != 0)
+                if (Math.Round(playerPawn.AbsVelocity.Length2D()) > MaxSpeed && MaxSpeed != 0)
                     ChangeVelocity(playerPawn, MaxSpeed);
-                
+
                 var flags = (PlayerFlags)playerPawn.Flags;
                 var buttons = player.Buttons;
 

@@ -19,7 +19,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#a86eff");
+            SkillUtils.RegisterSkill(skillName, "#a86eff");
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -66,14 +66,6 @@ namespace jRandomSkills
                             UpdateHUD(player, skillInfo);
                 }
             });
-
-            Instance.AddCommand("css_useSkill", "Use Skill", (player, _) =>
-            {
-                if (player == null) return;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    UseSkill(player);
-            });
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -116,15 +108,7 @@ namespace jRandomSkills
             player.PrintToCenterHtml(hudContent);
         }
 
-        private static void ActiveUse(CCSPlayerController player)
-        {
-            if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-            {
-                skillInfo.CanUse = true;
-            }
-        }
-
-        private static void UseSkill(CCSPlayerController player)
+        public static void UseSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn?.CBodyComponent == null) return;

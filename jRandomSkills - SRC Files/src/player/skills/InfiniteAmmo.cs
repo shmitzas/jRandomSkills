@@ -13,7 +13,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#0000FF");
+            SkillUtils.RegisterSkill(skillName, "#0000FF");
 
             Instance.RegisterEventHandler<EventWeaponFire>((@event, info) =>
             {

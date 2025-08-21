@@ -16,7 +16,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#FF4500", false);
+            SkillUtils.RegisterSkill(skillName, "#FF4500", false);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -72,7 +72,7 @@ namespace jRandomSkills
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
             newChance = (float)Math.Round(newChance);
-            Utils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("catapult")}{ChatColors.Lime}: " + Localization.GetTranslation("catapult_desc2", newChance), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("catapult")}{ChatColors.Lime}: " + Localization.GetTranslation("catapult_desc2", newChance), false);
         }
     }
 }

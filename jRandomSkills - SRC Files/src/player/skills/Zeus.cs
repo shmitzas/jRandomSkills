@@ -1,4 +1,6 @@
-﻿using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -13,7 +15,23 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#fbff00");
+            SkillUtils.RegisterSkill(skillName, "#fbff00");
+
+            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+            {
+                Instance.AddTimer(0.1f, () =>
+                {
+                    foreach (var player in Utilities.GetPlayers())
+                    {
+                        if (!Instance.IsPlayerValid(player)) continue;
+                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        if (playerInfo?.Skill != skillName) continue;
+                        EnableSkill(player);
+                    }
+                });
+
+                return HookResult.Continue;
+            });
 
             Instance.RegisterEventHandler<EventWeaponFire>((@event, info) =>
             {
@@ -39,6 +57,11 @@ namespace jRandomSkills
 
                 return HookResult.Continue;
             });
+        }
+
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            SkillUtils.TryGiveWeapon(player, CsItem.Zeus);
         }
     }
 }

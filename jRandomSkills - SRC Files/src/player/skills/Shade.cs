@@ -1,6 +1,8 @@
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
+using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -15,7 +17,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#18171A");
+            SkillUtils.RegisterSkill(skillName, "#18171A");
             
             Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
             {
@@ -32,6 +34,13 @@ namespace jRandomSkills
 
                 return HookResult.Continue;
             });
+
+            Instance.RegisterListener<OnTick>(() =>
+            {
+                var skillInfo = Instance.skillPlayer.FirstOrDefault(p => p.Skill == skillName);
+                if (skillInfo == null) return;
+                var player = Utilities.GetPlayerFromSteamId(skillInfo.SteamID);
+            });
         }
 
         private static void TeleportAttackerBehindVictim(CCSPlayerController attacker, CCSPlayerController victim)
@@ -44,21 +53,8 @@ namespace jRandomSkills
             Vector victimPosition = victimPawn.AbsOrigin;
             QAngle victimAngles = victimPawn.AbsRotation;
 
-            Vector behindPosition = victimPosition - GetForwardVector(victimAngles) * TeleportDistance;
-
+            Vector behindPosition = victimPosition - SkillUtils.GetForwardVector(victimAngles) * TeleportDistance;
             attackerPawn.Teleport(behindPosition, victimAngles, new Vector(0, 0, 0));
-        }
-
-        private static Vector GetForwardVector(QAngle angles)
-        {
-            float pitch = angles.X * (float)(Math.PI / 180);
-            float yaw = angles.Y * (float)(Math.PI / 180);
-
-            float x = (float)(Math.Cos(pitch) * Math.Cos(yaw));
-            float y = (float)(Math.Cos(pitch) * Math.Sin(yaw));
-            float z = (float)Math.Sin(pitch);
-
-            return new Vector(x, y, z);
         }
     }
 }

@@ -18,7 +18,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#09ba00", false);
+            SkillUtils.RegisterSkill(skillName, "#09ba00", false);
             VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamage, HookMode.Pre);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
@@ -49,7 +49,7 @@ namespace jRandomSkills
             float newScale = (float)Instance.Random.NextDouble() * (skillConfig.ChanceTo - skillConfig.ChanceFrom) + skillConfig.ChanceFrom;
             playerInfo.SkillChance = newScale;
             newScale = (float)Math.Round(newScale, 2);
-            Utils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("soldier")}{ChatColors.Lime}: " + Localization.GetTranslation("soldier_desc2", newScale), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("soldier")}{ChatColors.Lime}: " + Localization.GetTranslation("soldier_desc2", newScale), false);
         }
 
         private static HookResult OnTakeDamage(DynamicHook h)
@@ -57,16 +57,16 @@ namespace jRandomSkills
             CEntityInstance param = h.GetParam<CEntityInstance>(0);
             CTakeDamageInfo param2 = h.GetParam<CTakeDamageInfo>(1);
 
-            if (param == null || param2 == null || param2.Attacker == null)
+            if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
                 return HookResult.Continue;
 
             CCSPlayerPawn attackerPawn = new CCSPlayerPawn(param2.Attacker.Value.Handle);
             CCSPlayerPawn victimPawn = new CCSPlayerPawn(param.Handle);
 
-            if (attackerPawn == null || attackerPawn.Controller?.Value == null || victimPawn == null || victimPawn.Controller?.Value == null)
+            if (attackerPawn.DesignerName != "player" || victimPawn.DesignerName != "player")
                 return HookResult.Continue;
 
-            if (attackerPawn.DesignerName != "player" || victimPawn.DesignerName != "player")
+            if (attackerPawn == null || attackerPawn.Controller?.Value == null || victimPawn == null || victimPawn.Controller?.Value == null)
                 return HookResult.Continue;
 
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();

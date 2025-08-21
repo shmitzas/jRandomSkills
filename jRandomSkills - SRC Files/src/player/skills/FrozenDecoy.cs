@@ -5,7 +5,6 @@ using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
@@ -23,12 +22,28 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#00eaff");
+            SkillUtils.RegisterSkill(skillName, "#00eaff");
 
             Instance.RegisterEventHandler<EventRoundStart>((@event, info) =>
             {
                 gravities.Clear();
                 players.Clear();
+                return HookResult.Continue;
+            });
+
+            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+            {
+                Instance.AddTimer(0.1f, () =>
+                {
+                    foreach (var player in Utilities.GetPlayers())
+                    {
+                        if (!Instance.IsPlayerValid(player)) continue;
+                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        if (playerInfo?.Skill != skillName) continue;
+                        EnableSkill(player);
+                    }
+                });
+
                 return HookResult.Continue;
             });
 
@@ -97,6 +112,11 @@ namespace jRandomSkills
 
             VirtualFunctions.CBaseTrigger_StartTouchFunc.Hook(StartTouchFun, HookMode.Post);
             VirtualFunctions.CBaseTrigger_EndTouchFunc.Hook(EndTouchFunc, HookMode.Post);
+        }
+
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            SkillUtils.TryGiveWeapon(player, CsItem.DecoyGrenade);
         }
 
         private static HookResult StartTouchFun(DynamicHook h)

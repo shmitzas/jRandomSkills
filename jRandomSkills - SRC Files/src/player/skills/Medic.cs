@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -14,7 +15,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#42FF5F");
+            SkillUtils.RegisterSkill(skillName, "#42FF5F");
             
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -48,8 +49,7 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             int healthshot = Instance.Random.Next(1, 10);
-            for (int i = 0; i < healthshot; i++)
-                player.GiveNamedItem("weapon_healthshot");
+            SkillUtils.TryGiveWeapon(player, CsItem.Healthshot, healthshot);
         }
 
         public static void DisableSkill(CCSPlayerController player)

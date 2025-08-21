@@ -24,6 +24,7 @@ namespace jRandomSkills
                     SteamID = player.SteamID,
                     PlayerName = player.PlayerName,
                     Skill = src.player.Skills.None,
+                    SpecialSkill = Skills.None,
                     IsDrawing = false,
                     SkillChance = 1,
                 });
@@ -84,11 +85,12 @@ namespace jRandomSkills
                         string skillsText = "";
                         foreach (var _player in _players)
                         {
-                            var _playerSkill = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == _player.SteamID)?.Skill;
+                            var _playerSkill = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == _player.SteamID);
                             if (_playerSkill != null)
                             {
-                                var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == _playerSkill);
-                                skillsText += $" {ChatColors.DarkRed}{_player.PlayerName}{ChatColors.Lime}: {skillInfo.Name}\n";
+                                var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == _playerSkill.Skill);
+                                var specialSkillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == _playerSkill.SpecialSkill);
+                                skillsText += $" {ChatColors.DarkRed}{_player.PlayerName}{ChatColors.Lime}: {(_playerSkill.SpecialSkill == Skills.None ? skillInfo.Name : $"{specialSkillInfo.Name} -> {skillInfo.Name}")}\n";
                             }
                         }
 
@@ -123,9 +125,10 @@ namespace jRandomSkills
                         skillPlayer.IsDrawing = false;
 
                         List<dSkill_SkillInfo> skillList = new List<dSkill_SkillInfo>(SkillData.Skills);
-                        skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == src.player.Skills.None);
+                        skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
 
-                        if (Utilities.GetPlayers().FindAll(p => p.Team == player.Team && p.IsValid && !p.IsBot).Count != 1) {
+                        if (Utilities.GetPlayers().FindAll(p => p.Team == player.Team && p.IsValid && !p.IsBot).Count != 1)
+                        {
                             Config.SkillInfo[] skillsOnly1v1 = Config.config.SkillsInfo.Where(s => s.Only1v1).ToArray();
                             skillList.RemoveAll(s => skillsOnly1v1.Any(s2 => s2.Name == s.Skill.ToString()));
                         }
@@ -139,13 +142,15 @@ namespace jRandomSkills
 
                         var randomSkill = skillList.Count == 0 ? new dSkill_SkillInfo(Skills.None, "#ffffff", false) : skillList[Instance.Random.Next(skillList.Count)];
                         skillPlayer.Skill = randomSkill.Skill;
+                        skillPlayer.SpecialSkill = Skills.None;
+                        Debug.WriteToDebug($"Player {skillPlayer.PlayerName} has got the skill \"{randomSkill.Name}\".");
 
                         if (randomSkill.Display)
-                            Utils.PrintToChat(player, $"{ChatColors.DarkRed}{randomSkill.Name}{ChatColors.Lime}: {randomSkill.Description}", false);
+                            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{randomSkill.Name}{ChatColors.Lime}: {randomSkill.Description}", false);
 
-                        if(Config.config.Settings.TeamMateSkillInfo)
+                        if (Config.config.Settings.TeamMateSkillInfo)
                         {
-                            Instance.AddTimer(0.5f, () => 
+                            Instance.AddTimer(0.5f, () =>
                             {
                                 foreach (var teammate in teammates)
                                 {
@@ -159,7 +164,7 @@ namespace jRandomSkills
 
                                 if (!string.IsNullOrEmpty(teammateSkills))
                                 {
-                                    Utils.PrintToChat(player, $" {ChatColors.Lime}{Localization.GetTranslation("teammate_skills")}:", false);
+                                    SkillUtils.PrintToChat(player, $" {ChatColors.Lime}{Localization.GetTranslation("teammate_skills")}:", false);
                                     foreach (string text in teammateSkills.Split("\n"))
                                         if (!string.IsNullOrEmpty(text))
                                             player.PrintToChat(text);
@@ -168,9 +173,10 @@ namespace jRandomSkills
                         }
                     }
                 }
-                
+
                 return HookResult.Continue;
             });
+
 
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
@@ -185,10 +191,11 @@ namespace jRandomSkills
                     if (attackerInfo != null)
                     {
                         var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == attackerInfo.Skill);
+                        var specialSkillData = SkillData.Skills.FirstOrDefault(s => s.Skill == attackerInfo.SpecialSkill);
                         string skillDesc = skillData?.Description;
 
-                        Utils.PrintToChat(victim, $"{Localization.GetTranslation("enemy_skill")} {ChatColors.DarkRed}{attacker.PlayerName}{ChatColors.Lime}:", false);
-                        Utils.PrintToChat(victim, $"{ChatColors.DarkRed}{skillData.Name}{ChatColors.Lime} - {skillDesc}", false);
+                        SkillUtils.PrintToChat(victim, $"{Localization.GetTranslation("enemy_skill")} {ChatColors.DarkRed}{attacker.PlayerName}{ChatColors.Lime}:", false);
+                        SkillUtils.PrintToChat(victim, $"{ChatColors.DarkRed}{(attackerInfo.SpecialSkill == Skills.None ? skillData.Name : $"{specialSkillData.Name} -> {skillData.Name}")}{ChatColors.Lime} - {skillDesc}", false);
                     }
                 }
 

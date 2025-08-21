@@ -4,12 +4,15 @@ using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.utils;
+using System;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
     public static class Command
     {
+        private static bool gamePaused = false;
+
         public static void Load()
         {
             var config = Config.config?.Settings;
@@ -18,7 +21,8 @@ namespace jRandomSkills
             var commands = new Dictionary<IEnumerable<string>, (string description, CommandInfo.CommandCallback handler)>
             {
                 { SplitCommands(config.Set_Skill), ("Delete record", Command_SetSkill) },
-                { SplitCommands(config.SkillsList_Menu), ("Delete all records", Command_SkillsListMenu) }
+                { SplitCommands(config.SkillsList_Menu), ("Delete all records", Command_SkillsListMenu) },
+                { SplitCommands("t, useSkill"), ("Use/Type Skill", Command_UseTypeSkill) }
             };
 
             foreach (var commandPair in commands)
@@ -32,6 +36,9 @@ namespace jRandomSkills
             Instance.AddCommand($"css_map", "", Command_ChangeMap);
             Instance.AddCommand($"css_console", "", Command_CustomCommand);
             Instance.AddCommand($"css_start", "", Command_StartGame);
+            Instance.AddCommand($"css_swap", "", Command_Swap);
+            Instance.AddCommand($"css_shuffle", "", Command_Shuffle);
+            Instance.AddCommand($"css_pause", "", Command_Pause);
         }
 
         private static IEnumerable<string> SplitCommands(string commands)
@@ -47,6 +54,23 @@ namespace jRandomSkills
             }
         }
 
+        [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_ONLY)]
+        public static void Command_UseTypeSkill(CCSPlayerController? player, CommandInfo _)
+        {
+            if (player == null) return;
+            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+
+            var playerPawn = player.PlayerPawn.Value;
+            if (playerPawn?.CBodyComponent == null) return;
+            if (!player.IsValid || !player.PawnIsAlive) return;
+
+            string[] commands = _.ArgString.Trim().Split(" ", StringSplitOptions.RemoveEmptyEntries);
+            if (commands == null || commands.Length == 0)
+                Instance.SkillAction(playerInfo!.Skill.ToString(), "UseSkill", new object[] { player });
+            else
+                Instance.SkillAction(playerInfo!.Skill.ToString(), "TypeSkill", new object[] { player, commands });
+        }
+
         [RequiresPermissions("@css/root")]
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public static void Command_SetSkill(CCSPlayerController? player, CommandInfo command)
@@ -58,7 +82,15 @@ namespace jRandomSkills
             if (command.ArgCount < 2)
             {
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                Utils.PrintToChat(player, Localization.GetTranslation("correct_form_setskill"), true);
+                SkillUtils.PrintToChat(player, Localization.GetTranslation("correct_form_setskill"), true);
+                player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
+                return;
+            }
+
+            if (players.Count == 0)
+            {
+                player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
+                SkillUtils.PrintToChat(player, Localization.GetTranslation("player_not_found_setskill"), true);
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
                 return;
             }
@@ -69,7 +101,7 @@ namespace jRandomSkills
             if (skill == null)
             {
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                Utils.PrintToChat(player, Localization.GetTranslation("skill_not_found_setskill"), true);
+                SkillUtils.PrintToChat(player, Localization.GetTranslation("skill_not_found_setskill"), true);
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
                 return;
             }
@@ -85,13 +117,13 @@ namespace jRandomSkills
                     Instance.SkillAction(skill.Skill.ToString(), "EnableSkill", new object[] { target });
 
                     player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                    Utils.PrintToChat(player, $"{Localization.GetTranslation("done_setskill")}: {ChatColors.LightRed}{skill.Name} {ChatColors.Lime}{Localization.GetTranslation("for_setskill")} {ChatColors.LightRed}{target.PlayerName}", false);
+                    SkillUtils.PrintToChat(player, $"{Localization.GetTranslation("done_setskill")}: {ChatColors.LightRed}{skill.Name} {ChatColors.Lime}{Localization.GetTranslation("for_setskill")} {ChatColors.LightRed}{target.PlayerName}", false);
                     player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
                 }
                 else
                 {
                     player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                    Utils.PrintToChat(player, Localization.GetTranslation("error_setskill"), true);
+                    SkillUtils.PrintToChat(player, Localization.GetTranslation("error_setskill"), true);
                     player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
                 }
             }
@@ -155,6 +187,40 @@ namespace jRandomSkills
             if (player == null) return;
             string param = command.GetArg(1);
             Server.ExecuteCommand(param);
+        }
+
+        [RequiresPermissions("@css/root")]
+        [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+        public static void Command_Swap(CCSPlayerController? _player, CommandInfo command)
+        {
+            foreach (var player in Utilities.GetPlayers())
+                if (Instance.IsPlayerValid(player) && new CsTeam[] { CsTeam.CounterTerrorist, CsTeam.Terrorist }.Contains(player.Team))
+                    player.SwitchTeam(player.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist);
+            Server.ExecuteCommand($"mp_restartgame 1");
+        }
+
+        [RequiresPermissions("@css/root")]
+        [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+        public static void Command_Shuffle(CCSPlayerController? _player, CommandInfo command)
+        {
+            var players = Utilities.GetPlayers().FindAll(p => (Instance.IsPlayerValid(p) && new CsTeam[] { CsTeam.CounterTerrorist, CsTeam.Terrorist }.Contains(p.Team)));
+            double CTlimit = Instance.Random.Next(0, 2) == 0 ? Math.Floor(players.Count / 2.0) : Math.Ceiling(players.Count / 2.0);
+
+            foreach (var player in players.OrderBy(_ => Instance.Random.Next()).ToList())
+            {
+                player?.SwitchTeam(CTlimit > 0 ? CsTeam.CounterTerrorist : CsTeam.Terrorist);
+                CTlimit--;
+            }
+            Server.ExecuteCommand($"mp_restartgame 1");
+        }
+
+        [RequiresPermissions("@css/root")]
+        [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+        public static void Command_Pause(CCSPlayerController? player, CommandInfo command)
+        {
+            Server.PrintToChatAll($" {(gamePaused ? ChatColors.Green : ChatColors.Red)}{Localization.GetTranslation(gamePaused ? "unpause" : "pause")}");
+            Server.ExecuteCommand( gamePaused ? "mp_unpause_match" : "mp_pause_match");
+            gamePaused = !gamePaused;
         }
     }
 }

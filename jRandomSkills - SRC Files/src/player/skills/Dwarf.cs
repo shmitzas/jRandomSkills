@@ -16,7 +16,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#ffff00", false);
+            SkillUtils.RegisterSkill(skillName, "#ffff00", false);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -49,6 +49,12 @@ namespace jRandomSkills
 
                 return HookResult.Continue;
             });
+
+            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
+            {
+                DisableSkill(@event.Userid);
+                return HookResult.Continue;
+            });
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -62,10 +68,11 @@ namespace jRandomSkills
                 float newSize = (float)Instance.Random.NextDouble() * (skillConfig.ChanceTo - skillConfig.ChanceFrom) + skillConfig.ChanceFrom;
                 newSize = (float)Math.Round(newSize, 2);
 
-                playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = newSize;
+                // playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = newSize;
+                player.PlayerPawn.Value.CBodyComponent.SceneNode.Scale = newSize;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
 
-                Utils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("dwarf")}{ChatColors.Lime}: " + Localization.GetTranslation("dwarf_desc2", newSize), false);
+                SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("dwarf")}{ChatColors.Lime}: " + Localization.GetTranslation("dwarf_desc2", newSize), false);
             }
         }
 
@@ -74,7 +81,8 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && playerPawn?.CBodyComponent != null)
             {
-                playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = 1;
+                // playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = 1;
+                player.PlayerPawn.Value.CBodyComponent.SceneNode.Scale = 1;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
             }
         }

@@ -1,4 +1,5 @@
-﻿using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using jRandomSkills.src.player;
@@ -15,7 +16,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#ff5CD9");
+            SkillUtils.RegisterSkill(skillName, "#ff5CD9");
             VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamage, HookMode.Pre);
         }
 
@@ -24,16 +25,16 @@ namespace jRandomSkills
             CEntityInstance param = h.GetParam<CEntityInstance>(0);
             CTakeDamageInfo param2 = h.GetParam<CTakeDamageInfo>(1);
 
-            if (param == null || param2 == null || param2.Attacker == null)
+            if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
                 return HookResult.Continue;
 
             CCSPlayerPawn attackerPawn = new CCSPlayerPawn(param2.Attacker.Value.Handle);
             CCSPlayerPawn victimPawn = new CCSPlayerPawn(param.Handle);
 
-            if (attackerPawn == null || attackerPawn.Controller?.Value == null || victimPawn == null || victimPawn.Controller?.Value == null)
+            if (attackerPawn.DesignerName != "player" || victimPawn.DesignerName != "player")
                 return HookResult.Continue;
 
-            if (attackerPawn.DesignerName != "player" || victimPawn.DesignerName != "player")
+            if (attackerPawn == null || attackerPawn.Controller?.Value == null || victimPawn == null || victimPawn.Controller?.Value == null)
                 return HookResult.Continue;
 
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();

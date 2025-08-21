@@ -25,7 +25,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#c7e03a");
+            SkillUtils.RegisterSkill(skillName, "#c7e03a");
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -75,14 +75,6 @@ namespace jRandomSkills
                                 UpdateHUD(player, skillInfo, false);
                 }
             });
-
-            Instance.AddCommand("css_useSkill", "Use Skill", (player, _) =>
-            {
-                if (player == null) return;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    UseSkill(player);
-            });
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -126,7 +118,7 @@ namespace jRandomSkills
             if (showInfo)
                 remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>"
                                 : !skillInfo.FindedEnemy ? $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("hud_info_no_enemy")}</font> <br>"
-                                : !skillInfo.HaveWeapon ? $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("weaponsswap_hud_info")}</font> <br>"
+                                : !skillInfo.HaveWeapon ? $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("weaponsswap_hud_info2")}</font> <br>"
                                 : "";
             else
                 remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>" : "";
@@ -143,7 +135,7 @@ namespace jRandomSkills
             }
         }
 
-        private static void UseSkill(CCSPlayerController player)
+        public static void UseSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn?.CBodyComponent == null) return;

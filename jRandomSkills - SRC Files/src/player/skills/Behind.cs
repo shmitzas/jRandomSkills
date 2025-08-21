@@ -16,7 +16,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#00FF00", false);
+            SkillUtils.RegisterSkill(skillName, "#00FF00", false);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -65,7 +65,7 @@ namespace jRandomSkills
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
             newChance = (float)Math.Round(newChance);
-            Utils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("behind")}{ChatColors.Lime}: " + Localization.GetTranslation("behind_desc2", newChance), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("behind")}{ChatColors.Lime}: " + Localization.GetTranslation("behind_desc2", newChance), false);
         }
 
         private static void RotateEnemy(CCSPlayerController player)

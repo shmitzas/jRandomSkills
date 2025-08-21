@@ -3,37 +3,51 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
+using jRandomSkills.src.utils;
 
 namespace jRandomSkills
 {
     public class Chicken : ISkill
     {
         private static Skills skillName = Skills.Chicken;
-        private static string[] pistols =
+        private static string[] disabledWeapons =
         {
-            "weapon_deagle",
-            "weapon_revolver",
-            "weapon_glock",
-            "weapon_usp_silencer",
-            "weapon_cz75a",
-            "weapon_fiveseven",
-            "weapon_p250",
-            "weapon_tec9",
-            "weapon_elite",
-            "weapon_hkp2000"
+            "weapon_ak47",
+            "weapon_m4a4",
+            "weapon_m4a1",
+            "weapon_m4a1_silencer",
+            "weapon_famas",
+            "weapon_galilar",
+            "weapon_aug",
+            "weapon_sg553", 
+            "weapon_mp9",
+            "weapon_mac10",
+            "weapon_bizon",
+            "weapon_mp7",
+            "weapon_ump45",
+            "weapon_p90",
+            "weapon_mp5sd",
+            "weapon_ssg08",
+            "weapon_awp",
+            "weapon_scar20",
+            "weapon_g3sg1",
+            "weapon_nova",
+            "weapon_xm1014",
+            "weapon_mag7",
+            "weapon_sawedoff",
+            "weapon_m249",
+            "weapon_negev"
         };
-        private static readonly string defaultCTModel = "characters/models/ctm_sas/ctm_sas.vmdl";
-        private static readonly string defaultTModel = "characters/models/tm_phoenix_heavy/tm_phoenix_heavy.vmdl";
+        private static Dictionary<CCSPlayerController, CBaseModelEntity> chickens = new Dictionary<CCSPlayerController, CBaseModelEntity>();
 
         public static void LoadSkill()
         {
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#FF8B42");
+            SkillUtils.RegisterSkill(skillName, "#FF8B42");
             
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -52,6 +66,35 @@ namespace jRandomSkills
                 return HookResult.Continue;
             });
 
+            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
+            {
+                foreach (var player in Utilities.GetPlayers())
+                {
+                    if (!Instance.IsPlayerValid(player)) continue;
+
+                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    if (playerInfo?.Skill != skillName) continue;
+                    DisableSkill(player);
+                }
+
+                return HookResult.Continue;
+            });
+
+            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
+            {
+                DisableSkill(@event.Userid);
+                return HookResult.Continue;
+            });
+
+            Instance.RegisterEventHandler<EventItemPickup>((@event, info) =>
+            {
+                var player = @event.Userid;
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill != skillName) return HookResult.Continue;
+                SetWeaponAttack(player, true);
+                return HookResult.Continue;
+            });
+
             Instance.RegisterListener<OnTick>(OnTick);
         }
 
@@ -60,13 +103,21 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null)
             {
-                SetPlayerModel(player, "models/chicken/chicken.vmdl");
-                playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().MaterialGroup.Value = (uint)Instance.Random.Next(1, 4);
                 playerPawn.VelocityModifier = 1.1f;
                 Utilities.SetStateChanged(player, "CCSPlayerPawn", "m_flVelocityModifier");
 
                 playerPawn.Health = 50;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
+
+                playerPawn.CBodyComponent.SceneNode.Scale = 0.2f;
+                Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
+
+                playerPawn.Render = Color.FromArgb(0, 255, 255, 255);
+                playerPawn.ShadowStrength = 0.0f;
+                Utilities.SetStateChanged(playerPawn, "CBaseModelEntity", "m_clrRender");
+
+                SetWeaponAttack(player, true);
+                CreateChicken(player);
             }
         }
 
@@ -75,45 +126,98 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null)
             {
-                SetPlayerModel(player, player.Team == CsTeam.CounterTerrorist ? defaultCTModel : defaultTModel);
                 playerPawn.VelocityModifier = 1f;
                 Utilities.SetStateChanged(player, "CCSPlayerPawn", "m_flVelocityModifier");
 
                 playerPawn.Health += 50;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
+
+                playerPawn.CBodyComponent.SceneNode.Scale = 1f;
+                Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
+
+                playerPawn.Render = Color.FromArgb(255, 255, 255, 255);
+                playerPawn.ShadowStrength = 1.0f;
+                Utilities.SetStateChanged(playerPawn, "CBaseModelEntity", "m_clrRender");
+
+                SetWeaponAttack(player, false);
+            }
+
+            foreach (var chicken in chickens)
+            {
+                if (chicken.Value != null && chicken.Value.IsValid)
+                    chicken.Value.Remove();
+                chickens.Remove(chicken.Key);
             }
         }
 
-        private static void OnTick()
+        private static void SetWeaponAttack(CCSPlayerController player, bool disableWeapon)
         {
-            foreach (var player in Utilities.GetPlayers())
-            {
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-
-                if (playerInfo?.Skill == skillName)
-                {
-                    var activeWeapon = player.Pawn.Value.WeaponServices?.ActiveWeapon.Value;
-                    if (activeWeapon != null && activeWeapon.IsValid && activeWeapon.Clip1 != 0 && !pistols.Contains(activeWeapon?.DesignerName))
+            foreach (var weapon in player.Pawn.Value.WeaponServices?.MyWeapons)
+                if (weapon != null && weapon.IsValid && weapon.Value != null && weapon.Value.IsValid)
+                    if (disabledWeapons.Contains(weapon?.Value?.DesignerName))
                     {
-                        activeWeapon.Clip1 = 0;
-                        activeWeapon.Clip2 = 0;
+                        weapon.Value.NextPrimaryAttackTick = disableWeapon ? int.MaxValue : Server.TickCount;
+                        weapon.Value.NextSecondaryAttackTick = disableWeapon ? int.MaxValue : Server.TickCount;
+
+                        Utilities.SetStateChanged(weapon.Value, "CBasePlayerWeapon", "m_nNextPrimaryAttackTick");
+                        Utilities.SetStateChanged(weapon.Value, "CBasePlayerWeapon", "m_nNextSecondaryAttackTick");
                     }
-                }
+        }
+
+        private static void CreateChicken(CCSPlayerController player)
+        {
+            var playerPawn = player.PlayerPawn.Value;
+            var chickenModel = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic");
+            if (chickenModel == null)
+                return;
+            Vector pos = new Vector(0, 0, 0);
+
+            chickenModel.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(chickenModel.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
+            chickenModel.SetModel("models/chicken/chicken.vmdl");
+            chickenModel.Render = Color.FromArgb(255, 255, 255, 255);
+            chickenModel.Teleport(pos, playerPawn.AbsRotation, null);
+            chickenModel.DispatchSpawn();
+            chickenModel.AcceptInput("InitializeSpawnFromWorld", playerPawn, playerPawn, "");
+            Utilities.SetStateChanged(chickenModel, "CBaseEntity", "m_CBodyComponent");
+            Instance.AddTimer(1f, () => chickens.TryAdd(player, chickenModel));
+        }
+
+        private static async void OnTick()
+        {
+            foreach (var valuePair in chickens)
+            {
+                var player = valuePair.Key;
+                var chicken = valuePair.Value;
+                if (player == null || !player.IsValid) continue;
+                if (chicken == null && !chicken.IsValid) continue;
+
+                var pawn = player.Pawn.Value;
+                if (pawn == null && !pawn.IsValid) continue;
+
+                float X = (float)Math.Round(pawn.AbsOrigin.X, 2);
+                float Y = (float)Math.Round(pawn.AbsOrigin.Y, 2);
+                float Z = (float)Math.Round(pawn.AbsOrigin.Z, 2);
+                Vector pos = new Vector(X, Y, Z);
+                if (chicken.AbsOrigin.X != pos.X || chicken.AbsOrigin.Y != pos.Y || chicken.AbsOrigin.Z != pos.Z)
+                    chicken.Teleport(pos, pawn.AbsRotation, null);
+                UpdateHUD(player);
             }
         }
 
-        public static void SetPlayerModel(CCSPlayerController player, string model)
+        private static void UpdateHUD(CCSPlayerController player)
         {
-            var pawn = player.PlayerPawn?.Value;
-            if (pawn == null) return;
+            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
+            if (skillData == null) return;
 
-            Server.NextFrame(() =>
-            {
-                pawn.SetModel(model);
+            var weapon = player.PlayerPawn.Value.WeaponServices.ActiveWeapon.Value;
+            if (weapon == null || !disabledWeapons.Contains(weapon.DesignerName)) return;
 
-                Color originalRender = pawn.Render;
-                pawn.Render = Color.FromArgb(255, originalRender.R, originalRender.G, originalRender.B);
-            });
+            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
+            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
+            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("disabled_weapon")}</font> <br>";
+
+            var hudContent = infoLine + skillLine + remainingLine;
+            player.PrintToCenterHtml(hudContent);
         }
     }
 }

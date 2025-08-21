@@ -8,7 +8,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            Utils.RegisterSkill(skillName, "#FFFFFF", false);
+            SkillUtils.RegisterSkill(skillName, "#FFFFFF", false);
         }
     }
 }

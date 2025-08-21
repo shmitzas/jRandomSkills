@@ -15,7 +15,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#2effcb");
+            SkillUtils.RegisterSkill(skillName, "#2effcb");
             Instance.RegisterListener<OnTick>(CheckRadarowiec);
         }
 

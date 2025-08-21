@@ -16,7 +16,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#ff5C0A", false);
+            SkillUtils.RegisterSkill(skillName, "#ff5C0A", false);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -24,7 +24,7 @@ namespace jRandomSkills
                 {
                     foreach (var player in Utilities.GetPlayers())
                     {
-                        if (!Instance.IsPlayerValid(player)) continue;
+                        if (!IsDeadPlayerValid(player)) continue;
 
                         var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
@@ -48,7 +48,7 @@ namespace jRandomSkills
                     {
                         player.Respawn();
                         Instance.AddTimer(.2f, () => player.Respawn());
-                        Utils.PrintToChat(player, Localization.GetTranslation("phoenix_respawn"), false); ;
+                        SkillUtils.PrintToChat(player, Localization.GetTranslation("phoenix_respawn"), false); ;
                     }
                 }
 
@@ -66,7 +66,12 @@ namespace jRandomSkills
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
             newChance = (float)Math.Round(newChance);
-            Utils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("phoenix")}{ChatColors.Lime}: " + Localization.GetTranslation("phoenix_desc2", newChance), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("phoenix")}{ChatColors.Lime}: " + Localization.GetTranslation("phoenix_desc2", newChance), false);
+        }
+
+        private static bool IsDeadPlayerValid(CCSPlayerController player)
+        {
+            return player != null && player.IsValid && player.PlayerPawn?.Value != null;
         }
     }
 }

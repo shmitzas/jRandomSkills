@@ -19,7 +19,7 @@ namespace jRandomSkills
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            Utils.RegisterSkill(skillName, "#e0d83a");
+            SkillUtils.RegisterSkill(skillName, "#e0d83a");
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -63,16 +63,8 @@ namespace jRandomSkills
                     var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill == skillName)
                         if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-                             UpdateHUD(player, skillInfo);
+                            UpdateHUD(player, skillInfo);
                 }
-            });
-
-            Instance.AddCommand("css_useSkill", "Use Skill", (player, _) =>
-            {
-                if (player == null) return;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    UseSkill(player);
             });
         }
 
@@ -119,12 +111,10 @@ namespace jRandomSkills
         private static void ActiveUse(CCSPlayerController player)
         {
             if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-            {
                 skillInfo.CanUse = true;
-            }
         }
 
-        private static void UseSkill(CCSPlayerController player)
+        public static void UseSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn?.CBodyComponent == null) return;
@@ -139,6 +129,7 @@ namespace jRandomSkills
 
                     player.PrintToChat($" {ChatColors.Green} {Localization.GetTranslation("godmode_on")}");
                     player.PlayerPawn.Value.TakesDamage = false;
+
                     Instance.AddTimer(2, () => {
                         if (player.IsValid && player.PawnIsAlive)
                         {

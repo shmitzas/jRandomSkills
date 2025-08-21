@@ -18,7 +18,7 @@ namespace jRandomSkills
         public override string ModuleName => "[CS2] [ jRandomSkills ]";
         public override string ModuleAuthor => "D3X, Juzlus";
         public override string ModuleDescription => "Plugin adds random skills every round for CS2 by D3X. Modified by Juzlus.";
-        public override string ModuleVersion => "1.0.3";
+        public override string ModuleVersion => "1.0.4";
 
         public override void Load(bool hotReload)
         {
@@ -26,9 +26,22 @@ namespace jRandomSkills
 
             Config.Initialize();
             Localization.Load();
+            // Debug.Load();
             Event.Load();
             PlayerOnTick.Load();
             Command.Load();
+
+
+            None.LoadSkill();
+            // -> Mute.LoadSkill();;
+            // -> ToxicSmoke.LoadSkill();
+
+            // Shade.LoadSkill();
+            // FrozenDecoy.LoadSkill();
+            // Medic.LoadSkill();
+
+
+            return;
 
             foreach (var skill in Enum.GetValues(typeof(Skills)))
                 SkillAction(skill.ToString(), "LoadSkill");
@@ -53,7 +66,7 @@ namespace jRandomSkills
             throw new NotImplementedException();
         }
 
-        internal void RegisterListener<T>(Action<object, object> value)
+        internal void RegisterListener<T>(Action<object, object> value, HookMode pre)
         {
             throw new NotImplementedException();
         }
@@ -79,6 +92,7 @@ namespace jRandomSkills
         public required ulong SteamID { get; set; }
         public required string PlayerName { get; set; }
         public Skills Skill { get; set; }
+        public Skills SpecialSkill { get; set; }
         public float? SkillChance { get; set; }
         public bool IsDrawing { get; set; }
     }
