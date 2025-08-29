@@ -5,7 +5,7 @@
   <a href="https://GitHub.com/Juzlus/jRandomSkills/commit/"><img alt="GitHub latest commit" src="https://img.shields.io/github/last-commit/Juzlus/jRandomSkills.svg?style=social&logo=github"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <a href="https://GitHub.com/Juzlus/jRandomSkills/releases/"><img alt="Github all releases" src="https://img.shields.io/github/downloads/Juzlus/jRandomSkills/total.svg?style=social&logo=github"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <a href="https://GitHub.com/Juzlus/jRandomSkills/stargazers/"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Juzlus/jRandomSkills.svg?style=social"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="hhttps://discord.gg/72nzFguNtd"><img alt="Discord server" src="https://img.shields.io/discord/1409498685859037227?label=Discord&logo=discord&logoColor=white"></a>
+  <a href="https://discord.gg/9H8EZYBpPF"><img alt="Discord server" src="https://img.shields.io/discord/1409498685859037227?label=Discord&logo=discord&logoColor=white"></a>
 </div>
 
 ## 📌 Oznaczenie
@@ -515,4 +515,4 @@ Plugin korzysta z zawartości następujących projektów:
 
 ## 📝 Kontakt
 
-Jeśli masz jakieś pytanie, napisz na juzlus.biznes@gmail.com lub [jRandomSkills Discord](hhttps://discord.gg/72nzFguNtd).
+Jeśli masz jakieś pytanie, napisz na juzlus.biznes@gmail.com lub [jRandomSkills Discord](https://discord.gg/9H8EZYBpPF).
