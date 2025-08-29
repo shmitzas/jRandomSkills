@@ -27,7 +27,7 @@ jRandomSkills to plugin do CounterStrike 2, który wprowadza chaos i frajdę do 
 ![Preview](./preview.gif)
 ![Preview2](./preview2.gif)
 
-## 🌐 Serwer testowy
+## 🌐 Serwer Testowy
 Dołącz do serwera testowego 3v3 i wypróbuj plugin jRandomSkills:
 - **Adres**: `jRandomSkills@pukawka.pl`
 - **Hasło**: `public`
@@ -42,7 +42,7 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 <summary>Poniższa tabela przedstawia wszystkie dostępne supermoce w grze, wraz z ich opisami.</summary>
 
 | Nazwa | Opis | Czas odnowienia / Zakres |
-|-------|------|-----------------------------------|
+| - | - | -|
 | Aimbot | Każdy twój trafiony pocisk liczy się jako strzał w głowę | - |
 | Anomalia | Cofasz się o 5 sekund do tyłu | 15 s |
 | Anty Flash | Posiadasz odporność na flash'e, a twoje flash'e trwają 7 sekund | - |
@@ -170,7 +170,7 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
     - Pobierz [jRandomSkills](https://github.com/Juzlus/jRandomSkills/releases)
     - Wypakuj go do folderu `C2Server/game/csgo/addons/counterstrikesharp/plugins/`
     - JEŚLI do pobrania jest plik `gamedata.json`:
-        - Wypakuj go do folderu `C2Server/server/game/csgo/addons/counterstrikesharp/gamedata/`
+        - Wypakuj `gamedata.json` do folderu `C2Server/server/game/csgo/addons/counterstrikesharp/gamedata/`
 
 ## </> Komendy Serwerowe
 > [!TIP]
@@ -181,13 +181,13 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 
 | Komenda | Przykład | Opis | Uprawnienia |
 | - | - | - | - |
-| `!setskill <playerName> <skill>` | `!setskill Juzlus Aimbot` | Ustawienie supermocy | `@jRandmosSkills/admin` |
+| `!setskill <playerName> <skill>` | `!setskill Juzlus Aimbot` | Przypisanie supermocy do gracza | `@jRandmosSkills/admin` |
 | `!skills` | `!skills` | Lista supermocy | - |
 | `!map <mapName>` | `!map de_nuke` | Zmiana mapy | `@jRandmosSkills/admin` |
 | `!map <mapWorkshopId>` | `!map 3332005394` | Zmiana mapy z warsztatu | `@jRandmosSkills/admin` |
 | `!start` | `!start` | Rozpoczęcie gry z parametrami: `mp_forcecamera 0, mp_freezetime 5, mp_overtime_enable 1, sv_cheats 0` | `@jRandmosSkills/admin` |
 | `!start sv` | `!start sv` | Rozpoczęcie gry z parametrami: `mp_forcecamera 0, mp_freezetime 0, mp_overtime_enable 1, sv_cheats 1` | `@jRandmosSkills/admin` |
-| `!console "<command>"` | `!console "sv_cheats 1"` | Uruchomienie komendy na serwerze | `@jRandmosSkills/root` |
+| `!console <command>` | `!console sv_cheats 1` | Uruchomienie komendy na serwerze | `@jRandmosSkills/root` |
 | `!swap` | `!swap` | Zamiana stron | `@jRandmosSkills/admin` |
 | `!shuffle` | `!shuffle` | Losowe dobranie graczy do drużyn | `@jRandmosSkills/admin` |
 | `!pause` | `!pause` | Wstrzymanie gry | `@jRandmosSkills/admin` |
@@ -203,17 +203,17 @@ Aby nadać uprawnienia administracyjne w CounterStrikeSharp:
 2. Dodaj do niego poniższą zawartość:
     ```json
     {
-    "Juzlus": {
-        "identity": "STEAM_0:0:94913632",
-        "flags": ["@jRandmosSkills/admin", "@jRandmosSkills/root"]
-    }
+        "Juzlus": {
+            "identity": "STEAM_0:0:94913632",
+            "flags": ["@jRandmosSkills/admin", "@jRandmosSkills/root"]
+        }
     }
     ```
     `steamID` można znaleźć przy pomocy strony [steamidfinder](www.steamidfinder.com).
 3. Zapisz plik i uruchom serwer, aby zastosować zmiany.
 
 ## ⚙️ Konfiguracja
-Wszystkie sypermoce można dostosować w pliku **`Config.cfg`** znajdującym się w folderze `game\csgo\addons\counterstrikesharp\plugins\jRandomSkills`
+Wszystkie sypermoce można dostosować w pliku **`Config.cfg`** znajdującym się w folderze **`game/csgo/addons/counterstrikesharp/plugins/jRandomSkills/`**
 
 ```json
 {
@@ -246,7 +246,7 @@ Wszystkie sypermoce można dostosować w pliku **`Config.cfg`** znajdującym si�
 }
 ```
 
-## 🔗 Uwzględniona zależność
+## 🔗 Uwzględniona Zależność
 Plugin korzysta z zawartości następujących projektów:
 - [CS2TraceRay](https://github.com/schwarper/CS2TraceRay) autorstwa [schwarper](https://github.com/schwarper) - system śledzenia promieni (Trace Ray)
 - [CS2FlashingHtmlHudFix](https://github.com/girlglock/CS2FlashingHtmlHudFix) autorstwa [girlglock](https://github.com/girlglock) - poprawka migotania okienka z supermocą
@@ -258,8 +258,8 @@ Plugin korzysta z zawartości następujących projektów:
 <summary><b>v1.1.0</b></summary>
 
 - #### Ogólne:
-    - ###### Dodano język brazylijski (portugalski) (Grok AI).
-    - ###### Dodano język chiński (Grok AI).
+    - ###### Dodano język Brazylijski (Portugalski) (Grok AI).
+    - ###### Dodano język Chiński (Grok AI).
     - ###### Dodano tryby gry.
     - ###### Dodano konfigurację dla każdej supermocy.
     - ###### Dodano tryb Debug Mode.
@@ -502,7 +502,7 @@ Plugin korzysta z zawartości następujących projektów:
         - ###### Naprawiono błąd, gdzie tylko gracz z supermocą był przeteleportowywany.
 </details>
 
-## 💝 Donate
+## 💝 Wsparcie
 <span>
   <a href="https://www.buymeacoffee.com/juzlus" target="_blank" alt="buymeacoffee" style="width: 40%; text-decoration: none; margin-right: 20px;">
     <img src="https://www.codehim.com/wp-content/uploads/2022/09/bmc-button-640x180.png" style="height: 60px;">
