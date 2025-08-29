@@ -3,10 +3,8 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
-using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.utils;
-using System.Runtime.InteropServices;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -43,14 +41,6 @@ namespace jRandomSkills
         private static IEnumerable<string> SplitCommands(string commands)
         {
             return commands.Split(',').Select(c => c.Trim());
-        }
-
-        private static void AddCommands(IEnumerable<string> commands, string description, CommandInfo.CommandCallback commandAction)
-        {
-            foreach (var command in commands)
-            {
-                Instance.AddCommand($"css_{command}", description, commandAction);
-            }
         }
 
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_ONLY)]
@@ -185,7 +175,7 @@ namespace jRandomSkills
         private static void Command_CustomCommand(CCSPlayerController? player, CommandInfo command)
         {
             if (player == null) return;
-            string param = command.GetArg(1);
+            string param = command.ArgString;
             Server.ExecuteCommand(param);
         }
 
