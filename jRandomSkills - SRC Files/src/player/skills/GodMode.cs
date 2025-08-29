@@ -10,16 +10,14 @@ namespace jRandomSkills
 {
     public class GodMode : ISkill
     {
-        private static Skills skillName = Skills.GodMode;
-        private static float timerCooldown = (float)(Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Cooldown);
+        private const Skills skillName = Skills.GodMode;
+        private static float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
+        private static float duration = Config.GetValue<float>(skillName, "duration");
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = new Dictionary<ulong, PlayerSkillInfo>();
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#e0d83a");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -108,12 +106,6 @@ namespace jRandomSkills
             player.PrintToCenterHtml(hudContent);
         }
 
-        private static void ActiveUse(CCSPlayerController player)
-        {
-            if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-                skillInfo.CanUse = true;
-        }
-
         public static void UseSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
@@ -130,7 +122,7 @@ namespace jRandomSkills
                     player.PrintToChat($" {ChatColors.Green} {Localization.GetTranslation("godmode_on")}");
                     player.PlayerPawn.Value.TakesDamage = false;
 
-                    Instance.AddTimer(2, () => {
+                    Instance.AddTimer(duration, () => {
                         if (player.IsValid && player.PawnIsAlive)
                         {
                             player.PlayerPawn.Value.TakesDamage = true;
@@ -149,6 +141,17 @@ namespace jRandomSkills
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
             public DateTime LastClick { get; set; }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float Cooldown { get; set; }
+            public float Duration { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#e0d83a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 30f, float duration = 2f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                Cooldown = cooldown;
+                Duration = duration;
+            }
         }
     }
 }

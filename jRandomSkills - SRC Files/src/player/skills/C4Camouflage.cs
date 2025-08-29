@@ -1,6 +1,7 @@
 using System.Drawing;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -8,14 +9,11 @@ namespace jRandomSkills
 {
     public class C4Camouflage : ISkill
     {
-        private static Skills skillName = Skills.C4Camouflage;
+        private const Skills skillName = Skills.C4Camouflage;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#00911f");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -23,6 +21,7 @@ namespace jRandomSkills
                 {
                     foreach (var player in Utilities.GetPlayers())
                     {
+                        DisableSkill(player);
                         if (!Instance.IsPlayerValid(player)) continue;
                         var playerPawn = player.PlayerPawn?.Value;
 
@@ -35,10 +34,15 @@ namespace jRandomSkills
                 return HookResult.Continue;
             });
 
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
+            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
-                foreach (var player in Utilities.GetPlayers())
+                var player = @event.Userid;
+                if (!player.IsValid || player.PlayerPawn.Value == null) return HookResult.Continue;
+
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill == skillName)
                     DisableSkill(player);
+
                 return HookResult.Continue;
             });
 
@@ -115,6 +119,13 @@ namespace jRandomSkills
                     weapon.Value.Render = color;
                     Utilities.SetStateChanged(weapon.Value, "CBaseModelEntity", "m_clrRender");
                 }
+            }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#00911f", CsTeam onlyTeam = CsTeam.Terrorist, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
             }
         }
     }

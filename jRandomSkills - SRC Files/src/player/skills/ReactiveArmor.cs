@@ -1,7 +1,6 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Memory;
-using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
@@ -11,16 +10,13 @@ namespace jRandomSkills
 {
     public class ReactiveArmor : ISkill
     {
-        private static Skills skillName = Skills.ReactiveArmor;
-        private static float timerCooldown = (float)(Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Cooldown);
+        private const Skills skillName = Skills.ReactiveArmor;
+        private static float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = new Dictionary<ulong, PlayerSkillInfo>();
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#3cded3");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -73,7 +69,6 @@ namespace jRandomSkills
                 int damage = @event.DmgHealth;
 
                 if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim)) return HookResult.Continue;
-
                 if (SkillPlayerInfo.TryGetValue(victim.SteamID, out var skillInfo))
                 {
                     if (!victim.IsValid || !victim.PawnIsAlive || !skillInfo.CanUse) return HookResult.Continue;
@@ -145,6 +140,15 @@ namespace jRandomSkills
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
             public DateTime LastClick {  get; set; }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float Cooldown { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#3cded3", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 15) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                Cooldown = cooldown;
+            }
         }
     }
 }

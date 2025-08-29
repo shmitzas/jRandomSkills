@@ -8,16 +8,13 @@ namespace jRandomSkills
 {
     public class SecondLife : ISkill
     {
-        private static Skills skillName = Skills.SecondLife;
-        private static int secondLifeHealth = 50;
+        private const Skills skillName = Skills.SecondLife;
+        private static int secondLifeHealth = Config.GetValue<int>(skillName, "startHealth");
         private static HashSet<nint> secondLifePlayers = new HashSet<nint>();
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#d41c1c");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -44,21 +41,20 @@ namespace jRandomSkills
 
             Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
             {
-                var attacker = @event.Attacker;
                 var victim = @event.Userid;
                 int damage = @event.DmgHealth;
 
-                if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim)) return HookResult.Continue;
+                if (!Instance.IsPlayerValid(victim)) return HookResult.Continue;
                 var victimInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
                 if (victimInfo == null || victimInfo.Skill != skillName) return HookResult.Continue;
 
                 var victimPawn = victim.PlayerPawn.Value;
-                if (victimPawn.Health - damage >= 0 || secondLifePlayers.TryGetValue(victim.Handle, out _))
+                if (victimPawn.Health > 0 || secondLifePlayers.TryGetValue(victim.Handle, out _) == true)
                     return HookResult.Continue;
 
                 secondLifePlayers.Add(victim.Handle);
                 SetHealth(victim, secondLifeHealth);
-                victimPawn.Teleport(GetSpawnVector(victim));
+                victimPawn.Teleport(GetSpawnVector(victim), victimPawn.AbsRotation, null);
                 return HookResult.Stop;
             });
         }
@@ -97,6 +93,15 @@ namespace jRandomSkills
                 return randomSpawn.AbsOrigin;
             }
             return new Vector(abs.X, abs.Y, abs.Z);
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public int StartHealth { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#d41c1c", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int startHealth = 50) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                StartHealth = startHealth;
+            }
         }
     }
 }

@@ -9,14 +9,11 @@ namespace jRandomSkills
 {
     public class Duplicator : ISkill
     {
-        private static Skills skillName = Skills.Duplicator;
+        private const Skills skillName = Skills.Duplicator;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#ffb73b", false);
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -96,6 +93,13 @@ namespace jRandomSkills
                 Instance.SkillAction(enemyInfo.Skill.ToString(), "EnableSkill", new object[] { player });
 
                 player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("duplicator_player_info", enemy.PlayerName));
+            }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ffb73b", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
             }
         }
     }

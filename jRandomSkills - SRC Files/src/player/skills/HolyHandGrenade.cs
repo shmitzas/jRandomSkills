@@ -1,6 +1,7 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -8,14 +9,13 @@ namespace jRandomSkills
 {
     public class HolyHandGrenade : ISkill
     {
-        private static Skills skillName = Skills.HolyHandGrenade;
+        private const Skills skillName = Skills.HolyHandGrenade;
+        private static float damageMultiplier = Config.GetValue<float>(skillName, "damageMultiplier");
+        private static float damageRadiusMultiplier = Config.GetValue<float>(skillName, "damageRadiusMultiplier");
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#ffdd00");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -44,13 +44,14 @@ namespace jRandomSkills
                     var hegrenade = @event.As<CHEGrenadeProjectile>();
                     var playerPawn = hegrenade.Thrower.Value;
 
+                    if (playerPawn == null || !playerPawn.IsValid) return;
                     var player = Utilities.GetPlayers().FirstOrDefault(p => p.PlayerPawn.Index == playerPawn.Index);
                     var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill != skillName)
                         return;
 
-                    hegrenade.Damage *= 2;
-                    hegrenade.DmgRadius *= 2;
+                    hegrenade.Damage *= damageMultiplier;
+                    hegrenade.DmgRadius *= damageRadiusMultiplier;
                 });
             });
         }
@@ -58,6 +59,17 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             SkillUtils.TryGiveWeapon(player, CsItem.HEGrenade);
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float DamageMultiplier { get; set; }
+            public float DamageRadiusMultiplier { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ffdd00", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float damageMultiplier = 2f, float damageRadiusMultiplier = 2f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                DamageMultiplier = damageMultiplier;
+                DamageRadiusMultiplier = damageRadiusMultiplier;
+            }
         }
     }
 }

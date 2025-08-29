@@ -1,7 +1,7 @@
-﻿using CounterStrikeSharp.API;
-using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -9,14 +9,11 @@ namespace jRandomSkills
 {
     public class OneShot : ISkill
     {
-        private static Skills skillName = Skills.OneShot;
+        private const Skills skillName = Skills.OneShot;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#ff5CD9");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
             VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamage, HookMode.Pre);
         }
 
@@ -46,6 +43,13 @@ namespace jRandomSkills
             if (playerInfo.Skill == skillName && attacker.PawnIsAlive)
                 param2.Damage = 1000f;
             return HookResult.Changed;
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff5CD9", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+            }
         }
     }
 }

@@ -9,11 +9,11 @@ namespace jRandomSkills
 {
     public class AreaReaper : ISkill
     {
-        private static Skills skillName = Skills.AreaReaper;
+        private const Skills skillName = Skills.AreaReaper;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "#edf5b5", false);
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -93,6 +93,13 @@ namespace jRandomSkills
             var bombTargets = Utilities.FindAllEntitiesByDesignerName<CBombTarget>("func_bomb_target");
             foreach (var bombTarget in bombTargets)
                 bombTarget.AcceptInput("Enable");
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#edf5b5", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+            }
         }
     }
 }

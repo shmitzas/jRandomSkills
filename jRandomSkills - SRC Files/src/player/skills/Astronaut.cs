@@ -9,15 +9,12 @@ namespace jRandomSkills
 {
     public class Astronaut : ISkill
     {
-        private static Skills skillName = Skills.Astronaut;
+        private const Skills skillName = Skills.Astronaut;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
 
-            SkillUtils.RegisterSkill(skillName, "#7E10AD", false);
-            
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
                 Instance.AddTimer(0.1f, () =>
@@ -35,6 +32,13 @@ namespace jRandomSkills
                 });
                 return HookResult.Continue;
             });
+
+            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+            {
+                foreach (var player in Utilities.GetPlayers())
+                    DisableSkill(player);
+                return HookResult.Continue;
+            });
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -44,17 +48,25 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            player.Pawn.Value.GravityScale = 1;
+            player.Pawn.Value.ActualGravityScale = 1;
         }
 
         private static void ApplyGravityModifier(CCSPlayerController player)
         {
-            var skillConfig = Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString());
-            if (skillConfig == null) return;
-
-            float gravityModifier = (float)Math.Round(Instance.Random.NextDouble() * (skillConfig.ChanceTo - skillConfig.ChanceFrom) + skillConfig.ChanceFrom, 1);
+            float gravityModifier = (float)Math.Round(Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "chanceFrom")) + Config.GetValue<float>(skillName, "chanceFrom"), 1);
             SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("astronaut")}{ChatColors.Lime}: " + Localization.GetTranslation("astronaut_desc2", gravityModifier), false);
-            player.Pawn.Value.GravityScale = gravityModifier;
+            player.Pawn.Value.ActualGravityScale = gravityModifier;
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float ChanceFrom { get; set; }
+            public float ChanceTo { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#7E10AD", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .1f, float chanceTo = .7f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                ChanceFrom = chanceFrom;
+                ChanceTo = chanceTo;
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -6,15 +7,12 @@ namespace jRandomSkills
 {
     public class AntyHead : ISkill
     {
-        private static Skills skillName = Skills.AntyHead;
+        private const Skills skillName = Skills.AntyHead;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
-            SkillUtils.RegisterSkill(skillName, "#8B4513");
-            
             Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
             {
                 var attacker = @event.Attacker;
@@ -44,6 +42,13 @@ namespace jRandomSkills
                 newHealth = 100;
 
             playerPawn.Health = (int)newHealth;
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#8B4513", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+            }
         }
     }
 }

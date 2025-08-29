@@ -9,16 +9,14 @@ namespace jRandomSkills
 {
     public class BunnyHop : ISkill
     {
-        private static Skills skillName = Skills.BunnyHop;
-        private const float MaxSpeed = 500f;
-        private const float BunnyHopVelocity = 300f;
+        private const Skills skillName = Skills.BunnyHop;
+        private static float maxSpeed = Config.GetValue<float>(skillName, "maxSpeed");
+        private static float bunnyHopVelocity = Config.GetValue<float>(skillName, "jumpVelocity");
+        private static float jumpBoost = Config.GetValue<float>(skillName, "jumpBoost");
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#EB4034");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
             Instance.RegisterListener<OnTick>(OnTick);
         }
 
@@ -27,40 +25,52 @@ namespace jRandomSkills
             foreach (var player in Utilities.GetPlayers())
             {
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-
                 if (playerInfo?.Skill == skillName)
-                {
                     GiveBunnyHop(player);
-                }
             }
         }
 
         private static void GiveBunnyHop(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
-            if (playerPawn != null)
+            if (playerPawn == null || !playerPawn.IsValid) return;
+
+            var flags = (PlayerFlags)playerPawn.Flags;
+            var buttons = player.Buttons;
+
+            if (buttons.HasFlag(PlayerButtons.Jump) && flags.HasFlag(PlayerFlags.FL_ONGROUND) && !playerPawn.MoveType.HasFlag(MoveType_t.MOVETYPE_LADDER))
             {
-                if (Math.Round(playerPawn.AbsVelocity.Length2D()) > MaxSpeed && MaxSpeed != 0)
-                    ChangeVelocity(playerPawn, MaxSpeed);
+                playerPawn.AbsVelocity.Z = bunnyHopVelocity;
 
-                var flags = (PlayerFlags)playerPawn.Flags;
-                var buttons = player.Buttons;
+                var vX = playerPawn.AbsVelocity.X;
+                var vY = playerPawn.AbsVelocity.Y;
+                var speed2D = Math.Sqrt(vX * vX + vY * vY);
+                var scale = 1d;
 
-                if (buttons.HasFlag(PlayerButtons.Jump) && flags.HasFlag(PlayerFlags.FL_ONGROUND) && !playerPawn.MoveType.HasFlag(MoveType_t.MOVETYPE_LADDER))
-                    playerPawn.AbsVelocity.Z = BunnyHopVelocity;
+                if (speed2D < maxSpeed)
+                {
+                    var newSpeed = Math.Min(speed2D * jumpBoost, maxSpeed);
+                    scale = newSpeed / (speed2D == 0 ? 1 : speed2D);
+                }
+                else if (speed2D > maxSpeed)
+                    scale = maxSpeed / speed2D;
+
+                playerPawn.AbsVelocity.X = (float)(vX * scale);
+                playerPawn.AbsVelocity.Y = (float)(vY * scale);
             }
         }
 
-        private static void ChangeVelocity(CCSPlayerPawn? pawn, float vel)
+        public class SkillConfig : Config.DefaultSkillInfo
         {
-            if (pawn == null) return;
-
-            var currentVelocity = new Vector(pawn.AbsVelocity.X, pawn.AbsVelocity.Y, pawn.AbsVelocity.Z);
-            var currentSpeed3D = Math.Sqrt(currentVelocity.X * currentVelocity.X + currentVelocity.Y * currentVelocity.Y + currentVelocity.Z * currentVelocity.Z);
-
-            pawn.AbsVelocity.X = (float)(currentVelocity.X / currentSpeed3D) * vel;
-            pawn.AbsVelocity.Y = (float)(currentVelocity.Y / currentSpeed3D) * vel;
-            pawn.AbsVelocity.Z = (float)(currentVelocity.Z / currentSpeed3D) * vel;
+            public float MaxSpeed { get; set; }
+            public float JumpVelocity { get; set; }
+            public float JumpBoost { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#d1430a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float maxSpeed = 500f, float jumpVelocity = 300f, float jumpBoost = 2f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                MaxSpeed = maxSpeed;
+                JumpVelocity = jumpVelocity;
+                JumpBoost = jumpBoost;
+            }
         }
     }
 }

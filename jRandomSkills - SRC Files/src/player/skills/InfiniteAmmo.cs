@@ -1,4 +1,5 @@
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -6,14 +7,11 @@ namespace jRandomSkills
 {
     public class InfiniteAmmo : ISkill
     {
-        private static Skills skillName = Skills.InfiniteAmmo;
+        private const Skills skillName = Skills.InfiniteAmmo;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#0000FF");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventWeaponFire>((@event, info) =>
             {
@@ -68,6 +66,13 @@ namespace jRandomSkills
             if (activeWeaponHandle?.Value != null)
             {
                 activeWeaponHandle.Value.Clip1 = 100;
+            }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#0000FF", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
             }
         }
     }

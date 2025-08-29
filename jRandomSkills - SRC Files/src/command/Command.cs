@@ -2,9 +2,11 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
+using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.utils;
-using System;
+using System.Runtime.InteropServices;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -20,25 +22,22 @@ namespace jRandomSkills
 
             var commands = new Dictionary<IEnumerable<string>, (string description, CommandInfo.CommandCallback handler)>
             {
-                { SplitCommands(config.Set_Skill), ("Delete record", Command_SetSkill) },
-                { SplitCommands(config.SkillsList_Menu), ("Delete all records", Command_SkillsListMenu) },
-                { SplitCommands("t, useSkill"), ("Use/Type Skill", Command_UseTypeSkill) }
+                { SplitCommands(config.SetSkillCommands), ("Delete record", Command_SetSkill) },
+                { SplitCommands(config.SkillsListCommands), ("Delete all records", Command_SkillsListMenu) },
+                { SplitCommands(config.UseSkillCommands), ("Use/Type skill", Command_UseTypeSkill) },
+                { SplitCommands(config.ChangeMapCommands), ("Change map", Command_ChangeMap) },
+                { SplitCommands(config.ConsoleCommands), ("Console command", Command_CustomCommand) },
+                { SplitCommands(config.StartGameCommands), ("Start game", Command_StartGame) },
+                { SplitCommands(config.SwapCommands), ("Swap team", Command_Swap) },
+                { SplitCommands(config.ShuffleCommands), ("Shuffle team", Command_Shuffle) },
+                { SplitCommands(config.PauseCommands), ("Pause game", Command_Pause) },
+                { SplitCommands(config.HealCommands), ("Heal", Command_Heal) },
+                { SplitCommands(config.SetScoreCommands), ("Set teams score", Command_SetScore) },
             };
 
             foreach (var commandPair in commands)
-            {
                 foreach (var command in commandPair.Key)
-                {
                     Instance.AddCommand($"css_{command}", commandPair.Value.description, commandPair.Value.handler);
-                }
-            }
-
-            Instance.AddCommand($"css_map", "", Command_ChangeMap);
-            Instance.AddCommand($"css_console", "", Command_CustomCommand);
-            Instance.AddCommand($"css_start", "", Command_StartGame);
-            Instance.AddCommand($"css_swap", "", Command_Swap);
-            Instance.AddCommand($"css_shuffle", "", Command_Shuffle);
-            Instance.AddCommand($"css_pause", "", Command_Pause);
         }
 
         private static IEnumerable<string> SplitCommands(string commands)
@@ -46,7 +45,7 @@ namespace jRandomSkills
             return commands.Split(',').Select(c => c.Trim());
         }
 
-        public static void AddCommands(IEnumerable<string> commands, string description, CommandInfo.CommandCallback commandAction)
+        private static void AddCommands(IEnumerable<string> commands, string description, CommandInfo.CommandCallback commandAction)
         {
             foreach (var command in commands)
             {
@@ -55,7 +54,7 @@ namespace jRandomSkills
         }
 
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_ONLY)]
-        public static void Command_UseTypeSkill(CCSPlayerController? player, CommandInfo _)
+        private static void Command_UseTypeSkill(CCSPlayerController? player, CommandInfo _)
         {
             if (player == null) return;
             var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
@@ -65,15 +64,16 @@ namespace jRandomSkills
             if (!player.IsValid || !player.PawnIsAlive) return;
 
             string[] commands = _.ArgString.Trim().Split(" ", StringSplitOptions.RemoveEmptyEntries);
+            Debug.WriteToDebug($"Player {player.PlayerName} used the skill: {playerInfo.Skill}");
             if (commands == null || commands.Length == 0)
                 Instance.SkillAction(playerInfo!.Skill.ToString(), "UseSkill", new object[] { player });
             else
                 Instance.SkillAction(playerInfo!.Skill.ToString(), "TypeSkill", new object[] { player, commands });
         }
 
-        [RequiresPermissions("@css/root")]
+        [RequiresPermissions("@jRandmosSkills/admin")]
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_ONLY)]
-        public static void Command_SetSkill(CCSPlayerController? player, CommandInfo command)
+        private static void Command_SetSkill(CCSPlayerController? player, CommandInfo command)
         {
             if (player == null) return;
 
@@ -131,15 +131,15 @@ namespace jRandomSkills
         }
 
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_ONLY)]
-        public static void Command_SkillsListMenu(CCSPlayerController? player, CommandInfo command)
+        private static void Command_SkillsListMenu(CCSPlayerController? player, CommandInfo command)
         {
             if (player == null) return;
             Menu.DisplaySkillsList(player);
         }
 
-        [RequiresPermissions("@css/root")]
+        [RequiresPermissions("@jRandmosSkills/admin")]
         [CommandHelper(minArgs: 1, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-        public static void Command_ChangeMap(CCSPlayerController? player, CommandInfo command)
+        private static void Command_ChangeMap(CCSPlayerController? player, CommandInfo command)
         {
             if (player == null) return;
             string map = command.GetArg(1);
@@ -160,9 +160,9 @@ namespace jRandomSkills
                 Server.ExecuteCommand($"changelevel {map}");
         }
 
-        [RequiresPermissions("@css/root")]
+        [RequiresPermissions("@jRandmosSkills/admin")]
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-        public static void Command_StartGame(CCSPlayerController? player, CommandInfo command)
+        private static void Command_StartGame(CCSPlayerController? player, CommandInfo command)
         {
             if (player == null) return;
             int cheats = command.GetArg(1) == "sv" ? 1 : 0;
@@ -180,18 +180,18 @@ namespace jRandomSkills
             });
         }
 
-        [RequiresPermissions("@css/root")]
+        [RequiresPermissions("@jRandmosSkills/root")]
         [CommandHelper(minArgs: 1, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-        public static void Command_CustomCommand(CCSPlayerController? player, CommandInfo command)
+        private static void Command_CustomCommand(CCSPlayerController? player, CommandInfo command)
         {
             if (player == null) return;
             string param = command.GetArg(1);
             Server.ExecuteCommand(param);
         }
 
-        [RequiresPermissions("@css/root")]
+        [RequiresPermissions("@jRandmosSkills/admin")]
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-        public static void Command_Swap(CCSPlayerController? _player, CommandInfo command)
+        private static void Command_Swap(CCSPlayerController? _player, CommandInfo command)
         {
             foreach (var player in Utilities.GetPlayers())
                 if (Instance.IsPlayerValid(player) && new CsTeam[] { CsTeam.CounterTerrorist, CsTeam.Terrorist }.Contains(player.Team))
@@ -199,9 +199,9 @@ namespace jRandomSkills
             Server.ExecuteCommand($"mp_restartgame 1");
         }
 
-        [RequiresPermissions("@css/root")]
+        [RequiresPermissions("@jRandmosSkills/admin")]
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-        public static void Command_Shuffle(CCSPlayerController? _player, CommandInfo command)
+        private static void Command_Shuffle(CCSPlayerController? _player, CommandInfo command)
         {
             var players = Utilities.GetPlayers().FindAll(p => (Instance.IsPlayerValid(p) && new CsTeam[] { CsTeam.CounterTerrorist, CsTeam.Terrorist }.Contains(p.Team)));
             double CTlimit = Instance.Random.Next(0, 2) == 0 ? Math.Floor(players.Count / 2.0) : Math.Ceiling(players.Count / 2.0);
@@ -214,13 +214,34 @@ namespace jRandomSkills
             Server.ExecuteCommand($"mp_restartgame 1");
         }
 
-        [RequiresPermissions("@css/root")]
+        [RequiresPermissions("@jRandmosSkills/admin")]
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-        public static void Command_Pause(CCSPlayerController? player, CommandInfo command)
+        private static void Command_Pause(CCSPlayerController? player, CommandInfo command)
         {
             Server.PrintToChatAll($" {(gamePaused ? ChatColors.Green : ChatColors.Red)}{Localization.GetTranslation(gamePaused ? "unpause" : "pause")}");
             Server.ExecuteCommand( gamePaused ? "mp_unpause_match" : "mp_pause_match");
             gamePaused = !gamePaused;
+        }
+
+        [RequiresPermissions("@jRandmosSkills/root")]
+        [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+        private static void Command_Heal(CCSPlayerController? player, CommandInfo command)
+        {
+            SkillUtils.AddHealth(player.PlayerPawn.Value, 100);
+            player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("healed")}");
+        }
+
+        [RequiresPermissions("@jRandmosSkills/root")]
+        [CommandHelper(minArgs: 2, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+        private static void Command_SetScore(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!int.TryParse(command.GetArg(1), out int ctScore) || !int.TryParse(command.GetArg(2), out int tScore))
+            {
+                SkillUtils.PrintToChat(player, Localization.GetTranslation("correct_form_setscore"), true);
+                return;
+            }
+
+            SkillUtils.SetTeamScores((short)ctScore, (short)tScore, RoundEndReason.RoundDraw);
         }
     }
 }

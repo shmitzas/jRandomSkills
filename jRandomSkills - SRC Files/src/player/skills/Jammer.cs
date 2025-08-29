@@ -9,12 +9,12 @@ namespace jRandomSkills
 {
     public class Jammer : ISkill
     {
-        private static Skills skillName = Skills.Jammer;
+        private const Skills skillName = Skills.Jammer;
         private static HashSet<CCSPlayerController> jammedPlayers = new HashSet<CCSPlayerController>();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "#42f5a7", false);
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -90,7 +90,7 @@ namespace jRandomSkills
             if (enemies.Length > 0)
             {
                 foreach (var enemy in enemies)
-                    player.PrintToChat($" {ChatColors.Green}⠀⠀⠀{ChatColors.Red}{enemy.Index}{ChatColors.Green}] {enemy.PlayerName}");
+                    player.PrintToChat($" {ChatColors.Green}⠀⠀⠀[{ChatColors.Red}{enemy.Index}{ChatColors.Green}] {enemy.PlayerName}");
             }
             else
                 player.PrintToChat($" {ChatColors.Red}⠀⠀⠀{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
@@ -101,6 +101,13 @@ namespace jRandomSkills
         {
             SetCrosshair(player, true);
             jammedPlayers.Remove(player);
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#42f5a7", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+            }
         }
     }
 }

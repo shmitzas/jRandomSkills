@@ -1,5 +1,6 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
@@ -9,16 +10,13 @@ namespace jRandomSkills
 {
     public class SoundMaker : ISkill
     {
-        private static Skills skillName = Skills.SoundMaker;
-        private static float timerCooldown = (float)(Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Cooldown);
+        private const Skills skillName = Skills.SoundMaker;
+        private static float timerCooldown = Config.GetValue<float>(skillName, "Cooldown");
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = new Dictionary<ulong, PlayerSkillInfo>();
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#e3ed8c");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -128,10 +126,7 @@ namespace jRandomSkills
         {
             foreach (var enemy in Utilities.GetPlayers().Where(p => p.Team != player.Team))
                 if (enemy != null && enemy.IsValid && enemy.PawnIsAlive)
-                {
-                    Server.PrintToChatAll($"Sound event on {enemy.PlayerName}");
                     enemy.PlayerPawn.Value.EmitSound($"weapon.C4Beep.Impact", volume: 1f);
-                }
         }
 
         public class PlayerSkillInfo
@@ -140,6 +135,15 @@ namespace jRandomSkills
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
             public DateTime LastClick { get; set; }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float Cooldown { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#e3ed8c", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 5f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                Cooldown = cooldown;
+            }
         }
     }
 }

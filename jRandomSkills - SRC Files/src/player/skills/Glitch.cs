@@ -9,12 +9,12 @@ namespace jRandomSkills
 {
     public class Glitch : ISkill
     {
-        private static Skills skillName = Skills.Glitch;
+        private const Skills skillName = Skills.Glitch;
         private static HashSet<CCSPlayerController> glitchedPlayers = new HashSet<CCSPlayerController>();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "#f542ef", false);
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -80,7 +80,7 @@ namespace jRandomSkills
             if (enemies.Length > 0)
             {
                 foreach (var enemy in enemies)
-                    player.PrintToChat($" {ChatColors.Green}⠀⠀⠀{ChatColors.Red}{enemy.Index}{ChatColors.Green}] {enemy.PlayerName}");
+                    player.PrintToChat($" {ChatColors.Green}⠀⠀⠀[{ChatColors.Red}{enemy.Index}{ChatColors.Green}] {enemy.PlayerName}");
             }
             else
                 player.PrintToChat($" {ChatColors.Red}⠀⠀⠀{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
@@ -91,6 +91,13 @@ namespace jRandomSkills
         {
             player.ReplicateConVar("sv_disable_radar", "0");
             glitchedPlayers.Remove(player);
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#f542ef", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+            }
         }
     }
 }

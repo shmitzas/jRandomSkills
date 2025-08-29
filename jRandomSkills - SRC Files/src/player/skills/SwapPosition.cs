@@ -10,16 +10,13 @@ namespace jRandomSkills
 {
     public class SwapPosition : ISkill
     {
-        private static Skills skillName = Skills.SwapPosition;
-        private static float timerCooldown = (float)(Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Cooldown);
+        private const Skills skillName = Skills.SwapPosition;
+        private static float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
         private static readonly Dictionary<ulong, ZamianaMiejsc_PlayerInfo> SkillPlayerInfo = new Dictionary<ulong, ZamianaMiejsc_PlayerInfo>();
         
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#1466F5");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -172,6 +169,15 @@ namespace jRandomSkills
             public DateTime Cooldown { get; set; }
             public DateTime LastClick { get; set; }
             public bool FindedEnemy { get; set; }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float Cooldown { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#1466F5", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 30f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                Cooldown = cooldown;
+            }
         }
     }
 }

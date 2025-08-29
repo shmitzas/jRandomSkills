@@ -8,14 +8,11 @@ namespace jRandomSkills
 {
     public class Teleporter : ISkill
     {
-        private static Skills skillName = Skills.Teleporter;
+        private const Skills skillName = Skills.Teleporter;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#8A2BE2");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
             
             Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
             {
@@ -50,6 +47,13 @@ namespace jRandomSkills
 
             victimPawn.Teleport(attackerPosition, attackerAngles, attackerVelocity);
             attackerPawn.Teleport(victimPosition, victimAngles, victimVelocity);
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#8A2BE2", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+            }
         }
     }
 }

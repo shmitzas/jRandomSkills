@@ -10,15 +10,13 @@ namespace jRandomSkills
 {
     public class Pilot : ISkill
     {
-        private static Skills skillName = Skills.Pilot;
+        private const Skills skillName = Skills.Pilot;
+        private static float maximumFuel = Config.GetValue<float>(skillName, "maximumFuel");
         private static readonly Dictionary<ulong, Pilot_PlayerInfo> PlayerPilotInfo = new Dictionary<ulong, Pilot_PlayerInfo>();
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#1466F5");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
             
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -107,12 +105,12 @@ namespace jRandomSkills
         private static void UpdateHUD(CCSPlayerController player, Pilot_PlayerInfo pilotInfo)
         {
             var buttons = player.Buttons;
-            float fuelPercentage = 100.0f;
+            float fuelPercentage = maximumFuel;
 
             if (pilotInfo.PressedUse && pilotInfo.CanUsePilot)
             {
                 float elapsedTime = (float)(DateTime.Now - pilotInfo.PilotStartTime).TotalSeconds;
-                fuelPercentage = Math.Max(0, 100.0f * (4.0f - elapsedTime) / 4.0f);
+                fuelPercentage = Math.Max(0, maximumFuel * (4.0f - elapsedTime) / 4.0f);
             }
 
             string fuelColor = GetFuelColor(fuelPercentage);
@@ -129,8 +127,8 @@ namespace jRandomSkills
 
         private static string GetFuelColor(float fuelPercentage)
         {
-            if (fuelPercentage > 50) return "#00FF00";
-            if (fuelPercentage > 25) return "#FFFF00";
+            if (fuelPercentage > (maximumFuel/2f)) return "#00FF00";
+            if (fuelPercentage > (maximumFuel/4f)) return "#FFFF00";
             return "#FF0000";
         }
 
@@ -183,6 +181,15 @@ namespace jRandomSkills
             public bool CanUsePilot { get; set; }
             public bool PressedUse { get; set; }
             public DateTime PilotStartTime { get; set; }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float MaximumFuel { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#1466F5", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float maximumFuel = 100f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                MaximumFuel = maximumFuel;
+            }
         }
     }
 }

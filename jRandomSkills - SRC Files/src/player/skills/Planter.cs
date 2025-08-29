@@ -1,8 +1,8 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
@@ -10,14 +10,12 @@ namespace jRandomSkills
 {
     public class Planter : ISkill
     {
-        private static Skills skillName = Skills.Planter;
+        private const Skills skillName = Skills.Planter;
+        private static int extraC4BlowTime = Config.GetValue<int>(skillName, "extraC4BlowTime");
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#7d7d7d");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundStart>((@event, @info) =>
             {
@@ -31,22 +29,15 @@ namespace jRandomSkills
 
             Instance.RegisterEventHandler<EventBombPlanted>((@event, info) =>
             {
-                foreach (var player in Utilities.GetPlayers())
-                {
-                    if (!Instance.IsPlayerValid(player)) continue;
+                var player = @event.Userid;
+                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
 
-                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    if (playerInfo?.Skill != skillName) continue;
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill != skillName) return HookResult.Continue;
 
-                    var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
-                    if (plantedBomb != null)
-                    {
-                        Server.NextFrame(() =>
-                        {
-                            plantedBomb.C4Blow = (float)Server.EngineTime + 60;
-                        });
-                    }
-                }
+                var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
+                if (plantedBomb != null)
+                    Server.NextFrame(() => plantedBomb.C4Blow = (float)Server.EngineTime + extraC4BlowTime);
 
                 return HookResult.Continue;
             });
@@ -68,6 +59,15 @@ namespace jRandomSkills
 
                 if (playerInfo?.Skill == skillName)
                     Schema.SetSchemaValue<bool>(player.Pawn.Value.Handle, "CCSPlayerPawn", "m_bInBombZone", true);
+            }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public int ExtraC4BlowTime { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#7d7d7d", CsTeam onlyTeam = CsTeam.Terrorist, bool needsTeammates = false, int extraC4BlowTime = 60) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                ExtraC4BlowTime = extraC4BlowTime;
             }
         }
     }

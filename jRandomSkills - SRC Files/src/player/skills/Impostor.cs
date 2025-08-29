@@ -9,16 +9,13 @@ namespace jRandomSkills
 {
     public class Impostor : ISkill
     {
-        private static Skills skillName = Skills.Impostor;
+        private const Skills skillName = Skills.Impostor;
         private static readonly string defaultCTModel = "characters/models/ctm_sas/ctm_sas.vmdl";
         private static readonly string defaultTModel = "characters/models/tm_phoenix_heavy/tm_phoenix_heavy.vmdl";
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#99140B");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -74,6 +71,13 @@ namespace jRandomSkills
                 var originalRender = pawn.Render;
                 pawn.Render = Color.FromArgb(255, originalRender.R, originalRender.G, originalRender.B);
             });
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#99140B", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+            }
         }
     }
 }

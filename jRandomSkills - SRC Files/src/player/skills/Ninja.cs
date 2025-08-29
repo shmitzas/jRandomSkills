@@ -10,24 +10,33 @@ namespace jRandomSkills
 {
     public class Ninja : ISkill
     {
-        private static Skills skillName = Skills.Ninja;
-        private static float idlePercentInvisibility = 0.3f;
-        private static float duckPercentInvisibility = 0.3f;
-        private static float knifePercentInvisibility = 0.3f;
+        private const Skills skillName = Skills.Ninja;
+        private static float idlePercentInvisibility = Config.GetValue<float>(skillName, "idlePercentInvisibility");
+        private static float duckPercentInvisibility = Config.GetValue<float>(skillName, "duckPercentInvisibility");
+        private static float knifePercentInvisibility = Config.GetValue<float>(skillName, "knifePercentInvisibility");
         private static Dictionary<nint, float> invisibilityChanged = new Dictionary<nint, float>();
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
-            SkillUtils.RegisterSkill(skillName, "#dedede");
-
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
+            Instance.RegisterEventHandler<EventRoundStart>((@event, info) =>
             {
                 foreach (var player in Utilities.GetPlayers())
                     DisableSkill(player);
                 invisibilityChanged.Clear();
+                return HookResult.Continue;
+            });
+
+            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
+            {
+                var player = @event.Userid;
+                if (!player.IsValid || player.PlayerPawn.Value == null) return HookResult.Continue;
+
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill == skillName)
+                    DisableSkill(player);
+
                 return HookResult.Continue;
             });
 
@@ -109,6 +118,19 @@ namespace jRandomSkills
                     weapon.Value.Render = color;
                     Utilities.SetStateChanged(weapon.Value, "CBaseModelEntity", "m_clrRender");
                 }
+            }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float IdlePercentInvisibility { get; set; }
+            public float DuckPercentInvisibility { get; set; }
+            public float KnifePercentInvisibility { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#dedede", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float idlePercentInvisibility = .3f, float duckPercentInvisibility = .3f, float knifePercentInvisibility = .3f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                IdlePercentInvisibility = idlePercentInvisibility;
+                DuckPercentInvisibility = duckPercentInvisibility;
+                KnifePercentInvisibility = knifePercentInvisibility;
             }
         }
     }

@@ -1,9 +1,6 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
-using CounterStrikeSharp.API.Modules.Memory;
-using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static CounterStrikeSharp.API.Core.Listeners;
@@ -13,85 +10,89 @@ namespace jRandomSkills
 {
     public class ToxicSmoke : ISkill
     {
-        private static Skills skillName = Skills.ToxicSmoke;
-        private static List<CCSPlayerPawn> players = new List<CCSPlayerPawn>();
-        private static Dictionary<int, CTriggerMultiple> triggers = new Dictionary<int, CTriggerMultiple>();
+        private const Skills skillName = Skills.ToxicSmoke;
+        private static int smokeDamage = Config.GetValue<int>(skillName, "smokeDamage");
+        private static float smokeRadius = Config.GetValue<float>(skillName, "smokeRadius");
+        private static List<Vector> smokes = new List<Vector>();
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#507529");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundStart>((@event, info) =>
             {
-                players.Clear();
+                smokes.Clear();
                 return HookResult.Continue;
             });
 
-            Instance.RegisterEventHandler<EventSmokegrenadeDetonate>((@event, @info) =>
+            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+            {
+                Instance.AddTimer(0.1f, () =>
+                {
+                    foreach (var player in Utilities.GetPlayers())
+                    {
+                        if (!Instance.IsPlayerValid(player)) continue;
+                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        if (playerInfo?.Skill != skillName) continue;
+                        EnableSkill(player);
+                    }
+                });
+
+                return HookResult.Continue;
+            });
+
+            Instance.RegisterEventHandler<EventSmokegrenadeDetonate>((@event, info) =>
             {
                 var player = @event.Userid;
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
-
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
-
-                var trigger = Utilities.CreateEntityByName<CTriggerMultiple>("trigger_multiple");
-                if (trigger == null) return HookResult.Continue;
-
-                trigger.Collision.SolidType = SolidType_t.SOLID_CAPSULE;
-                trigger.Collision.SolidFlags = 0;
-                trigger.Spawnflags = 1;
-                trigger.Globalname = $"toxic_smoke_{trigger.Index}";
-                trigger.Collision.SolidFlags = 1;
-
-                trigger.AbsOrigin.X = @event.X;
-                trigger.AbsOrigin.Y = @event.Y;
-                trigger.AbsOrigin.Z = @event.Z;
-
-                trigger.Collision.CapsuleRadius = 160;
-                trigger.Collision.BoundingRadius = 160;
-
-                trigger.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_TRIGGER;
-                trigger.Collision.EnablePhysics = 1;
-                trigger.Collision.TriggerBloat = 0;
-
-                trigger.Collision.SurroundType = SurroundingBoundsType_t.USE_OBB_COLLISION_BOUNDS;
-                trigger.Collision.CollisionAttribute.CollisionFunctionMask = 39;
-                trigger.Collision.CollisionAttribute.CollisionGroup = 2;
-
-                trigger.DispatchSpawn();
-                triggers.Add(@event.Entityid, trigger);
+                smokes.Add(new Vector(@event.X, @event.Y, @event.Z));
                 return HookResult.Continue;
             });
 
             Instance.RegisterEventHandler<EventSmokegrenadeExpired>((@event, @info) =>
             {
                 var player = @event.Userid;
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
-
-                if (triggers.TryGetValue(@event.Entityid, out var existingTrigger))
-                {
-                    existingTrigger.AcceptInput("Kill");
-                    triggers.Remove(@event.Entityid);
-                }
-
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill != skillName) return HookResult.Continue;
+                smokes.RemoveAll(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z);
                 return HookResult.Continue;
+            });
+
+            Instance.RegisterListener<OnEntitySpawned>(@event =>
+            {
+                var name = @event.DesignerName;
+                if (name != "smokegrenade_projectile") return;
+
+                var grenade = @event.As<CBaseCSGrenadeProjectile>();
+                var pawn = grenade.OwnerEntity.Value.As<CCSPlayerPawn>();
+                var player = pawn.Controller.Value.As<CCSPlayerController>();
+
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill != skillName) return;
+
+                Server.NextFrame(() =>
+                {
+                    var smoke = @event.As<CSmokeGrenadeProjectile>();
+                    smoke.SmokeColor.X = 255;
+                    smoke.SmokeColor.Y = 0;
+                    smoke.SmokeColor.Z = 255;
+                });
             });
 
             Instance.RegisterListener<OnTick>(() =>
             {
-                foreach (CCSPlayerPawn player in players)
-                {
-                    if (Server.TickCount % 10 == 0)
-                        AddHealth(player, -2);
-                }
+                foreach (Vector smokePos in smokes)
+                    foreach (var player in Utilities.GetPlayers())
+                        if (Server.TickCount % 17 == 0)
+                            if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= smokeRadius)
+                                AddHealth(player.PlayerPawn.Value, -smokeDamage);
             });
+        }
 
-            VirtualFunctions.CBaseTrigger_StartTouchFunc.Hook(StartTouchFun, HookMode.Post);
-            VirtualFunctions.CBaseTrigger_EndTouchFunc.Hook(EndTouchFunc, HookMode.Post);
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
         }
 
         private static void AddHealth(CCSPlayerPawn player, int health)
@@ -102,46 +103,20 @@ namespace jRandomSkills
             player.Health += health;
             Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
 
-            player.EmitSound("");
+            player.EmitSound("Player.DamageBody.Onlooker");
             if (player.Health <= 0)
                 player.CommitSuicide(false, true);
         }
 
-        private static HookResult StartTouchFun(DynamicHook h)
+        public class SkillConfig : Config.DefaultSkillInfo
         {
-            CBaseTrigger trigger = h.GetParam<CBaseTrigger>(0);
-            CBaseEntity entity = h.GetParam<CBaseEntity>(1);
-
-            if (trigger == null || entity == null)
-                return HookResult.Continue;
-
-            CCSPlayerPawn player = new CCSPlayerPawn(entity.Handle);
-            if (player == null) return HookResult.Continue;
-
-            if (string.IsNullOrEmpty(trigger?.Globalname) || trigger?.Globalname?.StartsWith("toxic_smoke_") == false)
-                return HookResult.Continue;
-
-            if (!players.Contains(player))
-                players.Add(player);
-            return HookResult.Continue;
-        }
-
-        private static HookResult EndTouchFunc(DynamicHook h)
-        {
-            var trigger = h.GetParam<CBaseTrigger>(0);
-            var entity = h.GetParam<CBaseEntity>(1);
-
-            if (trigger == null || entity == null) return HookResult.Continue;
-
-            CCSPlayerPawn player = new CCSPlayerPawn(entity.Handle);
-            if (player == null) return HookResult.Continue;
-
-            if (string.IsNullOrEmpty(trigger?.Globalname) || trigger?.Globalname?.StartsWith("toxic_smoke_") == false)
-                return HookResult.Continue;
-
-            if (players.Contains(player))
-                players.Remove(player);
-            return HookResult.Continue;
+            public int SmokeDamage { get; set; }
+            public float SmokeRadius { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#507529", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int smokeDamage = 2, float smokeRadius = 180) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                SmokeDamage = smokeDamage;
+                SmokeRadius = smokeRadius;
+            }
         }
     }
 }

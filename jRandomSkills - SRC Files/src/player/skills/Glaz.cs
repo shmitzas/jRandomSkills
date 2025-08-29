@@ -1,0 +1,89 @@
+﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Attributes;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
+using CounterStrikeSharp.API.Modules.Utils;
+using jRandomSkills.src.player;
+using static jRandomSkills.jRandomSkills;
+
+namespace jRandomSkills
+{
+    public class Glaz : ISkill
+    {
+        private const Skills skillName = Skills.Glaz;
+        private static bool exists = false;
+        private static List<int> smokes = new List<int>();
+
+        public static void LoadSkill()
+        {
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+
+            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, @info) =>
+            {
+                smokes.Clear();
+                Instance.AddTimer(2f, () =>
+                {
+                    foreach (var player in Utilities.GetPlayers())
+                    {
+                        if (!Instance.IsPlayerValid(player)) continue;
+
+                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        if (playerInfo?.Skill == skillName)
+                            EnableSkill(player);
+                    }
+
+                    if (exists)
+                        Instance.RegisterListener<Listeners.CheckTransmit>(CheckTransmit);
+                });
+                return HookResult.Continue;
+            });
+
+            Instance.RegisterEventHandler<EventRoundEnd>((@event, @info) =>
+            {
+                smokes.Clear();
+                if (exists)
+                    Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
+                exists = false;
+                return HookResult.Continue;
+            });
+
+            Instance.RegisterEventHandler<EventSmokegrenadeDetonate>((@event, @info) =>
+            {
+                smokes.Add(@event.Entityid);
+                return HookResult.Continue;
+            });
+
+            Instance.RegisterEventHandler<EventSmokegrenadeExpired>((@event, @info) =>
+            {
+                smokes.Remove(@event.Entityid);
+                return HookResult.Continue;
+            });
+        }
+
+        public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
+        {
+            foreach (var (info, player) in infoList)
+            {
+                if (player == null) continue;
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill != skillName) continue;
+
+                foreach (var smoke in smokes)
+                    info.TransmitEntities.Remove(smoke);
+            }
+        }
+
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            exists = true;
+            SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#5d00ff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+            }
+        }
+    }
+}

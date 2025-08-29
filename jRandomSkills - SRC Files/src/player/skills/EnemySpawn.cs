@@ -10,16 +10,13 @@ namespace jRandomSkills
 {
     public class EnemySpawn : ISkill
     {
-        private static Skills skillName = Skills.EnemySpawn;
-        private static float timerCooldown = (float)(Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Cooldown);
+        private const Skills skillName = Skills.EnemySpawn;
+        private static float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = new Dictionary<ulong, PlayerSkillInfo>();
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#ff8c92");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -123,14 +120,6 @@ namespace jRandomSkills
             player.PrintToCenterHtml(hudContent);
         }
 
-        private static void ActiveUse(CCSPlayerController player)
-        {
-            if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-            {
-                skillInfo.CanUse = true;
-            }
-        }
-
         public static void UseSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
@@ -168,6 +157,15 @@ namespace jRandomSkills
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
             public DateTime LastClick { get; set; }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float Cooldown { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff8c92", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 15f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                Cooldown = cooldown;
+            }
         }
     }
 }

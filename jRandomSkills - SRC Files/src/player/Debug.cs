@@ -1,11 +1,8 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
-using System.Numerics;
-using System.Runtime.InteropServices;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -17,7 +14,6 @@ namespace jRandomSkills
         public static void Load()
         {
             Debug.sessionId = $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}";
-            Debug.WriteToDebug($"jRandomSkills v{Instance.ModuleVersion} loaded!");
             Instance.RegisterEventHandler<EventPlayerConnectFull>((@event, info) =>
             {
                 var player = @event.Userid;
@@ -123,6 +119,9 @@ namespace jRandomSkills
 
         public static void WriteToDebug(string message)
         {
+            if (Config.config.Settings.DebugMode != true)
+                return;
+
             string filename = $"Debug_{sessionId}.txt";
             string pluginFolder = Path.Combine(Server.GameDirectory, "csgo", "addons", "counterstrikesharp", "plugins", "jRandomSkills");
             string debugFolder = Path.Combine(pluginFolder, "Debug");

@@ -1,8 +1,6 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
-using CounterStrikeSharp.API.Modules.Memory;
-using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static CounterStrikeSharp.API.Core.Listeners;
@@ -12,22 +10,21 @@ namespace jRandomSkills
 {
     public class FrozenDecoy : ISkill
     {
-        private static Skills skillName = Skills.FrozenDecoy;
-        private static Dictionary<uint, float> gravities = new Dictionary<uint, float>();
-        private static List<CCSPlayerPawn> players = new List<CCSPlayerPawn>();
-        private static Dictionary<int, CTriggerMultiple> triggers = new Dictionary<int, CTriggerMultiple>();
+        private const Skills skillName = Skills.FrozenDecoy;
+        private static float decoyRadius = Config.GetValue<float>(skillName, "triggerRadius");
+        private static int slownessMultiplier = Config.GetValue<int>(skillName, "slownessMultiplier");
+        private static List<Vector> decoys = new List<Vector>();
 
         public static void LoadSkill()
         {
             if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            SkillUtils.RegisterSkill(skillName, "#00eaff");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundStart>((@event, info) =>
             {
-                gravities.Clear();
-                players.Clear();
+                decoys.Clear();
                 return HookResult.Continue;
             });
 
@@ -47,71 +44,37 @@ namespace jRandomSkills
                 return HookResult.Continue;
             });
 
-            Instance.RegisterEventHandler<EventDecoyStarted>((@event, @info) =>
+            Instance.RegisterEventHandler<EventDecoyStarted>((@event, info) =>
             {
                 var player = @event.Userid;
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
-
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
-
-                var trigger = Utilities.CreateEntityByName<CTriggerMultiple>("trigger_multiple");
-                if (trigger == null) return HookResult.Continue;
-
-                trigger.Collision.SolidType = SolidType_t.SOLID_CAPSULE;
-                trigger.Collision.SolidFlags = 0;
-                trigger.Spawnflags = 1;
-                trigger.Globalname = $"frozen_decoy_{trigger.Index}";
-                trigger.Collision.SolidFlags = 1;
-
-                trigger.AbsOrigin.X = @event.X;
-                trigger.AbsOrigin.Y = @event.Y;
-                trigger.AbsOrigin.Z = @event.Z;
-
-                trigger.Collision.CapsuleRadius = 150;
-                trigger.Collision.BoundingRadius = 150;
-
-                trigger.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_TRIGGER;
-                trigger.Collision.EnablePhysics = 1;
-                trigger.Collision.TriggerBloat = 0;
-
-                trigger.Collision.SurroundType = SurroundingBoundsType_t.USE_OBB_COLLISION_BOUNDS;
-                trigger.Collision.CollisionAttribute.CollisionFunctionMask = 39;
-                trigger.Collision.CollisionAttribute.CollisionGroup = 2;
-
-                trigger.DispatchSpawn();
-                triggers.Add(@event.Entityid, trigger);
+                decoys.Add(new Vector(@event.X, @event.Y, @event.Z));
                 return HookResult.Continue;
             });
 
             Instance.RegisterEventHandler<EventDecoyDetonate>((@event, @info) =>
             {
                 var player = @event.Userid;
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
-
-                if (triggers.TryGetValue(@event.Entityid, out var existingTrigger))
-                {
-                    existingTrigger.AcceptInput("Kill");
-                    triggers.Remove(@event.Entityid);
-                }
-
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill != skillName) return HookResult.Continue;
+                decoys.RemoveAll(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z);
                 return HookResult.Continue;
             });
 
             Instance.RegisterListener<OnTick>(() =>
             {
-                foreach (CCSPlayerPawn player in players)
-                {
-                    player.VelocityModifier = 0;
-                    Utilities.SetStateChanged(player, "CCSPlayerPawn", "m_flVelocityModifier");
-
-                    if ((player.Flags & (uint)PlayerFlags.FL_ONGROUND) != 0)
-                        player.GravityScale = float.MaxValue;
-                }
+                foreach (Vector decoyPos in decoys)
+                    foreach (var player in Utilities.GetPlayers())
+                    {
+                        double distance = SkillUtils.GetDistance(decoyPos, player.PlayerPawn.Value.AbsOrigin);
+                        if (distance <= decoyRadius)
+                        {
+                            double modifier = Math.Clamp(distance / decoyRadius, 0f, 1f);
+                            player.PlayerPawn.Value.VelocityModifier = (float)Math.Pow(modifier, slownessMultiplier);
+                        }
+                    }
             });
-
-            VirtualFunctions.CBaseTrigger_StartTouchFunc.Hook(StartTouchFun, HookMode.Post);
-            VirtualFunctions.CBaseTrigger_EndTouchFunc.Hook(EndTouchFunc, HookMode.Post);
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -119,46 +82,15 @@ namespace jRandomSkills
             SkillUtils.TryGiveWeapon(player, CsItem.DecoyGrenade);
         }
 
-        private static HookResult StartTouchFun(DynamicHook h)
+        public class SkillConfig : Config.DefaultSkillInfo
         {
-            CBaseTrigger trigger = h.GetParam<CBaseTrigger>(0);
-            CBaseEntity entity = h.GetParam<CBaseEntity>(1);
-
-            if (trigger == null || entity == null)
-                return HookResult.Continue;
-;
-            CCSPlayerPawn player = new CCSPlayerPawn(entity.Handle);
-            if (player == null) return HookResult.Continue;
-
-            if (string.IsNullOrEmpty(trigger?.Globalname) || trigger?.Globalname?.StartsWith("frozen_decoy_") == false)
-                return HookResult.Continue;
-
-            if (!players.Contains(player))
-                players.Add(player);
-
-            gravities.TryAdd(player.Index, player.GravityScale);
-            return HookResult.Continue;
-        }
-
-        private static HookResult EndTouchFunc(DynamicHook h)
-        {
-            var trigger = h.GetParam<CBaseTrigger>(0);
-            var entity = h.GetParam<CBaseEntity>(1);
-
-            if (trigger == null || entity == null) return HookResult.Continue;
-
-            CCSPlayerPawn player = new CCSPlayerPawn(entity.Handle);
-            if (player == null) return HookResult.Continue;
-
-            if (string.IsNullOrEmpty(trigger?.Globalname) || trigger?.Globalname?.StartsWith("frozen_decoy_") == false)
-                return HookResult.Continue;
-
-            if (players.Contains(player))
-                players.Remove(player);
-
-            float grav = gravities.GetValueOrDefault(player.Index);
-            player.GravityScale = Math.Min(grav, 1);
-            return HookResult.Continue;
+            public float TriggerRadius { get; set; }
+            public int SlownessMultiplier { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#00eaff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float triggerRadius = 180, int slownessMultiplier = 5) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                TriggerRadius = triggerRadius;
+                SlownessMultiplier = slownessMultiplier;
+            }
         }
     }
 }

@@ -11,14 +11,11 @@ namespace jRandomSkills
 {
     public class Soldier : ISkill
     {
-        private static Skills skillName = Skills.Soldier;
+        private const Skills skillName = Skills.Soldier;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#09ba00", false);
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
             VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamage, HookMode.Pre);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
@@ -42,11 +39,7 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-
-            var skillConfig = Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString());
-            if (skillConfig == null) return;
-
-            float newScale = (float)Instance.Random.NextDouble() * (skillConfig.ChanceTo - skillConfig.ChanceFrom) + skillConfig.ChanceFrom;
+            float newScale = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
             playerInfo.SkillChance = newScale;
             newScale = (float)Math.Round(newScale, 2);
             SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("soldier")}{ChatColors.Lime}: " + Localization.GetTranslation("soldier_desc2", newScale), false);
@@ -81,6 +74,17 @@ namespace jRandomSkills
             }
 
             return HookResult.Continue;
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float ChanceFrom { get; set; }
+            public float ChanceTo { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#09ba00", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = 1.15f, float chanceTo = 1.35f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                ChanceFrom = chanceFrom;
+                ChanceTo = chanceTo;
+            }
         }
     }
 }

@@ -9,14 +9,11 @@ namespace jRandomSkills
 {
     public class Dwarf : ISkill
     {
-        private static Skills skillName = Skills.Dwarf;
+        private const Skills skillName = Skills.Dwarf;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#ffff00", false);
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -62,16 +59,12 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null)
             {
-                var skillConfig = Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString());
-                if (skillConfig == null) return;
-
-                float newSize = (float)Instance.Random.NextDouble() * (skillConfig.ChanceTo - skillConfig.ChanceFrom) + skillConfig.ChanceFrom;
+                float newSize = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "maxScale") - Config.GetValue<float>(skillName, "minScale")) + Config.GetValue<float>(skillName, "minScale");
                 newSize = (float)Math.Round(newSize, 2);
 
                 // playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = newSize;
-                player.PlayerPawn.Value.CBodyComponent.SceneNode.Scale = newSize;
+                playerPawn.CBodyComponent.SceneNode.Scale = newSize;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
-
                 SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("dwarf")}{ChatColors.Lime}: " + Localization.GetTranslation("dwarf_desc2", newSize), false);
             }
         }
@@ -82,8 +75,20 @@ namespace jRandomSkills
             if (playerPawn != null && playerPawn?.CBodyComponent != null)
             {
                 // playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = 1;
-                player.PlayerPawn.Value.CBodyComponent.SceneNode.Scale = 1;
+                playerPawn.CBodyComponent.SceneNode.Scale = 1;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
+            }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float MinScale { get; set; }
+            public float MaxScale { get; set; }
+
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ffff00", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float minScale = .6f, float maxScale = .95f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                MinScale = minScale;
+                MaxScale = maxScale;
             }
         }
     }

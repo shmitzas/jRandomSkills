@@ -1,6 +1,9 @@
+﻿using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Reflection;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -29,16 +32,30 @@ namespace jRandomSkills
                 return defaultConfig;
             }
 
+            string json = File.ReadAllText(configPath);
+            var config = new ConfigModel();
+
             try
             {
-                string json = File.ReadAllText(configPath);
-                return JsonConvert.DeserializeObject<ConfigModel>(json) ?? new ConfigModel();
+                var root = JsonConvert.DeserializeObject<JObject>(json);
+
+                var settings = root["Settings"];
+                if (settings != null) JsonConvert.PopulateObject(settings.ToString(), config.Settings);
+
+                var skillsArray = (JArray)root["SkillsInfo"];
+                foreach (var skillObj in skillsArray)
+                {
+                    string name = skillObj["Name"]?.ToString();
+                    var instance = config.SkillsInfo.FirstOrDefault(x => x.Name == name);
+                    if (instance != null) JsonConvert.PopulateObject(skillObj.ToString(), instance);
+                }
             }
             catch (Exception ex)
             {
-                Instance.Logger.LogError($"Error when loading the config file.");
-                return new ConfigModel();
+                Instance.Logger.LogError($"Error when loading the config file: {ex.Message}");
             }
+
+            return config;
         }
 
         public static void SaveConfig(ConfigModel config)
@@ -66,110 +83,118 @@ namespace jRandomSkills
             fileWatcher.EnableRaisingEvents = true;
         }
 
+        public static T GetValue<T>(object skill, string key)
+        {
+            var skillConfig = config.SkillsInfo.FirstOrDefault(s => s.Name == skill.ToString());
+
+            var prop = skillConfig.GetType().GetProperty(key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+            if (prop != null)
+            {
+                var value = prop.GetValue(skillConfig);
+                if (value == null) return default!;
+                else return (T)Convert.ChangeType(value, typeof(T));
+            }
+
+            var field = skillConfig.GetType().GetField(key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+            if (field != null)
+            {
+                var value = field.GetValue(skillConfig);
+                if (value == null) return default!;
+                else return (T)Convert.ChangeType(value, typeof(T));
+            }
+
+            return default!;
+        }
+
         public class ConfigModel
         {
-            // Team: 2 - TT, 3 - CT
-
             public Settings Settings { get; set; } = new Settings();
-            public SkillInfo[] SkillsInfo = {
-                new SkillInfo(Skills.None),
+            public DefaultSkillInfo[] SkillsInfo { get; set; }
 
-                new SkillInfo(Skills.NoRecoil),
-                new SkillInfo(Skills.SecondLife),
-                new SkillInfo(Skills.C4Camouflage),
-                new SkillInfo(Skills.Ninja),
-                new SkillInfo(Skills.SoundMaker, cooldown: 5),
-                new SkillInfo(Skills.Prosthesis),
-                new SkillInfo(Skills.OnlyHead),
-                new SkillInfo(Skills.ReactiveArmor, cooldown: 15),
-                new SkillInfo(Skills.ReturnToSender),
-                new SkillInfo(Skills.Jammer),
-                new SkillInfo(Skills.RobinHood),
-                new SkillInfo(Skills.Hermit),
-                new SkillInfo(Skills.AreaReaper, team: 3),
-                new SkillInfo(Skills.Mute),
-                new SkillInfo(Skills.HolyHandGrenade),
-                new SkillInfo(Skills.Replicator, cooldown: 15),
-                new SkillInfo(Skills.ToxicSmoke),
-                new SkillInfo(Skills.Duplicator),
-                new SkillInfo(Skills.Thief),
-                new SkillInfo(Skills.Deactivator),
-                new SkillInfo(Skills.Dwarf, chanceFrom: .6f, chanceTo : .95f),
-                new SkillInfo(Skills.SwapPosition, cooldown: 30),
-                new SkillInfo(Skills.FrozenDecoy),
-                new SkillInfo(Skills.Soldier, chanceFrom: 1.15f, chanceTo: 1.35f),
-                new SkillInfo(Skills.Armored, chanceFrom: .65f, chanceTo : .85f),
-                new SkillInfo(Skills.Aimbot, only1v1: true),
-                new SkillInfo(Skills.Retreat, cooldown: 15),
-                new SkillInfo(Skills.EnemySpawn, cooldown: 15),
-                new SkillInfo(Skills.Zeus),
-                new SkillInfo(Skills.RadarHack),
-                new SkillInfo(Skills.QuickShot),
-                new SkillInfo(Skills.Planter, team: 2),
-                new SkillInfo(Skills.Silent),
-                new SkillInfo(Skills.KillerFlash),
-                new SkillInfo(Skills.TimeManipulator, cooldown: 30),
-                new SkillInfo(Skills.GodMode, cooldown: 30),
-                new SkillInfo(Skills.RandomWeapon, cooldown: 15),
-                new SkillInfo(Skills.WeaponsSwap, cooldown: 30),
-                new SkillInfo(Skills.Wallhack),
-                new SkillInfo(Skills.Flash, chanceFrom: 1.2f, chanceTo: 3.0f),
-                new SkillInfo(Skills.PawelJumper),
-                new SkillInfo(Skills.BunnyHop),
-                new SkillInfo(Skills.Impostor),
-                new SkillInfo(Skills.OneShot),
-                new SkillInfo(Skills.Muhammed),
-                new SkillInfo(Skills.RichBoy),
-                new SkillInfo(Skills.Rambo),
-                new SkillInfo(Skills.Medic),
-                new SkillInfo(Skills.Ghost),
-                new SkillInfo(Skills.Chicken),
-                new SkillInfo(Skills.Astronaut, chanceFrom: .1f, chanceTo: .7f),
-                new SkillInfo(Skills.Disarmament, chanceFrom: .2f, chanceTo: .4f),
-                new SkillInfo(Skills.AntyFlash),
-                new SkillInfo(Skills.Behind, chanceFrom: .2f, chanceTo: .4f),
-                new SkillInfo(Skills.InfiniteAmmo),
-                new SkillInfo(Skills.Catapult, chanceFrom : .2f, chanceTo : .4f),
-                new SkillInfo(Skills.Dracula),
-                new SkillInfo(Skills.Teleporter),
-                new SkillInfo(Skills.Saper),
-                new SkillInfo(Skills.Phoenix, chanceFrom: .2f, chanceTo: .4f),
-                new SkillInfo(Skills.Pilot),
-                new SkillInfo(Skills.Shade),
-                new SkillInfo(Skills.AntyHead),
-            };
+            public ConfigModel()
+            {
+                SkillsInfo = Assembly.GetExecutingAssembly().GetTypes()
+                    .Where(t => typeof(DefaultSkillInfo).IsAssignableFrom(t) && t.Name == "SkillConfig")
+                    .Select(t =>
+                    {
+                        var ctor = t.GetConstructors().FirstOrDefault(c => c.GetParameters().All(p => p.IsOptional));
+                        if (ctor == null) return null;
+                        var args = ctor.GetParameters().Select(p => Type.Missing).ToArray();
+                        return ctor.Invoke(args) as DefaultSkillInfo;
+                    })
+                    .Where(instance => instance != null)
+                    .ToArray()!;
+            }
         }
 
         public class Settings
         {
-            public string LangCode { get; set; } = "en";
-            public string Set_Skill { get; set; } = "ustawskill, setskill";
-            public string SkillsList_Menu { get; set; } = "supermoc, skille, listamocy, supermoce, losowemoce";
-            public bool KillerSkillInfo { get; set; } = true;
-            public bool TeamMateSkillInfo { get; set; } = true;
-            public bool SummaryAfterTheRound { get; set; } = true;
+            public string LangCode { get; set; }
+            public int GameMode { get; set; }
+            public bool KillerSkillInfo { get; set; }
+            public bool TeamMateSkillInfo { get; set; }
+            public bool SummaryAfterTheRound { get; set; }
+            public bool DebugMode { get; set; }
+            public string SetSkillCommands { get; set; }
+            public string SkillsListCommands { get; set; }
+            public string UseSkillCommands { get; set; }
+            public string ChangeMapCommands { get; set; }
+            public string StartGameCommands { get; set; }
+            public string ConsoleCommands { get; set; }
+            public string SwapCommands { get; set; }
+            public string ShuffleCommands { get; set; }
+            public string PauseCommands { get; set; }
+            public string HealCommands { get; set; }
+            public string SetScoreCommands { get; set; }
+
+            public Settings()
+            {
+                LangCode = "en";
+                GameMode = (int)GameModes.Normal;
+                KillerSkillInfo = true;
+                TeamMateSkillInfo = true;
+                SummaryAfterTheRound = true;
+                DebugMode = true;
+
+                SetSkillCommands = "ustawskill, setskill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能";
+                SkillsListCommands = "supermoc, skille, listamocy, supermoce, skills, listaHabilidades, habilidades, 技能列表, 超能力列表";
+                UseSkillCommands = "t, useSkill, usarHabilidade, 技能使用, 使用技能";
+                ChangeMapCommands = "map, mapa, changemap, zmienmape, zmienmape, mudarMapa, trocarMapa, 更换地图, 更改地图";
+                StartGameCommands = "start, go, começar, iniciar, 开始, 启动";
+                ConsoleCommands = "console, sv, 控制台, 服务器";
+                SwapCommands = "swap, zmiana, trocar, 交换, 切换";
+                ShuffleCommands = "shuffle, embaralhar, 随机排序, 洗牌";
+                PauseCommands = "pause, unpause, pausar, despausar, 暂停, 恢复";
+                HealCommands = "heal, ulecz, curar, tratar, 治疗, 治愈";
+                SetScoreCommands = "setscore, wynik, definirPontuacao, configurarPontos, 设置分数, 调整分数";
+            }
+
         }
 
-        public class SkillInfo
+        public class DefaultSkillInfo
         {
-            public string Name { get; set; }
+            public bool NeedsTeammates { get; set; }
+            public int OnlyTeam { get; set; }
+            public string Color { get; set; }
             public bool Active { get; set; }
-            public float Cooldown { get; set; }
-            public float ChanceFrom { get; set; }
-            public float ChanceTo { get; set; }
-            public int Team { get; set; }
-            public bool Only1v1 { get; set; }
+            public string Name { get; set; }
 
-            public SkillInfo(Skills skill, bool active = true, float cooldown = 15f, float chanceFrom = 1, float chanceTo = 1, int team = 1, bool only1v1 = false)
+            public DefaultSkillInfo(Skills skill, bool active = true, string color = "#ffffff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false)
             {
                 Name = skill.ToString();
                 Active = active;
-                Cooldown = cooldown;
-                ChanceFrom = chanceFrom;
-                ChanceTo = chanceTo;
-                Team = team;
-                Only1v1 = only1v1;
+                Color = color;
+                OnlyTeam = (int)onlyTeam;
+                NeedsTeammates = needsTeammates;
             }
+        }
+
+        public enum GameModes
+        {
+            Normal = 0,
+            TeamSkills = 1,
+            SameSkills = 2,
+            Debug = 3,
         }
     }
 }

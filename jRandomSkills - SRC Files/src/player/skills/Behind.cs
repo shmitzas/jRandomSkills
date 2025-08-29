@@ -9,14 +9,11 @@ namespace jRandomSkills
 {
     public class Behind : ISkill
     {
-        private static Skills skillName = Skills.Behind;
+        private const Skills skillName = Skills.Behind;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#00FF00", false);
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -57,11 +54,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var skillConfig = Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString());
-            if (skillConfig == null) return;
-
             var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            float newChance = (float)Instance.Random.NextDouble() * (skillConfig.ChanceTo - skillConfig.ChanceFrom) + skillConfig.ChanceFrom;
+            float newChance = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
             newChance = (float)Math.Round(newChance);
@@ -83,6 +77,17 @@ namespace jRandomSkills
             );
 
             player.PlayerPawn.Value.Teleport(currentPosition, newAngles, new Vector(0, 0, 0));
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float ChanceFrom { get; set; }
+            public float ChanceTo { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#00FF00", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .2f, float chanceTo = .4f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                ChanceFrom = chanceFrom;
+                ChanceTo = chanceTo;
+            }
         }
     }
 }

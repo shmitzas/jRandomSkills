@@ -14,14 +14,34 @@ namespace jRandomSkills
         {
             Instance.RegisterListener<OnTick>(() =>
             {
+                UpdateGameRules();
                 foreach (var player in Utilities.GetPlayers())
-                {
                     if (player != null && player.IsValid)
-                    {
                         UpdatePlayerHud(player);
-                    }
-                }
             });
+
+            Instance.RegisterListener<OnMapStart>(OnMapStart);
+        }
+
+        private static void OnMapStart(string mapName)
+        {
+            Instance.GameRules = null;
+        }
+
+        private static void InitializeGameRules()
+        {
+            if (Instance.GameRules != null) return;
+            var gameRulesProxy = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").FirstOrDefault();
+            if (gameRulesProxy != null)
+                Instance.GameRules = gameRulesProxy?.GameRules;
+        }
+
+        private static void UpdateGameRules()
+        {
+            if (Instance.GameRules == null)
+                InitializeGameRules();
+            else
+                Instance.GameRules.GameRestart = Instance.GameRules.RestartRoundTime < Server.CurrentTime;
         }
 
         private static void UpdatePlayerHud(CCSPlayerController player)

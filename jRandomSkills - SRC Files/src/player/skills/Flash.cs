@@ -10,14 +10,11 @@ namespace jRandomSkills
 {
     public class Flash : ISkill
     {
-        private static Skills skillName = Skills.Flash;
+        private const Skills skillName = Skills.Flash;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#A31912", false);
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
             Instance.RegisterListener<OnTick>(UpdateSpeed);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
@@ -30,8 +27,6 @@ namespace jRandomSkills
                         var playerPawn = player.PlayerPawn?.Value;
 
                         playerPawn.VelocityModifier = 1;
-                        Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_flVelocityModifier");
-
                         var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
@@ -74,12 +69,11 @@ namespace jRandomSkills
             var skillConfig = Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString());
             if (skillConfig == null) return;
 
-            float newSpeed = (float)Instance.Random.NextDouble() * (skillConfig.ChanceTo - skillConfig.ChanceFrom) + skillConfig.ChanceFrom;
+            float newSpeed = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
             newSpeed = (float)Math.Round(newSpeed, 2);
             playerInfo.SkillChance = newSpeed;
 
             playerPawn.VelocityModifier = newSpeed;
-            Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_flVelocityModifier");
             SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("flash")}{ChatColors.Lime}: " + Localization.GetTranslation("flash_desc2", newSpeed), false);
         }
 
@@ -88,7 +82,6 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null) return;
             playerPawn.VelocityModifier = 1;
-            Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_flVelocityModifier");
         }
 
         private static void UpdateSpeed()
@@ -102,10 +95,18 @@ namespace jRandomSkills
 
                 var playerPawn = player.PlayerPawn?.Value;
                 if (playerPawn != null && playerPawn.VelocityModifier != 0)
-                {
                     playerPawn.VelocityModifier = Math.Max((float)playerInfo?.SkillChance, 1);
-                    Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_flVelocityModifier");
-                }
+            }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float ChanceFrom { get; set; }
+            public float ChanceTo { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#A31912", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = 1.2f, float chanceTo = 3.0f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                ChanceFrom = chanceFrom;
+                ChanceTo = chanceTo;
             }
         }
     }

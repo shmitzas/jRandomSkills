@@ -8,16 +8,13 @@ namespace jRandomSkills
 {
     public class Muhammed : ISkill
     {
-        private static Skills skillName = Skills.Muhammed;
-        private const float ExplosionRadius = 500.0f;
-        private const int ExplosionDamage = 999;
+        private const Skills skillName = Skills.Muhammed;
+        private static float explosionRadius = Config.GetValue<float>(skillName, "explosionRadius");
+        private static int explosionDamage = Config.GetValue<int>(skillName, "explosionDamage");
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#F5CB42");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
             
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
@@ -42,8 +39,8 @@ namespace jRandomSkills
 
             heProjectile.TicksAtZeroVelocity = 100;
             heProjectile.TeamNum = player.TeamNum;
-            heProjectile.Damage = ExplosionDamage;
-            heProjectile.DmgRadius = (int)ExplosionRadius;
+            heProjectile.Damage = explosionDamage;
+            heProjectile.DmgRadius = (int)explosionRadius;
             heProjectile.Teleport(pos, null, new Vector(0, 0, -10));
             heProjectile.DispatchSpawn();
             heProjectile.AcceptInput("InitializeSpawnFromWorld", player.PlayerPawn.Value, player.PlayerPawn.Value, "");
@@ -61,6 +58,18 @@ namespace jRandomSkills
         private static bool IsDeadPlayerValid(CCSPlayerController player)
         {
             return player != null && player.IsValid && player.PlayerPawn?.Value != null;
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float ExplosionRadius { get; set; }
+            public int ExplosionDamage { get; set; }
+
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#F5CB42", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float explosionRadius = 500.0f, int explosionDamage = 999) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                ExplosionRadius = explosionRadius;
+                ExplosionDamage = explosionDamage;
+            }
         }
     }
 }

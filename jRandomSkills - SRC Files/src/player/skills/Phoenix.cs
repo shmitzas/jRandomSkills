@@ -9,14 +9,11 @@ namespace jRandomSkills
 {
     public class Phoenix : ISkill
     {
-        private static Skills skillName = Skills.Phoenix;
+        private const Skills skillName = Skills.Phoenix;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#ff5C0A", false);
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -39,7 +36,7 @@ namespace jRandomSkills
             {
                 var player = @event.Userid;
 
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
+                if (player == null || !player.IsValid || !player.PlayerPawn.Value.IsValid) return HookResult.Continue;
 
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
@@ -58,11 +55,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var skillConfig = Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString());
-            if (skillConfig == null) return;
-
             var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            float newChance = (float)Instance.Random.NextDouble() * (skillConfig.ChanceTo - skillConfig.ChanceFrom) + skillConfig.ChanceFrom;
+            float newChance = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
             newChance = (float)Math.Round(newChance);
@@ -72,6 +66,17 @@ namespace jRandomSkills
         private static bool IsDeadPlayerValid(CCSPlayerController player)
         {
             return player != null && player.IsValid && player.PlayerPawn?.Value != null;
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float ChanceFrom { get; set; }
+            public float ChanceTo { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff5C0A", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .2f, float chanceTo = .4f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                ChanceFrom = chanceFrom;
+                ChanceTo = chanceTo;
+            }
         }
     }
 }

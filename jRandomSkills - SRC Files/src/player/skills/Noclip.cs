@@ -1,5 +1,6 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
@@ -7,18 +8,16 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class TimeManipulator : ISkill
+    public class Noclip : ISkill
     {
-        private static Skills skillName = Skills.TimeManipulator;
-        private static float timerCooldown = (float)(Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Cooldown);
+        private const Skills skillName = Skills.Noclip;
+        private static float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
+        private static float duration = Config.GetValue<float>(skillName, "duration");
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = new Dictionary<ulong, PlayerSkillInfo>();
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#2ec761");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -87,10 +86,14 @@ namespace jRandomSkills
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
         {
             float cooldown = 0;
+            float flying = 0;
             if (skillInfo != null)
             {
                 float time = (int)(skillInfo.Cooldown.AddSeconds(timerCooldown) - DateTime.Now).TotalSeconds;
                 cooldown = Math.Max(time, 0);
+
+                float flyingTime = (int)(skillInfo.Cooldown.AddSeconds(duration) - DateTime.Now).TotalMilliseconds;
+                flying = Math.Max(flyingTime, 0);
 
                 if (cooldown == 0 && skillInfo?.CanUse == false)
                     skillInfo.CanUse = true;
@@ -101,7 +104,12 @@ namespace jRandomSkills
 
             string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
             string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>" : "";
+            string remainingLine = cooldown != 0
+                                    ? (
+                                        flying != 0
+                                        ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("active_hud_info", $"<font color='#00FF00'>{Math.Round(flying / 100, 2)}</font>")}</font> <br>"
+                                        : $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>"
+                                    ) : "";
 
             var hudContent = infoLine + skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
@@ -120,13 +128,8 @@ namespace jRandomSkills
                     skillInfo.CanUse = false;
                     skillInfo.Cooldown = DateTime.Now;
 
-                    Server.ExecuteCommand("sv_cheats 1");
-                    Server.ExecuteCommand("host_timescale 0.1");
-                    Instance.AddTimer(.6f, () =>
-                    {
-                        Server.ExecuteCommand("host_timescale 1");
-                        Server.ExecuteCommand("sv_cheats 0");
-                    });
+                    playerPawn.ActualMoveType = MoveType_t.MOVETYPE_NOCLIP;
+                    Instance.AddTimer(duration, () => playerPawn.ActualMoveType = MoveType_t.MOVETYPE_WALK);
                 }
                 else
                     skillInfo.LastClick = DateTime.Now;
@@ -139,6 +142,17 @@ namespace jRandomSkills
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
             public DateTime LastClick { get; set; }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float Cooldown { get; set; }
+            public float Duration { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#44ebd4", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 30f, float duration = 2f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                Cooldown = cooldown;
+                Duration = duration;
+            }
         }
     }
 }

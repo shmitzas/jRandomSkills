@@ -1,5 +1,6 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
@@ -8,14 +9,11 @@ namespace jRandomSkills
 {
     public class RadarHack : ISkill
     {
-        private static Skills skillName = Skills.RadarHack;
+        private const Skills skillName = Skills.RadarHack;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#2effcb");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
             Instance.RegisterListener<OnTick>(CheckRadarowiec);
         }
 
@@ -52,6 +50,13 @@ namespace jRandomSkills
                 var bomb = bombEntities.FirstOrDefault();
                 if (bomb != null)
                     bomb.EntitySpottedState.SpottedByMask[0] |= (1u << (int)(playerIndex % 32));
+            }
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#2effcb", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
             }
         }
     }

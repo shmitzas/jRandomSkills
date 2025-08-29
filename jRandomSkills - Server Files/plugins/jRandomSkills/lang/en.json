@@ -1,127 +1,410 @@
 {
-  "none_desc": "You have no skills",
+  "none": "None",
+  "none_desc": "You have no skill",
+
+  "aimbot": "Aimbot",
   "aimbot_desc": "Every bullet you hit counts as a headshot",
-  "antyflash_desc": "You are immune to flashes, and your flashes last 7 seconds",
-  "astronaut_desc": "You receive a random gravity value at the start of the round",
-  "astronaut_desc2": "Your random gravity is: {0}x",
-  "richboy_desc": "You receive a random amount of money at the start of the round",
-  "bunnyhop_desc": "You get auto \"BunnyHop\"",
-  "silent_desc": "Your footsteps and jumps are silent to OTHER players",
-  "shade_desc": "You teleport behind the back of a hit enemy",
-  "dracula_desc": "Hitting an enemy restores a percentage of the damage dealt as health",
-  "ghost_desc": "You are completely invisible",
-  "flash_desc": "Random player speed at the beginning of the round",
-  "flash_desc2": "Your speed multiplier is {0}x",
-  "godmode_desc": "You are immortal for 2 seconds. Press [css_useSkill], cooldown 30s",
-  "godmode_on": "Immortality enabled",
-  "godmode_off": "Immortality disabled",
+
+  "anomaly": "Anomaly",
+  "anomaly_desc": "You rewind a few seconds back in time",
+
+  "antyflash": "Anti-Flash",
+  "antyflash_desc": "You are immune to flashbangs, and your flashbangs last 7 seconds",
+
+  "antyhead": "Iron Head",
+  "antyhead_desc": "You take no damage from headshots",
+
+  "areareaper": "Zone Reaper",
+  "areareaper_desc": "You can choose a bomb site to deactivate",
+  "areareaper_incorrect_site": "No such bomb site found.",
+  "areareaper_no_site": "No bomb sites found.",
+  "areareaper_select_info": "Choose the bomb site you want to deactivate:",
+  "areareaper_site_disabled": "Bomb site {0} has been deactivated - no bombs can be planted there!",
+  "areareaper_used_info": "Your skill has already been used.",
+
+  "armored": "Armored",
   "armored_desc": "You have a random damage taken multiplier",
   "armored_desc2": "Your damage taken multiplier is: {0}x",
-  "muhammed_desc": "You explode upon death, killing nearby players",
-  "dwarf_desc": "Random character size at the start of the round",
-  "dwarf_desc2": "Your size multiplier is {0}x",
-  "medic_desc": "You receive a random number of medkits at the start of the round",
-  "randomweapon_desc": "You get a random weapon. Press [css_useSkill], cooldown 15s",
-  "chicken_desc": "You get a chicken model + 10% faster movement - 50 HP",
-  "impostor_desc": "You start the round with an enemy player model",
+
+  "assassin": "Assassin",
+  "assassin_desc": "You deal increased damage to enemies from behind",
+
+  "astronaut": "Astronaut",
+  "astronaut_desc": "You receive a random gravity value at the start of the round",
+  "astronaut_desc2": "Your random gravity is: {0}x",
+
+  "baseball": "Baseball Player",
+  "baseball_desc": "Your decoy bounces off walls and instantly kills an enemy on impact",
+
+  "behind": "Enemy Spin",
+  "behind_desc": "You have a random chance to turn an enemy 180 degrees when hitting them",
+  "behind_desc2": "Your chance to turn an enemy on hit is: {0}%",
+
+  "blademaster": "Blademaster",
+  "blademaster_desc": "While holding a knife, you have a high chance to deflect a shot",
+
+  "bunnyhop": "Bunny",
+  "bunnyhop_desc": "You get auto \"BunnyHop\"",
+
+  "c4camouflage": "C4 Camouflage",
+  "c4camouflage_desc": "You are invisible while holding the bomb",
+
+  "catapult": "Catapult",
   "catapult_desc": "You have a random chance to launch an enemy upwards",
   "catapult_desc2": "Your chance to launch an enemy on hit is: {0}%",
+
+  "chicken": "Chicken",
+  "chicken_desc": "You get a chicken model + 10% faster movement - 50 HP",
+
+  "chillout": "Chillout",
+  "chillout_desc": "Planting the bomb takes significantly longer",
+
+  "cutter": "Cutter",
+  "cutter_desc": "Instant kill with a knife",
+
+  "darkness": "Darkness",
+  "darkness_desc": "Applies a darkness effect to a chosen enemy",
+  "darkness_enemy_info": "Let the lights go out.",
+  "darkness_player_info": "Darkness has overtaken player '{0}'.",
+  "darkness_select_info": "Choose the player you want to apply the darkness effect to:",
+
+  "deactivator": "Deactivator",
+  "deactivator_desc": "Choose a player whose skill you want to disable",
+  "deactivator_enemy_info": "Your skill has been disabled.",
+  "deactivator_player_info": "Player '{0}'s skill has been disabled.",
+  "deactivator_select_info": "Choose the player whose skill you want to disable:",
+
+  "deaf": "Deaf",
+  "deaf_desc": "Choose a player to mute all sounds for",
+  "deaf_enemy_info": "Your headphones have left the game.",
+  "deaf_player_info": "Sound has been disabled for player '{0}'.",
+  "deaf_select_info": "Choose the player for whom you want to mute all sounds:",
+
+  "disarmament": "Disarmament",
+  "disarmament_desc": "You have a random chance to make an enemy drop their weapon on hit",
+  "disarmament_desc2": "Your chance to disarm an enemy is: {0}%",
+
+  "distancer": "Rangefinder",
+  "distancer_desc": "You can see the distance to the nearest enemy",
+
+  "dracula": "Dracula",
+  "dracula_desc": "Hitting an enemy restores health equal to a percentage of the damage dealt",
+
+  "duplicator": "Duplicator",
+  "duplicator_desc": "Choose a player to copy their skill",
+  "duplicator_player_info": "Player '{0}'s skill has been copied.",
+  "duplicator_select_info": "Choose the player whose skill you want to copy:",
+
+  "dwarf": "Dwarf",
+  "dwarf_desc": "Random character size at the start of the round",
+  "dwarf_desc2": "Your size multiplier is: {0}x",
+
+  "enemyspawn": "Enemy Spawn",
+  "enemyspawn_desc": "Click [css_useSkill] to teleport to the enemy spawn",
+
+  "explosiveshot": "Explosive Shot",
+  "explosiveshot_desc": "Random chance to fire an explosive bullet while shooting",
+  "explosiveshot_desc2": "Your chance to fire an explosive bullet: {0}%",
+
+  "falconeye": "Falcon Eye",
+  "falconeye_desc": "Click [css_useSkill] to activate a bird's-eye view camera",
+
+  "fastreload": "Fastreload",
+  "fastreload_desc": "Click [css_useSkill] to reload the weapon you are currently holding",
+
+  "flash": "Flash",
+  "flash_desc": "Random player speed at the beginning of the round",
+  "flash_desc2": "Your speed multiplier is: {0}x",
+
+  "fortnite": "Fortnite",
+  "fortnite_desc": "Click [css_useSkill] to create a destructible barricade",
+
+  "fragilebomb": "Fragile Bomb",
+  "fragilebomb_desc": "Shooting the bomb damages it",
+  "fragilebomb_bomb_health": "Bomb health",
+
+  "friendlyfire": "Friendly Fire",
+  "friendlyfire_desc": "Shooting teammates heals them",
+
+  "frozendecoy": "Freezing Decoy",
+  "frozendecoy_desc": "Your decoy freezes all nearby players",
+
+  "ghost": "Ghost",
+  "ghost_desc": "You are completely invisible",
+
+  "glaz": "Glaz",
+  "glaz_desc": "You can see through smoke grenades",
+
+  "glitch": "Glitch",
+  "glitch_desc": "Disables the radar for a chosen enemy",
+  "glitch_enemy_info": "Your radar has been disabled.",
+  "glitch_player_info": "Player '{0}'s radar has been disabled.",
+  "glitch_select_info": "Choose the player whose radar you want to disable:",
+
+  "glue": "Glue",
+  "glue_desc": "Your grenades stick to walls",
+
+  "godmode": "God Mode",
+  "godmode_desc": "Click [css_useSkill] to become immortal for a short time",
+  "godmode_off": "Immortality disabled",
+  "godmode_on": "Immortality enabled",
+
+  "healingsmoke": "Healing Smoke",
+  "healingsmoke_desc": "Your smoke grenades heal",
+
+  "hermit": "Hermit",
+  "hermit_desc": "Killing restores ammo and a portion of health",
+
+  "holyhandgrenade": "Holy Hand Grenade",
+  "holyhandgrenade_desc": "Your HE grenades deal double damage and have double range",
+
+  "impostor": "Impostor",
+  "impostor_desc": "You start the round with an enemy player model",
+
+  "infiniteammo": "Infinite Ammo",
   "infiniteammo_desc": "You receive infinite ammo for all your weapons",
-  "behind_desc": "You have a random chance to turn an enemy 180 degrees on hit",
-  "behind_desc2": "Your chance to turn an enemy on hit is: {0}%",
-  "retreat_desc": "Return to spawn. Press [css_useSkill], cooldown 15s",
+
+  "jackal": "Tracker",
+  "jackal_desc": "Choose a player who will leave a trail behind them",
+  "jackal_player_info": "Player '{0}' will start leaving a trail.",
+  "jackal_select_info": "Choose the player who will leave a trail:",
+
+  "jammer": "Jammer",
+  "jammer_desc": "Choose a player to disable their crosshair",
+  "jammer_enemy_info": "Your crosshair has been disabled.",
+  "jammer_player_info": "Player '{0}'s crosshair has been disabled.",
+  "jammer_select_info": "Choose the player whose crosshair you want to disable:",
+
+  "jumpban": "Legless",
+  "jumpban_desc": "Choose a player who cannot jump",
+  "jumpban_enemy_info": "Someone cut off your legs.",
+  "jumpban_player_info": "Player '{0}' can no longer jump.",
+  "jumpban_select_info": "Choose the player who cannot jump:",
+
+  "jumpingjack": "Jumping Jack",
+  "jumpingjack_desc": "Jumping restores health",
+
+  "killerflash": "Killer Flash",
+  "killerflash_desc": "Anyone fully blinded by your flashbang dies (including you)",
+
+  "lifeswap": "Life Swap",
+  "lifeswap_desc": "Choose a player to swap health with",
+  "lifeswap_enemy_info": "Someone borrowed your health.",
+  "lifeswap_player_info": "You swapped health with player '{0}'.",
+  "lifeswap_select_info": "Choose the player to swap health with:",
+
+  "longknife": "Long Knife",
+  "longknife_desc": "A primary knife attack deals damage regardless of distance",
+
+  "longzeus": "Long Zeus",
+  "longzeus_desc": "Zeus deals damage regardless of distance",
+
+  "medic": "Medic",
+  "medic_desc": "Click [css_useSkill] to use a healing charge that restores 50 health",
+
+  "moneyswap": "Taxman",
+  "moneyswap_desc": "Choose a player to swap money with",
+  "moneyswap_enemy_info": "The tax office got you.",
+  "moneyswap_player_info": "You swapped money with player '{0}'.",
+  "moneyswap_select_info": "Choose the player to swap money with:",
+
+  "muhammed": "Muhammed",
+  "muhammed_desc": "You explode upon death, killing nearby players",
+
+  "ninja": "Ninja",
+  "ninja_desc": "Standing still increases your invisibility by 33%, crouching by 33%, and holding a knife by 33%",
+
+  "nonades": "No-Nades",
+  "nonades_desc": "Grenades deal no damage to you",
+
+  "norecoil": "Focus",
+  "norecoil_desc": "No recoil while shooting",
+
+  "noclip": "NoClip",
+  "noclip_desc": "Click [css_useSkill] to enable noclip for a short time",
+
+  "oneshot": "One-Shot",
   "oneshot_desc": "Hitting an enemy instantly kills them",
+
+  "onlyhead": "Head Only",
+  "onlyhead_desc": "You only take damage to the head",
+
+  "paweljumper": "Pawel Jumper",
   "paweljumper_desc": "You get an extra jump",
+
+  "phoenix": "Phoenix",
   "phoenix_desc": "You have a random chance to respawn after death",
   "phoenix_desc2": "Your chance to respawn after death: {0}%",
   "phoenix_respawn": "You have been resurrected from the ashes thanks to the power of: CHATCOLORS.REDPhoenix",
+
+  "psychicdefusing": "Psychic Defusing",
+  "psychicdefusing_desc": "When you are near the bomb, you start defusing it",
+  "psychicdefusing_hud_info": "{0} seconds remaining to defuse",
+
+  "pilot": "Pilot",
   "pilot_desc": "Fly for a limited time. Hold [USE - E] to fly",
   "pilot_hud_info": "Recharging",
-  "radarhack_desc": "You can see enemies on the radar",
+
+  "planter": "Free Planter",
+  "planter_desc": "You can plant the bomb anywhere, with a detonation time of 60 seconds.",
+
+  "poison": "Poison",
+  "poison_desc": "Choose a player who will take damage every few seconds",
+  "poison_enemy_info": "You have been poisoned.",
+  "poison_player_info": "Player '{0}' has been poisoned.",
+  "poison_select_info": "Choose the player who will take damage every few seconds:",
+
+  "primaryban": "No Rifles",
+  "primaryban_desc": "Choose a player who cannot use rifles",
+  "primaryban_enemy_info": "You can no longer use rifles.",
+  "primaryban_player_info": "Player '{0}' can no longer use rifles.",
+  "primaryban_select_info": "Choose the player to ban from using rifles:",
+
+  "prosthesis": "Prosthesis",
+  "prosthesis_desc": "Arms and legs are bulletproof",
+
+  "push": "Pusher",
+  "push_desc": "You have a random chance to push an enemy back when hitting them",
+  "push_desc2": "Your chances of pushing back the enemy are: {0}%",
+
+  "pyro": "Pyro",
+  "pyro_desc": "Molotov restores health",
+
+  "quickshot": "Rapid Fire",
+  "quickshot_desc": "All bullets are fired very quickly",
+
+  "radarhack": "Radar Hack",
+  "radarhack_desc": "Enemies are visible on the radar",
+
+  "rambo": "Rambo",
   "rambo_desc": "You receive a random amount of health at the start of the round",
-  "enemyspawn_desc": "Teleport to enemy spawn. Press [css_useSkill], cooldown 15s",
-  "disarmament_desc": "You have a random chance to make an enemy drop their weapon on hit",
-  "disarmament_desc2": "Your chance to disarm an enemy is: {0}%",
-  "planter_desc": "You can plant the bomb anywhere; bomb detonation time is 60s",
+
+  "randomweapon": "Random Weapon",
+  "randomweapon_desc": "Click [css_useSkill] to receive a random weapon",
+
+  "rezombie": "Re-Zombie",
+  "rezombie_desc": "After death, you respawn as a zombie with increased health and no weapons",
+
+  "reactivearmor": "Reactive Armor",
+  "reactivearmor_desc": "Armor absorbs the first damage taken",
+
+  "regeneration": "Regeneration",
+  "regeneration_desc": "You restore health every few seconds",
+
+  "replicator": "Replicator",
+  "replicator_desc": "Click [css_useSkill] to create a replica that deals damage on hit",
+
+  "retreat": "Retreat",
+  "retreat_desc": "Click [css_useSkill] to return to spawn",
+
+  "returntosender": "Return to Sender",
+  "returntosender_desc": "The first hit on an enemy sends them back to their spawn",
+
+  "richboy": "Rich Boy",
+  "richboy_desc": "You receive a random amount of money at the start of the round",
+
+  "robinhood": "Robin Hood",
+  "robinhood_desc": "Dealing damage to an enemy steals their money",
+
+  "rubber": "Rubber Bullets",
+  "rubber_desc": "Your bullets significantly slow down players",
+
+  "saper": "Sapper",
   "saper_desc": "You can plant and defuse bombs faster",
-  "timemanipulator_desc": "Slows down time for everyone for 6 seconds. Press [css_useSkill], cooldown 30s",
-  "quickshot_desc": "No cooldown when shooting",
-  "teleporter_desc": "You swap places with the hit enemy",
-  "wallhack_desc": "You can see enemies through walls",
-  "killerflash_desc": "Every enemy fully blinded by your flashbang dies (including you)",
-  "weaponsswap_desc": "Swap weapons with a random enemy. Press [css_useSkill], cooldown 30s",
-  "weaponsswap_hud_info2": "You have no weapon to swap",
-  "hud_info_no_enemy": "No enemy found",
-  "zeus_desc": "Zeus x27 instantly recharges",
-  "frozendecoy_desc": "Your decoy grenade freezes all nearby players",
-  "antyhead_desc": "You receive no headshot damage",
+
+  "secondlife": "Second Chance",
+  "secondlife_desc": "After death, you respawn with the same amount of health",
+
+  "shade": "Shade",
+  "shade_desc": "You teleport behind the back of a hit enemy",
+  "shade_nospace": "No space available",
+
+  "shortbomb": "Short Fuse",
+  "shortbomb_desc": "The bomb explodes much faster",
+
+  "silent": "Silent",
+  "silent_desc": "Your footsteps and jumps are silent to OTHER players",
+
+  "sniperelite": "Sniper Elite",
+  "sniperelite_desc": "Click [css_useSkill] to swap your current weapon for an AWP",
+
+  "soldier": "Soldier",
   "soldier_desc": "You have a random damage multiplier",
   "soldier_desc2": "Your damage multiplier is: {0}x",
-  "swapposition_desc": "Swap places with a random enemy. Press [css_useSkill], cooldown 30s",
 
-  "welcome_message": "Welcome {PLAYER} to {SERVER_NAME}!\nCurrent jRandomSkills version: {VERSION} ({SKILLS_COUNT} skills).\n\nOriginally created by:\n{AUTHOR1}\nModified and improved by:\n{AUTHOR2}",
-  "hud_info": "Wait {0} seconds",
-  "no_player": "No player found.",
-  "duplicate_player": "More than one player found with the same name.",
-  "drawing_skill": "Drawing a skill",
+  "soundmaker": "Soundmaker",
+  "soundmaker_desc": "Click [css_useSkill] to trigger a sound for every enemy",
+
+  "spectator": "Spectator",
+  "spectator_desc": "Click [css_useSkill] to spectate a random enemy",
+
+  "swapposition": "Position Swap",
+  "swapposition_desc": "Click [css_useSkill] to swap places with a random enemy",
+
+  "teleporter": "Teleporter",
+  "teleporter_desc": "You swap places with the hit enemy",
+
+  "thief": "Thief",
+  "thief_desc": "You can steal a skill from a chosen player",
+  "thief_enemy_info": "Your skill has been stolen.",
+  "thief_player_info": "Player '{0}'s skill has been stolen.",
+  "thief_select_info": "Choose the player whose skill you want to steal:",
+
+  "thirdeye": "Third Eye",
+  "thirdeye_desc": "Click [css_useSkill] to activate third-person view",
+
+  "toxicsmoke": "Toxic Smoke",
+  "toxicsmoke_desc": "Your smoke grenades deal damage",
+
+  "wallhack": "Wallhack",
+  "wallhack_desc": "You can see enemies through walls",
+
+  "watchmaker": "Watchmaker",
+  "watchmaker_desc": "Every grenade throw alters the round time",
+  "watchmaker_ct": "Round time shortened by {0} seconds.",
+  "watchmaker_tt": "Round time extended by {0} seconds.",
+
+  "weaponsswap": "Weapon Swap",
+  "weaponsswap_desc": "Click [css_useSkill] to swap weapons with a random enemy",
+  "weaponsswap_hud_info2": "You have no weapon to swap",
+
+  "zeus": "Zeus",
+  "zeus_desc": "Zeus x27 instantly recharges",
+
   "your_skill": "Your current skill",
-  "summary_start": "======SUMMARY=OF=THE=LAST=ROUND======",
-  "summary_end": "=======================================",
   "enemy_skill": "Enemy's skill",
-  "teammate_skills": "Your teammates' skills",
-  "observer_skill": "Player's power",
-  "game_start": "Game started!",
-  "invalid_map": "Invalid map name!",
-  "loading_map": "Loading a new map",
-  "skills_menu": "Skill List",
+  "observer_skill": "Player's skill",
+  "welcome_message": "Welcome {PLAYER} to {SERVER_NAME}!\nCurrent jRandomSkills version: {VERSION} ({SKILLS_COUNT} skills).\n\nOriginally created by:\n{AUTHOR1}\nModified and improved by:\n{AUTHOR2}\nOfficial Discord: https://discord.gg/72nzFguNtd",
+  "drawing_skill": "Drawing a skill",
+  "disabled_weapon": "You cannot use this weapon",
+
+  "hud_info": "Wait another {0} seconds",
+  "hud_info_no_enemy": "No enemy found",
+  "active_hud_info": "Active for another {0} milliseconds",
+
+  "skills_menu": "skill List",
+  "no_player": "No matching player found.",
+  "duplicate_player": "More than one player found with the same name.",
+  "selectplayerskill_command": "Type /t",
+  "selectplayerskill_incorrect_enemy_index": "No player found with that index.",
+
+  "skill_not_found_setskill": "No such CHATCOLORS.REDskill found",
+  "player_not_found_setskill": "No such CHATCOLORS.REDplayer found",
   "correct_form_setskill": "Correct usage: CHATCOLORS.RED!setskill <nickname> <skill>",
-  "skill_not_found_setskill": "Skill CHATCOLORS.REDnot found",
+  "correct_form_setskill": "Correct usage: CHATCOLORS.RED!setscore <CT> <TT>",
+  "done_setskill": "skill set",
   "error_setskill": "Failed to set CHATCOLORS.REDskill",
-  "done_setskill": "Skill set",
   "for_setskill": "for",
 
-  "none": "None",
-  "dwarf": "Dwarf",
-  "swapposition": "Swapper",
-  "killerflash": "Deadly Flash",
-  "soldier": "Soldier",
-  "armored": "Tank",
-  "aimbot": "Aimbot",
-  "retreat": "Retreat",
-  "enemyspawn": "Enemy Spawn",
-  "zeus": "Zeus",
-  "radarhack": "Radar Hack",
-  "quickshot": "Quick-Shot",
-  "planter": "Planter",
-  "silent": "Silent",
-  "frozendecoy": "Freezing Decoy",
-  "timemanipulator": "Time Slow",
-  "godmode": "God Mode",
-  "randomweapon": "Random Weapon",
-  "weaponsswap": "Weapon Swap",
-  "wallhack": "Wallhack",
-  "flash": "Flash",
-  "paweljumper": "Paweł Jumper",
-  "bunnyhop": "Bunnyhop",
-  "impostor": "Spy",
-  "oneshot": "One-Shot",
-  "muhammed": "Muhammed",
-  "richboy": "Rich Boy",
-  "rambo": "Rambo",
-  "medic": "Medic",
-  "ghost": "Ghost",
-  "chicken": "Chicken",
-  "astronaut": "Astronaut",
-  "disarmament": "Disarmament",
-  "antyflash": "Anti-Flash",
-  "behind": "Enemy Rotation",
-  "infiniteammo": "Infinite Ammo",
-  "catapult": "Catapult",
-  "dracula": "Dracula",
-  "teleporter": "Teleporter",
-  "saper": "Sapper",
-  "phoenix": "Phoenix",
-  "pilot": "Pilot",
-  "shade": "Shade",
-  "antyhead": "Anty Head"
+  "invalid_map": "Map name entered incorrectly!",
+  "loading_map": "Loading a new map",
+
+  "pause": "Match has been paused.",
+  "unpause": "Match has been resumed.",
+  "healed": "You have been healed.",
+  "game_start": "Game started!",
+
+  "teammate_skills": "Your teammates' skills",
+  "summary_start": "======SUMMARY=OF=THE=LAST=ROUND======",
+  "summary_end": "======================================="
 }

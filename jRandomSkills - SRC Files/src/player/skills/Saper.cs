@@ -1,18 +1,18 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
     public class Saper : ISkill
     {
-        private static Skills skillName = Skills.Saper;
+        private const Skills skillName = Skills.Saper;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "#8A2BE2");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
             
             Instance.RegisterEventHandler<EventBombBeginplant>((@event, info) =>
             {
@@ -61,6 +61,13 @@ namespace jRandomSkills
 
                 return HookResult.Continue;
             });
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#8A2BE2", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+            }
         }
     }
 }

@@ -1,4 +1,7 @@
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -6,15 +9,28 @@ namespace jRandomSkills
 {
     public class AntyFlash : ISkill
     {
-        private static Skills skillName = Skills.AntyFlash;
+        private const Skills skillName = Skills.AntyFlash;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
-            SkillUtils.RegisterSkill(skillName, "#D6E6FF");
-            
+            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+            {
+                Instance.AddTimer(0.1f, () =>
+                {
+                    foreach (var player in Utilities.GetPlayers())
+                    {
+                        if (!Instance.IsPlayerValid(player)) continue;
+                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        if (playerInfo?.Skill != skillName) continue;
+                        EnableSkill(player);
+                    }
+                });
+
+                return HookResult.Continue;
+            });
+
             Instance.RegisterEventHandler<EventPlayerBlind>((@event, info) =>
             {
                 var player = @event.Userid;
@@ -34,6 +50,18 @@ namespace jRandomSkills
 
                 return HookResult.Continue;
             });
+        }
+
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            SkillUtils.TryGiveWeapon(player, CsItem.FlashbangGrenade);
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#D6E6FF", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+            }
         }
     }
 }

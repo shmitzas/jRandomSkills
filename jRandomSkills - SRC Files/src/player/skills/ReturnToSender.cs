@@ -1,7 +1,5 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Memory;
-using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
@@ -10,15 +8,12 @@ namespace jRandomSkills
 {
     public class ReturnToSender : ISkill
     {
-        private static Skills skillName = Skills.ReturnToSender;
+        private const Skills skillName = Skills.ReturnToSender;
         private static HashSet<nint> playersToSender = new HashSet<nint>();
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#a68132");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
             {
@@ -32,7 +27,7 @@ namespace jRandomSkills
                 var victim = @event.Userid;
                 int damage = @event.DmgHealth;
 
-                if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim)) return HookResult.Continue;
+                if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
                 var attackerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
                 if (attackerInfo == null || attackerInfo.Skill != skillName) return HookResult.Continue;
 
@@ -60,6 +55,13 @@ namespace jRandomSkills
                 return randomSpawn.AbsOrigin;
             }
             return new Vector(abs.X, abs.Y, abs.Z);
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#a68132", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -7,21 +8,19 @@ namespace jRandomSkills
 {
     public class Dracula : ISkill
     {
-        private static Skills skillName = Skills.Dracula;
+        private const Skills skillName = Skills.Dracula;
+        private static float healthRegainScale = Config.GetValue<float>(skillName, "healthRegainScale");
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#FA050D");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
             
             Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
             {
                 var attacker = @event.Attacker;
                 var victim = @event.Userid;
 
-                if (!Instance.IsPlayerValid(attacker) || attacker == victim) return HookResult.Continue;
+                if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
 
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
 
@@ -38,13 +37,22 @@ namespace jRandomSkills
             var attackerPawn = attacker.PlayerPawn.Value;
             if (attackerPawn == null) return;
 
-            int newHealth = (int)(attackerPawn.Health + (damage * 0.3));
+            int newHealth = (int)(attackerPawn.Health + (damage * healthRegainScale));
 
             attackerPawn.MaxHealth = Math.Max(newHealth, 100);
             Utilities.SetStateChanged(attackerPawn, "CBaseEntity", "m_iMaxHealth");
 
             attackerPawn.Health = newHealth;
             Utilities.SetStateChanged(attackerPawn, "CBaseEntity", "m_iHealth");
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public float HealthRegainScale { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#FA050D", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float healthRegainScale = .3f) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                HealthRegainScale = healthRegainScale;
+            }
         }
     }
 }

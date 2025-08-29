@@ -1,4 +1,4 @@
-﻿using CounterStrikeSharp.API;
+﻿/*using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
@@ -7,7 +7,7 @@ namespace jRandomSkills
 {
     public class Mute : ISkill
     {
-        private static Skills skillName = Skills.AntyHead;
+        private const Skills skillName = Skills.Mute;
 
         public static void LoadSkill()
         {
@@ -19,17 +19,20 @@ namespace jRandomSkills
             Instance.RegisterListener<Listeners.OnEntitySpawned>(@event =>
             {
                 var name = @event.DesignerName;
-                if (!name.EndsWith("_projectile") && name != "instanced_scripted_scene")
+                if (!name.EndsWith("_projectile"))
                     return;
 
-                if (@event.DesignerName == "instanced_scripted_scene")
-                {
-                    @event.AcceptInput("Kill");
-                    @event.Remove();
-                    return;
-                }
+                var grenade = @event.As<CBaseCSGrenadeProjectile>();
+                var pawn = grenade.OwnerEntity.Value.As<CCSPlayerPawn>();
+                var player = pawn.Controller.Value.As<CCSPlayerController>();
+
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill != skillName) return;
 
                 Server.NextFrame(() => {
+                    var grenade = @event.As<CBaseCSGrenadeProjectile>();
+                    grenade.DetonateTime = float.MaxValue;
+
                     switch (name)
                     {
                         case "smokegrenade_projectile":
@@ -39,6 +42,7 @@ namespace jRandomSkills
                         case "molotov_projectile":
                             var molotov = @event.As<CMolotovProjectile>();
                             molotov.Detonated = true;
+                            molotov.StillTimer.Timestamp = float.MaxValue;
                             break;
                         case "decoy_projectile":
                             var decoy = @event.As<CDecoyProjectile>();
@@ -46,12 +50,8 @@ namespace jRandomSkills
                             decoy.DecoyShotTick = int.MaxValue;
                             decoy.ShotsRemaining = int.MaxValue;
                             break;
-                        default:
-                            var grenade = @event.As<CBaseCSGrenadeProjectile>();
-                            grenade.DetonateTime = float.MaxValue;
-                            break;
                     }
-
+                    // deoy smoke molo/inter
                     Instance.AddTimer(5f, () =>
                     {
                         if (@event != null && @event.IsValid)
@@ -61,4 +61,4 @@ namespace jRandomSkills
             });
         }
     }
-}
+}*/

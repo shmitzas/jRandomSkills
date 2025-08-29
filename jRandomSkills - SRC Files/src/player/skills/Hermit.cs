@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -7,7 +8,7 @@ namespace jRandomSkills
 {
     public class Hermit : ISkill
     {
-        private static Skills skillName = Skills.Hermit;
+        private const Skills skillName = Skills.Hermit;
         private static readonly Dictionary<string, int> maxReserveAmmo = new Dictionary<string, int>
         {
             { "weapon_glock", 120 },
@@ -47,12 +48,11 @@ namespace jRandomSkills
             { "weapon_negev", 300 }
         };
 
+        private static int healthToAdd = Config.GetValue<int>(skillName, "healthToAdd");
+
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#ded678");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
             
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
@@ -74,10 +74,19 @@ namespace jRandomSkills
                 
                 Utilities.SetStateChanged(weapon, "CBasePlayerWeapon", "m_iClip1");
                 Utilities.SetStateChanged(weapon, "CBasePlayerWeapon", "m_pReserveAmmo");
-                SkillUtils.AddHealth(pawn, 25);
+                SkillUtils.AddHealth(pawn, healthToAdd);
 
                 return HookResult.Continue;
             });
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public int HealthToAdd { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ded678", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int healthToAdd = 25) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+                HealthToAdd = healthToAdd;
+            }
         }
     }
 }

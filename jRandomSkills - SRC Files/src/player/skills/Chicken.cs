@@ -11,7 +11,7 @@ namespace jRandomSkills
 {
     public class Chicken : ISkill
     {
-        private static Skills skillName = Skills.Chicken;
+        private const Skills skillName = Skills.Chicken;
         private static string[] disabledWeapons =
         {
             "weapon_ak47",
@@ -44,10 +44,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, "#FF8B42");
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
             
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -82,7 +79,13 @@ namespace jRandomSkills
 
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
-                DisableSkill(@event.Userid);
+                var player = @event.Userid;
+                if (!player.IsValid || player.PlayerPawn.Value == null) return HookResult.Continue;
+
+                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill == skillName)
+                    DisableSkill(player);
+
                 return HookResult.Continue;
             });
 
@@ -95,6 +98,13 @@ namespace jRandomSkills
                 return HookResult.Continue;
             });
 
+            Instance.RegisterEventHandler<EventRoundStart>((@event, info) =>
+            {
+                foreach (var player in Utilities.GetPlayers())
+                    SetWeaponAttack(player, false);
+                return HookResult.Continue;
+            });
+
             Instance.RegisterListener<OnTick>(OnTick);
         }
 
@@ -104,7 +114,6 @@ namespace jRandomSkills
             if (playerPawn != null)
             {
                 playerPawn.VelocityModifier = 1.1f;
-                Utilities.SetStateChanged(player, "CCSPlayerPawn", "m_flVelocityModifier");
 
                 playerPawn.Health = 50;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
@@ -127,7 +136,6 @@ namespace jRandomSkills
             if (playerPawn != null)
             {
                 playerPawn.VelocityModifier = 1f;
-                Utilities.SetStateChanged(player, "CCSPlayerPawn", "m_flVelocityModifier");
 
                 playerPawn.Health += 50;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
@@ -218,6 +226,13 @@ namespace jRandomSkills
 
             var hudContent = infoLine + skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
+        }
+
+        public class SkillConfig : Config.DefaultSkillInfo
+        {
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#FF8B42", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            {
+            }
         }
     }
 }
