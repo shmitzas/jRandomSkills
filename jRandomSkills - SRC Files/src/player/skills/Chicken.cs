@@ -12,6 +12,7 @@ namespace jRandomSkills
     public class Chicken : ISkill
     {
         private const Skills skillName = Skills.Chicken;
+        private static bool roundEnd = false;
         private static string[] disabledWeapons =
         {
             "weapon_ak47",
@@ -48,12 +49,12 @@ namespace jRandomSkills
             
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
+                roundEnd = false;
                 Instance.AddTimer(0.1f, () => 
                 {
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-
                         var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
@@ -73,7 +74,7 @@ namespace jRandomSkills
                     if (playerInfo?.Skill != skillName) continue;
                     DisableSkill(player);
                 }
-
+                roundEnd = true;
                 return HookResult.Continue;
             });
 
@@ -160,6 +161,7 @@ namespace jRandomSkills
 
         private static void SetWeaponAttack(CCSPlayerController player, bool disableWeapon)
         {
+            if (roundEnd) return;
             foreach (var weapon in player.Pawn.Value.WeaponServices?.MyWeapons)
                 if (weapon != null && weapon.IsValid && weapon.Value != null && weapon.Value.IsValid)
                     if (disabledWeapons.Contains(weapon?.Value?.DesignerName))

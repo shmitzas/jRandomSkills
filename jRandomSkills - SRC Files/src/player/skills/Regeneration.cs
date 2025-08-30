@@ -9,7 +9,7 @@ namespace jRandomSkills
     public class Regeneration : ISkill
     {
         private const Skills skillName = Skills.Regeneration;
-        private static int cooldown = Config.GetValue<int>(skillName, "cooldown");
+        private static float cooldown = Config.GetValue<float>(skillName, "cooldown");
         private static int healthToAdd = Config.GetValue<int>(skillName, "healthToAdd");
 
         public static void LoadSkill()
@@ -20,7 +20,7 @@ namespace jRandomSkills
 
         private static void OnTick()
         {
-            if (Server.TickCount % (64 * cooldown) != 0) return;
+            if (Server.TickCount % (int)(64 * cooldown) != 0) return;
             foreach (var player in Utilities.GetPlayers())
             {
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
@@ -35,8 +35,8 @@ namespace jRandomSkills
         public class SkillConfig : Config.DefaultSkillInfo
         {
             public int HealthToAdd { get; set; }
-            public int Cooldown { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff462e", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int healthToAdd = 1, int cooldown = 1) : base(skill, active, color, onlyTeam, needsTeammates)
+            public float Cooldown { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff462e", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int healthToAdd = 1, float cooldown = .25f) : base(skill, active, color, onlyTeam, needsTeammates)
             {
                 HealthToAdd = healthToAdd;
                 Cooldown = cooldown;

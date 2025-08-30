@@ -91,6 +91,23 @@ namespace jRandomSkills
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
         }
 
+        public static string GetDesignerName(CBasePlayerWeapon weapon)
+        {
+            string designerName = weapon.DesignerName;
+            ushort index = weapon.AttributeManager.Item.ItemDefinitionIndex;
+
+            designerName = (designerName, index) switch
+            {
+                var (name, _) when name.Contains("bayonet") => "weapon_knife",
+                ("weapon_m4a1", 60) => "weapon_m4a1_silencer",
+                ("weapon_hkp2000", 61) => "weapon_usp_silencer",
+                ("weapon_deagle", 64) => "weapon_revolver",
+                _ => designerName
+            };
+
+            return designerName;
+        }
+
         public static void SetTeamScores(short ctScore, short tScore, RoundEndReason roundEndReason)
         {
             UpdateServerTeamScores(ctScore, tScore);

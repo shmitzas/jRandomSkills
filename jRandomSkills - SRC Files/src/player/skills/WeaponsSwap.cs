@@ -173,7 +173,8 @@ namespace jRandomSkills
         {
             List<string> playerWeapons = new List<string>();
             foreach (var weapon in player.PlayerPawn.Value.WeaponServices.MyWeapons)
-                playerWeapons.Add(weapon?.Value?.DesignerName);
+                if (weapon.Value != null && weapon.Value.IsValid)
+                    playerWeapons.Add(SkillUtils.GetDesignerName(weapon.Value));
             return playerWeapons.Count == 0 ? null : playerWeapons.ToArray();
         }
 

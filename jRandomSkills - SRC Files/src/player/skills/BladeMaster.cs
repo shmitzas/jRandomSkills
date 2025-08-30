@@ -9,7 +9,7 @@ namespace jRandomSkills
     public class BladeMaster : ISkill
     {
         private const Skills skillName = Skills.BladeMaster;
-        private static string[] noReflectionWeapon = { "inferno", "flashbang", "smokegrenade", "decoy", "hegrenade", "knife" };
+        private static string[] noReflectionWeapon = { "inferno", "flashbang", "smokegrenade", "decoy", "hegrenade", "knife", "taser" };
         private static float torseReflectionChance = Config.GetValue<float>(skillName, "torseReflectionChance") * 100;
         private static float legReflectionChance = Config.GetValue<float>(skillName, "legReflectionChance") * 100;
 

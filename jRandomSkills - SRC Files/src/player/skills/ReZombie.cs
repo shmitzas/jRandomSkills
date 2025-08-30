@@ -51,10 +51,11 @@ namespace jRandomSkills
                 Instance.AddTimer(.2f, () => {
                     player.Respawn();
                     zombies.Add(player);
-                    player.ExecuteClientCommand("slot3");
                     SetPlayerColor(pawn, false);
                     SkillUtils.AddHealth(pawn, zombieHealth - 100, zombieHealth);
                     pawn.Teleport(deadPosition, deadRotation);
+                    player.ExecuteClientCommand("slot3");
+                    Instance.AddTimer(1, () => player.ExecuteClientCommand("slot3"));
                 });
 
                 return HookResult.Continue;

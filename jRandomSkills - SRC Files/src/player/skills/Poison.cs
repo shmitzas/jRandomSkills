@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class Poison : ISkill
     {
         private const Skills skillName = Skills.Poison;
-        private static int cooldown = Config.GetValue<int>(skillName, "Cooldown");
+        private static float cooldown = Config.GetValue<float>(skillName, "Cooldown");
         private static int healthToDamage = Config.GetValue<int>(skillName, "Damage");
         private static HashSet<CCSPlayerController> poisonedPlayers = new HashSet<CCSPlayerController>();
 
@@ -46,7 +46,7 @@ namespace jRandomSkills
 
         private static void OnTick()
         {
-            if (Server.TickCount % (64 * cooldown) != 0) return;
+            if (Server.TickCount % (int)(64 * cooldown) != 0) return;
             foreach (var player in poisonedPlayers)
             {
                 var pawn = player.PlayerPawn.Value;
@@ -109,8 +109,8 @@ namespace jRandomSkills
         public class SkillConfig : Config.DefaultSkillInfo
         {
             public int Damage { get; set; }
-            public int Cooldown { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#902eff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int cooldown = 2, int damage = 1) : base(skill, active, color, onlyTeam, needsTeammates)
+            public float Cooldown { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#902eff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 1, int damage = 1) : base(skill, active, color, onlyTeam, needsTeammates)
             {
                 Damage = damage;
                 Cooldown = cooldown;
