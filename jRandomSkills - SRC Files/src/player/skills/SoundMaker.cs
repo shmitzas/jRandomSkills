@@ -126,7 +126,7 @@ namespace jRandomSkills
         {
             foreach (var enemy in Utilities.GetPlayers().Where(p => p.Team != player.Team))
                 if (enemy != null && enemy.IsValid && enemy.PawnIsAlive)
-                    enemy.PlayerPawn.Value.EmitSound($"weapon.C4Beep.Impact", volume: 1f);
+                    enemy.PlayerPawn.Value.EmitSound($"C4.PlantSoundB", volume: 1f);
         }
 
         public class PlayerSkillInfo

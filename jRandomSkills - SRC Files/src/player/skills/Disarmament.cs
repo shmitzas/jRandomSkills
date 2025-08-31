@@ -71,7 +71,7 @@ namespace jRandomSkills
         {
             public float ChanceFrom { get; set; }
             public float ChanceTo { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#FF4500", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .65f, float chanceTo = .85f) : base(skill, active, color, onlyTeam, needsTeammates)
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#FF4500", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .2f, float chanceTo = .5f) : base(skill, active, color, onlyTeam, needsTeammates)
             {
                 ChanceFrom = chanceFrom;
                 ChanceTo = chanceTo;
