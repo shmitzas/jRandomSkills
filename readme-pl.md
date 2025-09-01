@@ -255,6 +255,13 @@ Plugin korzysta z zawartości następujących projektów:
 ## 📋 Lista Zmian
 
 <details>
+<summary><b>v1.1.1</b></summary>
+  
+  - #### Ogólne:
+    - ###### Dodano walidację dla wartości nieokreślonych dla umiejętności: Cichociemny i Flash.
+</details>
+
+<details>
 <summary><b>v1.1.0</b></summary>
 
 - #### Ogólne:
