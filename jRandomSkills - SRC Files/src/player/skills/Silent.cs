@@ -24,7 +24,7 @@ namespace jRandomSkills
                 if (!Instance.footstepSoundEvents.Contains(soundevent) && !Instance.silentSoundEvents.Contains(soundevent))
                     return HookResult.Continue;
 
-                var player = Utilities.GetPlayers().FirstOrDefault(p => p.Pawn.Value.Index == userIndex);
+                var player = Utilities.GetPlayers().FirstOrDefault(p => p.Pawn?.Value != null && p.Pawn.Value.IsValid && p.Pawn.Value.Index == userIndex);
                 if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
 
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
