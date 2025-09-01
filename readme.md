@@ -258,7 +258,7 @@ This plugin uses content from the following projects:
 <summary><b>v1.1.1</b></summary>
   
   - #### General:
-    - ###### Add validation for non-empty values for the skills: Silent and Flash.
+    - ###### Added validation for undefined values for the skills: Silent and Flash.
 </details>
   
 <details>
