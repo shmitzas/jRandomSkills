@@ -13,13 +13,16 @@ namespace jRandomSkills
     public class Fortnite : ISkill
     {
         private const Skills skillName = Skills.Fortnite;
-        private static float timerCooldown = Config.GetValue<float>(skillName, "Cooldown");
-        private const string propModel = "models/props/de_aztec/hr_aztec/aztec_scaffolding/aztec_scaffold_wall_support_128.vmdl";
+        private static float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
+        private static int barricadeHealth = Config.GetValue<int>(skillName, "barricadeHealth");
+        private static string propModel = Config.GetValue<string>(skillName, "propModel");
+
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = new Dictionary<ulong, PlayerSkillInfo>();
+        private static Dictionary<ulong, int> barricades = new Dictionary<ulong, int>();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -40,6 +43,7 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
             {
                 SkillPlayerInfo.Clear();
+                barricades.Clear();
                 return HookResult.Continue;
             });
 
@@ -80,7 +84,6 @@ namespace jRandomSkills
                 SteamID = player.SteamID,
                 CanUse = true,
                 Cooldown = DateTime.MinValue,
-                LastClick = DateTime.MinValue,
             };
         }
 
@@ -127,8 +130,6 @@ namespace jRandomSkills
                     skillInfo.Cooldown = DateTime.Now;
                     CreateBox(player);
                 }
-                else
-                    skillInfo.LastClick = DateTime.Now;
             }
         }
 
@@ -146,6 +147,7 @@ namespace jRandomSkills
             box.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
             box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             box.DispatchSpawn();
+            barricades.Add(box.Index, barricadeHealth);
             Server.NextFrame(() =>
             {
                 box.SetModel(propModel);
@@ -167,7 +169,14 @@ namespace jRandomSkills
             var box = param.As<CDynamicProp>();
             if (box == null || !box.IsValid) return HookResult.Continue;
             box.EmitSound("Wood_Plank.BulletImpact", volume: 1f);
-            box.Remove();
+
+            if (barricades.TryGetValue(box.Index, out int health))
+            {
+                health -= (int)param2.Damage;
+                barricades[box.Index] = health;
+                if (health <= 0) box.Remove();
+            }
+            else box.Remove();
             return HookResult.Continue;
         }
 
@@ -176,15 +185,18 @@ namespace jRandomSkills
             public ulong SteamID { get; set; }
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
-            public DateTime LastClick { get; set; }
         }
 
         public class SkillConfig : Config.DefaultSkillInfo
         {
             public float Cooldown { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#1b04cc", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 2f) : base(skill, active, color, onlyTeam, needsTeammates)
+            public int BarricadeHealth { get; set; }
+            public string PropModel { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#1b04cc", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 2f, int barricadeHealth = 115, string propModel = "models/props/de_aztec/hr_aztec/aztec_scaffolding/aztec_scaffold_wall_support_128.vmdl") : base(skill, active, color, onlyTeam, needsTeammates)
             {
                 Cooldown = cooldown;
+                BarricadeHealth = barricadeHealth;
+                PropModel = propModel;
             }
         }
     }

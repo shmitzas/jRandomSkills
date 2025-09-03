@@ -199,6 +199,12 @@
   "longzeus": "Długi Zeus",
   "longzeus_desc": "Zeus zadaje obrażenia niezależnie od odległości",
 
+  "magnifier": "Lupa",
+  "magnifier_desc": "Przybiżasz ekran wybranemu przeciwnikowi",
+  "magnifier_enemy_info": "Twoje pole widzenia zostało zniekształcone!",
+  "magnifier_player_info": "Gracz '{0}' został zmuszony do przejścia w tryb powiększenia.",
+  "magnifier_select_info": "Wybierz gracza, którego ekran chcesz powiększyć:",
+
   "medic": "Medyk",
   "medic_desc": "Kliknij [css_useSkill], aby użyć ładunku leczniczego, który przywraca 50 punktów zdrowia",
 
@@ -230,7 +236,8 @@
   "onlyhead_desc": "Otrzymujesz obrażenia tylko w głowę",
 
   "paweljumper": "Pawel Jumper",
-  "paweljumper_desc": "Otrzymujesz dodatkowy skok",
+  "paweljumper_desc": "Otrzymujesz losową liczbę dodatkowych skoków",
+  "paweljumper_desc2": "Otrzymujesz {0} dodatkowych skoków",
 
   "phoenix": "Feniks",
   "phoenix_desc": "Masz losową szans na odrodzenie się po śmierci",
@@ -352,6 +359,9 @@
 
   "thirdeye": "Trzecie Oko",
   "thirdeye_desc": "Kliknij [css_useSkill], aby aktywować trzecią osobę",
+
+  "thorns": "Ciernie",
+  "thorns_desc": "Twój przeciwnik otrzymuje część obrażeń, które zadał ci",
 
   "toxicsmoke": "Toksyczny Dym",
   "toxicsmoke_desc": "Twoje granaty dymny zadają obrażenia",

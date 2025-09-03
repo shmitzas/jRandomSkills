@@ -81,7 +81,6 @@ namespace jRandomSkills
                 SteamID = player.SteamID,
                 CanUse = true,
                 Cooldown = DateTime.MinValue,
-                LastClick = DateTime.MinValue,
             };
         }
 
@@ -128,8 +127,6 @@ namespace jRandomSkills
                     skillInfo.Cooldown = DateTime.Now;
                     RemoveAndGiveWeapon(player);
                 }
-                else
-                    skillInfo.LastClick = DateTime.Now;
             }
         }
 
@@ -175,7 +172,6 @@ namespace jRandomSkills
             public ulong SteamID { get; set; }
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
-            public DateTime LastClick { get; set; }
         }
 
         public class SkillConfig : Config.DefaultSkillInfo

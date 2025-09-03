@@ -33,9 +33,6 @@ namespace jRandomSkills
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
-
-                    if (exists)
-                        Instance.RegisterListener<Listeners.CheckTransmit>(CheckTransmit);
                 });
 
                 return HookResult.Continue;
@@ -52,8 +49,7 @@ namespace jRandomSkills
                 authorBeams.Clear();
                 stepBeams.Clear();
 
-                if (exists)
-                    Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
+                Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
                 exists = false;
                 return HookResult.Continue;
             });
@@ -63,14 +59,21 @@ namespace jRandomSkills
 
         private static void OnTick()
         {
-            foreach (var step in stepBeams)
+            if (Server.TickCount % 8 != 0) return;
+            foreach (var step in stepBeams.ToList())
             {
-                if (Server.TickCount % 8 != 0) continue;
+                var player = step.Key;
+                if (player == null || !player.IsValid)
+                {
+                    stepBeams.Remove(player);
+                    continue;
+                }
 
-                var pawn = step.Key.PlayerPawn.Value;
+                var pawn = player.PlayerPawn.Value;
+                if (pawn == null || !pawn.IsValid || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) continue;
+
                 var beams = step.Value;
-                if (pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) continue;
-                Vector lastBeamVector = beams.LastOrDefault()?.EndPos ?? pawn.AbsOrigin;
+                Vector lastBeamVector = beams?.LastOrDefault()?.EndPos ?? pawn?.AbsOrigin;
 
                 var newBeam = CreateBeamStep(step.Key.Team, lastBeamVector, pawn.AbsOrigin);
                 if (newBeam != null)
@@ -86,15 +89,21 @@ namespace jRandomSkills
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
         {
-            foreach(var (info, player) in infoList)
+            foreach( var (info, player) in infoList)
             {
                 if (player == null) continue;
                 foreach (var step in stepBeams)
                 {
                     var enemy = step.Key;
                     var beams = step.Value;
+
+                    var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
+
+                    bool playerHasBeam = authorBeams.TryGetValue(player.Index, out uint pIndex) && pIndex == enemy.Index;
+                    bool observerHasBeam = observedPlayer != null && authorBeams.TryGetValue(observedPlayer.Index, out uint oIndex) && oIndex == enemy.Index;
+
                     foreach (var beam in beams)
-                        if (!authorBeams.TryGetValue(player.Index, out uint enemyIndex) || enemyIndex != enemy.Index)
+                        if (!playerHasBeam && !observerHasBeam)
                             info.TransmitEntities.Remove(beam);
                 }
             }
@@ -148,6 +157,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
+            if (!exists)
+                Instance.RegisterListener<Listeners.CheckTransmit>(CheckTransmit);
             exists = true;
             var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             playerInfo.SkillChance = 0;

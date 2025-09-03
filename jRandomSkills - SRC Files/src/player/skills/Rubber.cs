@@ -26,8 +26,13 @@ namespace jRandomSkills
                 if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
                 var attackerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
 
+                var victimPawn = victim.PlayerPawn.Value;
+                if (victimPawn == null || !victimPawn.IsValid) return HookResult.Continue;
+
                 if (attackerInfo?.Skill == skillName)
-                    playersToSlow.Add(victim.PlayerPawn.Value, Server.TickCount + (64 * rubberTime));
+                    if (playersToSlow.ContainsKey(victimPawn))
+                        playersToSlow[victimPawn] = Server.TickCount + (64 * rubberTime);
+                    else playersToSlow.TryAdd(victimPawn, Server.TickCount + (64 * rubberTime));
 
                 return HookResult.Continue;
             });

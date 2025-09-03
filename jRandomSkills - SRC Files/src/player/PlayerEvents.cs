@@ -153,35 +153,38 @@ namespace jRandomSkills
                         skillPlayer.IsDrawing = false;
                         jSkill_SkillInfo randomSkill = new jSkill_SkillInfo(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
 
-                        if (Config.config.Settings.GameMode == (int)Config.GameModes.Normal)
+                        if (Instance?.GameRules?.WarmupPeriod == false)
                         {
-                            List<jSkill_SkillInfo> skillList = new List<jSkill_SkillInfo>(SkillData.Skills);
-                            skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
-
-                            if (Utilities.GetPlayers().FindAll(p => p.Team == player.Team && p.IsValid && !p.IsBot).Count == 1)
+                            if (Config.config.Settings.GameMode == (int)Config.GameModes.Normal)
                             {
-                                Config.DefaultSkillInfo[] skillsNeedsTeammates = Config.config.SkillsInfo.Where(s => s.NeedsTeammates).ToArray();
-                                skillList.RemoveAll(s => skillsNeedsTeammates.Any(s2 => s2.Name == s.Skill.ToString()));
+                                List<jSkill_SkillInfo> skillList = new List<jSkill_SkillInfo>(SkillData.Skills);
+                                skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
+
+                                if (Utilities.GetPlayers().FindAll(p => p.Team == player.Team && p.IsValid && !p.IsBot).Count == 1)
+                                {
+                                    Config.DefaultSkillInfo[] skillsNeedsTeammates = Config.config.SkillsInfo.Where(s => s.NeedsTeammates).ToArray();
+                                    skillList.RemoveAll(s => skillsNeedsTeammates.Any(s2 => s2.Name == s.Skill.ToString()));
+                                }
+
+                                if (player.Team == CsTeam.Terrorist)
+                                    skillList.RemoveAll(s => counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                                else
+                                    skillList.RemoveAll(s => terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+
+                                randomSkill = skillList.Count == 0 ? new jSkill_SkillInfo(Skills.None, Config.GetValue<string>(Skills.None, "color"), false) : skillList[Instance.Random.Next(skillList.Count)];
                             }
-
-                            if (player.Team == CsTeam.Terrorist)
-                                skillList.RemoveAll(s => counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                            else
-                                skillList.RemoveAll(s => terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-
-                            randomSkill = skillList.Count == 0 ? new jSkill_SkillInfo(Skills.None, Config.GetValue<string>(Skills.None, "color"), false) : skillList[Instance.Random.Next(skillList.Count)];
-                        }
-                        else if (Config.config.Settings.GameMode == (int)Config.GameModes.TeamSkills)
-                            randomSkill = player.Team == CsTeam.Terrorist ? tSkill : ctSkill;
-                        else if (Config.config.Settings.GameMode == (int)Config.GameModes.SameSkills)
-                            randomSkill = allSkill;
-                        else if (Config.config.Settings.GameMode == (int)Config.GameModes.Debug)
-                        {
-                            if (debugSkills.Count == 0)
-                                debugSkills = new List<jSkill_SkillInfo>(SkillData.Skills);
-                            randomSkill = debugSkills[0];
-                            debugSkills.RemoveAt(0);
-                            player.PrintToChat($"{SkillData.Skills.Count - debugSkills.Count}/{SkillData.Skills.Count}");
+                            else if (Config.config.Settings.GameMode == (int)Config.GameModes.TeamSkills)
+                                randomSkill = player.Team == CsTeam.Terrorist ? tSkill : ctSkill;
+                            else if (Config.config.Settings.GameMode == (int)Config.GameModes.SameSkills)
+                                randomSkill = allSkill;
+                            else if (Config.config.Settings.GameMode == (int)Config.GameModes.Debug)
+                            {
+                                if (debugSkills.Count == 0)
+                                    debugSkills = new List<jSkill_SkillInfo>(SkillData.Skills);
+                                randomSkill = debugSkills[0];
+                                debugSkills.RemoveAt(0);
+                                player.PrintToChat($"{SkillData.Skills.Count - debugSkills.Count}/{SkillData.Skills.Count}");
+                            }
                         }
 
                         skillPlayer.Skill = randomSkill.Skill;

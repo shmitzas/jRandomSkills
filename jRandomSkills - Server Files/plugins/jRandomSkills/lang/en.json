@@ -199,6 +199,12 @@
   "longzeus": "Long Zeus",
   "longzeus_desc": "Zeus deals damage regardless of distance",
 
+  "magnifier": "Magnifier",
+  "magnifier_desc": "Forces the enemy's screen to zoom in, reducing their field of view",
+  "magnifier_enemy_info": "Your field of view has been distorted!",
+  "magnifier_player_info": "Player '{0}' has been forced into zoom mode.",
+  "magnifier_select_info": "Select the player whose screen you want to magnify:",
+
   "medic": "Medic",
   "medic_desc": "Click [css_useSkill] to use a healing charge that restores 50 health",
 
@@ -230,7 +236,8 @@
   "onlyhead_desc": "You only take damage to the head",
 
   "paweljumper": "Pawel Jumper",
-  "paweljumper_desc": "You get an extra jump",
+  "paweljumper_desc": "You get a random number of extra jumps",
+  "paweljumper_desc2": "You get {0} extra jumps",
 
   "phoenix": "Phoenix",
   "phoenix_desc": "You have a random chance to respawn after death",
@@ -352,6 +359,9 @@
 
   "thirdeye": "Third Eye",
   "thirdeye_desc": "Click [css_useSkill] to activate third-person view",
+
+  "thorns": "Thorns",
+  "thorns_desc": "Your opponent will receive a portion of the damage that they inflicted on you",
 
   "toxicsmoke": "Toxic Smoke",
   "toxicsmoke_desc": "Your smoke grenades deal damage",

@@ -161,8 +161,11 @@ namespace jRandomSkills
 
         private static void SetWeaponAttack(CCSPlayerController player, bool disableWeapon)
         {
-            if (roundEnd) return;
-            foreach (var weapon in player.Pawn.Value.WeaponServices?.MyWeapons)
+            if (roundEnd || player == null || !player.IsValid) return;
+            var pawn = player?.PlayerPawn?.Value;
+            if (pawn == null || !pawn.IsValid) return;
+
+            foreach (var weapon in pawn?.WeaponServices?.MyWeapons)
                 if (weapon != null && weapon.IsValid && weapon.Value != null && weapon.Value.IsValid)
                     if (disabledWeapons.Contains(weapon?.Value?.DesignerName))
                     {

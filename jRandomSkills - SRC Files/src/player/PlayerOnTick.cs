@@ -2,8 +2,8 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
+using System.Reflection.Metadata;
 using static CounterStrikeSharp.API.Core.Listeners;
-using static jRandomSkills.Config;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -38,10 +38,10 @@ namespace jRandomSkills
 
         private static void UpdateGameRules()
         {
-            if (Instance.GameRules == null)
+            if (Instance?.GameRules == null || Instance?.GameRules?.Handle == IntPtr.Zero)
                 InitializeGameRules();
             else
-                Instance.GameRules.GameRestart = Instance.GameRules.RestartRoundTime < Server.CurrentTime;
+                Instance.GameRules.GameRestart = Instance?.GameRules?.RestartRoundTime < Server.CurrentTime;
         }
 
         private static void UpdatePlayerHud(CCSPlayerController player)

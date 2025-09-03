@@ -199,6 +199,12 @@
   "longzeus": "Zeus Longo",
   "longzeus_desc": "Zeus causa dano independentemente da distância",
 
+  "magnifier": "Lupa",
+  "magnifier_desc": "Força a tela do inimigo a ampliar, reduzindo seu campo de visão",
+  "magnifier_enemy_info": "Seu campo de visão foi distorcido!",
+  "magnifier_player_info": "O jogador ‘{0}’ foi forçado a entrar no modo de zoom.",
+  "magnifier_select_info": "Selecione o jogador cuja tela você deseja ampliar:",
+
   "medic": "Médico",
   "medic_desc": "Clique em [css_useSkill] para usar uma carga de cura que restaura 50 de saúde",
 
@@ -230,7 +236,8 @@
   "onlyhead_desc": "Você só recebe dano na cabeça",
 
   "paweljumper": "Pawel Jumper",
-  "paweljumper_desc": "Você ganha um pulo extra",
+  "paweljumper_desc": "Você recebe um número aleatório de saltos extras",
+  "paweljumper_desc2": "Você ganha {0} saltos extras",
 
   "phoenix": "Fênix",
   "phoenix_desc": "Você tem uma chance aleatória de renascer após a morte",
@@ -352,6 +359,9 @@
 
   "thirdeye": "Terceiro Olho",
   "thirdeye_desc": "Clique em [css_useSkill] para ativar a visão em terceira pessoa",
+
+  "thorns": "Espinhos",
+  "thorns_desc": "Seu oponente receberá uma parte do dano que causou a você",
 
   "toxicsmoke": "Fumaça Tóxica",
   "toxicsmoke_desc": "Suas granadas de fumaça causam dano",

@@ -199,6 +199,12 @@
   "longzeus": "长宙斯",
   "longzeus_desc": "宙斯电击枪无论距离多远都能造成伤害",
 
+  "magnifier": "放大镜",
+  "magnifier_desc": "强制敌方屏幕放大，缩小其视野范围",
+  "magnifier_enemy_info": "你的视野已被扭曲！",
+  "magnifier_player_info": "玩家'{0}'已被强制进入放大模式。",
+  "magnifier_select_info": "选择需要放大的玩家：",
+
   "medic": "医务兵",
   "medic_desc": "点击 [css_useSkill] 使用治疗装置恢复50点生命值",
 
@@ -230,7 +236,8 @@
   "onlyhead_desc": "你只会在头部受到伤害",
 
   "paweljumper": "帕维尔跳跃者",
-  "paweljumper_desc": "你获得额外的跳跃",
+  "paweljumper_desc": "你将获得随机数量的额外跳跃机会",
+  "paweljumper_desc2": "你获得 {0} 次额外跳跃",
 
   "phoenix": "凤凰",
   "phoenix_desc": "你有随机几率在死亡后复活",
@@ -352,6 +359,9 @@
 
   "thirdeye": "第三只眼",
   "thirdeye_desc": "点击 [css_useSkill] 激活第三人称视角",
+
+  "thorns": "荊棘",
+  "thorns_desc": "你的對手將承受其對你造成傷害的一部分",
 
   "toxicsmoke": "毒烟",
   "toxicsmoke_desc": "你的烟雾弹会造成伤害",

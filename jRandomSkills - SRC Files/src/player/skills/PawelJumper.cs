@@ -2,6 +2,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
+using jRandomSkills.src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
@@ -10,6 +11,9 @@ namespace jRandomSkills
     public class PawelJumper : ISkill
     {
         private const Skills skillName = Skills.PawelJumper;
+        private static int extraJumpsMin = Config.GetValue<int>(skillName, "extraJumpsMin");
+        private static int extraJumpsMax = Config.GetValue<int>(skillName, "extraJumpsMax");
+
         private static readonly PlayerFlags[] LF = new PlayerFlags[64];
         private static readonly int?[] J = new int?[64];
         private static readonly PlayerButtons[] LB = new PlayerButtons[64];
@@ -32,11 +36,28 @@ namespace jRandomSkills
             });
         }
 
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            var playerPawn = player.PlayerPawn.Value;
+            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerPawn == null) return;
+
+            var skillConfig = Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString());
+            if (skillConfig == null) return;
+
+            float extraJumps = (float)Instance.Random.Next(extraJumpsMin, extraJumpsMax + 1);
+            playerInfo.SkillChance = extraJumps;
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("paweljumper")}{ChatColors.Lime}: " + Localization.GetTranslation("paweljumper_desc2", extraJumps), false);
+        }
+
         private static void GiveAdditionalJump(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
             var flags = (PlayerFlags)playerPawn.Flags;
             var buttons = player.Buttons;
+
+            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerPawn == null) return;
 
             if ((LF[player.Slot] & PlayerFlags.FL_ONGROUND) != 0 && (flags & PlayerFlags.FL_ONGROUND) == 0 && (LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0)
             {
@@ -46,9 +67,9 @@ namespace jRandomSkills
             {
                 J[player.Slot] = 0;
             }
-            else if ((LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0 && J[player.Slot] < 1)
+            else if ((LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0 && J[player.Slot] < playerInfo.SkillChance)
             {
-                J[player.Slot] ++;
+                J[player.Slot]++;
                 playerPawn.AbsVelocity.Z = 300;
             }
 
@@ -58,8 +79,12 @@ namespace jRandomSkills
 
         public class SkillConfig : Config.DefaultSkillInfo
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#FFA500", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
+            public int ExtraJumpsMin { get; set; }
+            public int ExtraJumpsMax { get; set; }
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#FFA500", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int extraJumpsMin = 1, int extraJumpsMax = 4) : base(skill, active, color, onlyTeam, needsTeammates)
             {
+                ExtraJumpsMin = extraJumpsMin;
+                ExtraJumpsMax = extraJumpsMax;
             }
         }
     }

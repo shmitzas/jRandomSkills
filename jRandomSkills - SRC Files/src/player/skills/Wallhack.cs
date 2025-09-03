@@ -31,9 +31,6 @@ namespace jRandomSkills
                         if (playerInfo?.Skill == skillName)
                             EnableSkill(player);
                     }
-
-                    if (exists)
-                        Instance.RegisterListener<Listeners.CheckTransmit>(CheckTransmit);
                 });
                 return HookResult.Continue;
             });
@@ -47,8 +44,7 @@ namespace jRandomSkills
                 }
                 glows.Clear();
 
-                if (exists)
-                    Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
+                Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
                 exists = false;
                 return HookResult.Continue;
             });
@@ -60,7 +56,12 @@ namespace jRandomSkills
             {
                 if (player == null) continue;
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName) continue;
+
+                var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
+                var observerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
+
+                if (playerInfo?.Skill == skillName || (observerInfo != null && observerInfo?.Skill == skillName))
+                    continue;
 
                 foreach (var glow in glows)
                 {
@@ -72,6 +73,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
+            if (!exists)
+                Instance.RegisterListener<Listeners.CheckTransmit>(CheckTransmit);
             exists = true;
             SetGlowEffectForEnemies(player);
         }
@@ -106,7 +109,7 @@ namespace jRandomSkills
 
                 modelGlow.Glow.GlowColorOverride = enemy.Team == CsTeam.Terrorist ? Color.FromArgb(255, 255, 165, 0) : Color.FromArgb(255, 173, 216, 230);
                 modelGlow.Glow.GlowRange = 5000;
-                modelGlow.Glow.GlowTeam = (int)player.Team;
+                modelGlow.Glow.GlowTeam = -1;
                 modelGlow.Glow.GlowType = 3;
                 modelGlow.Glow.GlowRangeMin = 100;
 

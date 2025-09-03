@@ -266,6 +266,8 @@
     },
     {
       "Cooldown": 2.0,
+      "BarricadeHealth": 115,
+      "PropModel": "models/props/de_aztec/hr_aztec/aztec_scaffolding/aztec_scaffold_wall_support_128.vmdl",
       "NeedsTeammates": false,
       "OnlyTeam": 0,
       "Color": "#1b04cc",
@@ -436,6 +438,14 @@
       "Name": "LongZeus"
     },
     {
+      "CustomFOV": 50,
+      "NeedsTeammates": false,
+      "OnlyTeam": 0,
+      "Color": "#9ba882",
+      "Active": true,
+      "Name": "Magnifier"
+    },
+    {
       "HealthToAdd": 50,
       "HealthShotLimit": 3,
       "Cooldown": 1.0,
@@ -516,6 +526,8 @@
       "Name": "OnlyHead"
     },
     {
+      "ExtraJumpsMin": 1,
+      "ExtraJumpsMax": 4,
       "NeedsTeammates": false,
       "OnlyTeam": 0,
       "Color": "#FFA500",
@@ -802,6 +814,14 @@
       "Color": "#1b04cc",
       "Active": true,
       "Name": "ThirdEye"
+    },
+    {
+      "HealthTakenScale": 0.3,
+      "NeedsTeammates": false,
+      "OnlyTeam": 0,
+      "Color": "#962631",
+      "Active": true,
+      "Name": "Thorns"
     },
     {
       "SmokeDamage": 2,

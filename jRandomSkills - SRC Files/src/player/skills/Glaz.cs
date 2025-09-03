@@ -31,9 +31,6 @@ namespace jRandomSkills
                         if (playerInfo?.Skill == skillName)
                             EnableSkill(player);
                     }
-
-                    if (exists)
-                        Instance.RegisterListener<Listeners.CheckTransmit>(CheckTransmit);
                 });
                 return HookResult.Continue;
             });
@@ -41,8 +38,7 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventRoundEnd>((@event, @info) =>
             {
                 smokes.Clear();
-                if (exists)
-                    Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
+                Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
                 exists = false;
                 return HookResult.Continue;
             });
@@ -66,8 +62,11 @@ namespace jRandomSkills
             {
                 if (player == null) continue;
                 var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill != skillName) continue;
 
+                var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
+                var observerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
+
+                if (playerInfo?.Skill != skillName && observerInfo?.Skill != skillName) continue;
                 foreach (var smoke in smokes)
                     info.TransmitEntities.Remove(smoke);
             }
@@ -75,6 +74,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
+            if (!exists)
+                Instance.RegisterListener<Listeners.CheckTransmit>(CheckTransmit);
             exists = true;
             SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
         }

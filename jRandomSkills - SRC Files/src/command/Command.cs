@@ -127,11 +127,19 @@ namespace jRandomSkills
             Menu.DisplaySkillsList(player);
         }
 
-        [RequiresPermissions("@jRandmosSkills/admin")]
         [CommandHelper(minArgs: 1, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_ChangeMap(CCSPlayerController? player, CommandInfo command)
         {
-            if (player == null) return;
+            if (player != null && player.IsValid && !AdminManager.PlayerHasPermissions(player, "@TESTTEST/TESTAFD"))
+            {
+                player.Vote(VoteType.ChangeMap, command.ArgString);
+                return;
+            }
+            ChangeMap(player, command);
+        }
+
+        private static void ChangeMap(CCSPlayerController? player, CommandInfo command)
+        {
             string map = command.GetArg(1);
 
             if (string.IsNullOrEmpty(map))
@@ -150,13 +158,20 @@ namespace jRandomSkills
                 Server.ExecuteCommand($"changelevel {map}");
         }
 
-        [RequiresPermissions("@jRandmosSkills/admin")]
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_StartGame(CCSPlayerController? player, CommandInfo command)
         {
-            if (player == null) return;
-            int cheats = command.GetArg(1) == "sv" ? 1 : 0;
+            if (player != null && player.IsValid && !AdminManager.PlayerHasPermissions(player, "@TESTTEST/TESTAFD"))
+            {
+                player.Vote(VoteType.StartGame, command.ArgString);
+                return;
+            }
+            StartGame(player, command);
+        }
 
+        private static void StartGame(CCSPlayerController? player, CommandInfo command)
+        {
+            int cheats = command.GetArg(1) == "sv" ? 1 : 0;
             Server.ExecuteCommand($"mp_freezetime {(cheats == 1 ? 0 : 5)}");
             Server.ExecuteCommand("mp_warmup_end");
             Server.ExecuteCommand("mp_restartgame 1");
@@ -170,18 +185,18 @@ namespace jRandomSkills
             });
         }
 
-        [RequiresPermissions("@jRandmosSkills/root")]
-        [CommandHelper(minArgs: 1, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-        private static void Command_CustomCommand(CCSPlayerController? player, CommandInfo command)
+        [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+        private static void Command_Swap(CCSPlayerController? player, CommandInfo command)
         {
-            if (player == null) return;
-            string param = command.ArgString;
-            Server.ExecuteCommand(param);
+            if (player != null && player.IsValid && !AdminManager.PlayerHasPermissions(player, "@TESTTEST/TESTAFD"))
+            {
+                player.Vote(VoteType.SwapTeam, command.ArgString);
+                return;
+            }
+            Swap(player, command);
         }
 
-        [RequiresPermissions("@jRandmosSkills/admin")]
-        [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-        private static void Command_Swap(CCSPlayerController? _player, CommandInfo command)
+        private static void Swap(CCSPlayerController? _player, CommandInfo command)
         {
             foreach (var player in Utilities.GetPlayers())
                 if (Instance.IsPlayerValid(player) && new CsTeam[] { CsTeam.CounterTerrorist, CsTeam.Terrorist }.Contains(player.Team))
@@ -189,9 +204,18 @@ namespace jRandomSkills
             Server.ExecuteCommand($"mp_restartgame 1");
         }
 
-        [RequiresPermissions("@jRandmosSkills/admin")]
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-        private static void Command_Shuffle(CCSPlayerController? _player, CommandInfo command)
+        private static void Command_Shuffle(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null && player.IsValid && !AdminManager.PlayerHasPermissions(player, "@TESTTEST/TESTAFD"))
+            {
+                player.Vote(VoteType.ShuffleTeam, command.ArgString);
+                return;
+            }
+            Shuffle(player, command);
+        }
+
+        private static void Shuffle(CCSPlayerController? _player, CommandInfo command)
         {
             var players = Utilities.GetPlayers().FindAll(p => (Instance.IsPlayerValid(p) && new CsTeam[] { CsTeam.CounterTerrorist, CsTeam.Terrorist }.Contains(p.Team)));
             double CTlimit = Instance.Random.Next(0, 2) == 0 ? Math.Floor(players.Count / 2.0) : Math.Ceiling(players.Count / 2.0);
@@ -204,9 +228,18 @@ namespace jRandomSkills
             Server.ExecuteCommand($"mp_restartgame 1");
         }
 
-        [RequiresPermissions("@jRandmosSkills/admin")]
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_Pause(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null && player.IsValid && !AdminManager.PlayerHasPermissions(player, "@TESTTEST/TESTAFD"))
+            {
+                player.Vote(VoteType.PauseGame, command.ArgString);
+                return;
+            }
+            Pause(player, command);
+        }
+
+        private static void Pause(CCSPlayerController? player, CommandInfo command)
         {
             Server.PrintToChatAll($" {(gamePaused ? ChatColors.Green : ChatColors.Red)}{Localization.GetTranslation(gamePaused ? "unpause" : "pause")}");
             Server.ExecuteCommand( gamePaused ? "mp_unpause_match" : "mp_pause_match");
@@ -221,9 +254,18 @@ namespace jRandomSkills
             player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("healed")}");
         }
 
-        [RequiresPermissions("@jRandmosSkills/root")]
         [CommandHelper(minArgs: 2, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_SetScore(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null && player.IsValid && !AdminManager.PlayerHasPermissions(player, "@testset/testset"))
+            {
+                player.Vote(VoteType.SetScore, command.ArgString);
+                return;
+            }
+            SetScore(player, command);
+        }
+
+        private static void SetScore(CCSPlayerController? player, CommandInfo command)
         {
             if (!int.TryParse(command.GetArg(1), out int ctScore) || !int.TryParse(command.GetArg(2), out int tScore))
             {
@@ -232,6 +274,15 @@ namespace jRandomSkills
             }
 
             SkillUtils.SetTeamScores((short)ctScore, (short)tScore, RoundEndReason.RoundDraw);
+        }
+
+        [RequiresPermissions("@jRandmosSkills/root")]
+        [CommandHelper(minArgs: 1, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+        private static void Command_CustomCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player == null) return;
+            string param = command.ArgString;
+            Server.ExecuteCommand(param);
         }
     }
 }

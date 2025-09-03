@@ -73,7 +73,6 @@ namespace jRandomSkills
                 SteamID = player.SteamID,
                 CanUse = true,
                 Cooldown = DateTime.MinValue,
-                LastClick = DateTime.MinValue,
             };
         }
 
@@ -131,8 +130,6 @@ namespace jRandomSkills
                     playerPawn.ActualMoveType = MoveType_t.MOVETYPE_NOCLIP;
                     Instance.AddTimer(duration, () => playerPawn.ActualMoveType = MoveType_t.MOVETYPE_WALK);
                 }
-                else
-                    skillInfo.LastClick = DateTime.Now;
             }
         }
 
@@ -141,7 +138,6 @@ namespace jRandomSkills
             public ulong SteamID { get; set; }
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
-            public DateTime LastClick { get; set; }
         }
 
         public class SkillConfig : Config.DefaultSkillInfo
