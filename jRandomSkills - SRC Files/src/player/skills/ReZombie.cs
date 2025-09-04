@@ -10,8 +10,8 @@ namespace jRandomSkills
     public class ReZombie : ISkill
     {
         private const Skills skillName = Skills.ReZombie;
-        private static int zombieHealth = Config.GetValue<int>(skillName, "zombieHealth");
-        private static HashSet<CCSPlayerController> zombies = new HashSet<CCSPlayerController>();
+        private static readonly int zombieHealth = Config.GetValue<int>(skillName, "zombieHealth");
+        private static readonly HashSet<CCSPlayerController> zombies = [];
 
         public static void LoadSkill()
         {
@@ -21,7 +21,7 @@ namespace jRandomSkills
             {
                 var player = @event.Userid;
                 var weapon = @event.Item;
-
+                if (player == null || !player.IsValid) return HookResult.Continue;
                 if (!zombies.Contains(player) || weapon == "c4") return HookResult.Continue;
                 player.ExecuteClientCommand("slot3");
                 return HookResult.Stop;
@@ -38,14 +38,15 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
-                if (player == null || !player.IsValid || !player.PlayerPawn.Value.IsValid || zombies.Contains(player)) return HookResult.Continue;
+                if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid || zombies.Contains(player)) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
 
                 var pawn = player.PlayerPawn.Value;
-                Vector deadPosition = new Vector(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z);
-                QAngle deadRotation = new QAngle(pawn.EyeAngles.X, pawn.EyeAngles.Y, pawn.EyeAngles.Z);
+                if (pawn.AbsOrigin == null) return HookResult.Continue;
+                Vector deadPosition = new(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z);
+                QAngle deadRotation = new(pawn.EyeAngles.X, pawn.EyeAngles.Y, pawn.EyeAngles.Z);
 
                 player.Respawn();
                 Instance.AddTimer(.2f, () => {
@@ -69,6 +70,7 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
             zombies.Remove(player);
             SetPlayerColor(player.PlayerPawn.Value, true);
         }
@@ -80,13 +82,9 @@ namespace jRandomSkills
             Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_clrRender");
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff5C0A", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int zombieHealth = 200) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int ZombieHealth { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff5C0A", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int zombieHealth = 200) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                ZombieHealth = zombieHealth;
-            }
+            public int ZombieHealth { get; set; } = zombieHealth;
         }
     }
 }

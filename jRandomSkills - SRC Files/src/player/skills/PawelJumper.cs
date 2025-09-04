@@ -11,8 +11,8 @@ namespace jRandomSkills
     public class PawelJumper : ISkill
     {
         private const Skills skillName = Skills.PawelJumper;
-        private static int extraJumpsMin = Config.GetValue<int>(skillName, "extraJumpsMin");
-        private static int extraJumpsMax = Config.GetValue<int>(skillName, "extraJumpsMax");
+        private static readonly int extraJumpsMin = Config.GetValue<int>(skillName, "extraJumpsMin");
+        private static readonly int extraJumpsMax = Config.GetValue<int>(skillName, "extraJumpsMax");
 
         private static readonly PlayerFlags[] LF = new PlayerFlags[64];
         private static readonly int?[] J = new int?[64];
@@ -27,7 +27,7 @@ namespace jRandomSkills
                 foreach (var player in Utilities.GetPlayers())
                 {
                     if (!Instance.IsPlayerValid(player)) return;
-                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill == skillName)
                     {
                         GiveAdditionalJump(player);
@@ -39,10 +39,10 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerPawn == null) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerPawn == null || playerInfo == null) return;
 
-            var skillConfig = Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString());
+            var skillConfig = Config.LoadedConfig.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString());
             if (skillConfig == null) return;
 
             float extraJumps = (float)Instance.Random.Next(extraJumpsMin, extraJumpsMax + 1);
@@ -53,11 +53,13 @@ namespace jRandomSkills
         private static void GiveAdditionalJump(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
+            if (playerPawn == null || !playerPawn.IsValid) return;
+
             var flags = (PlayerFlags)playerPawn.Flags;
             var buttons = player.Buttons;
 
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerPawn == null) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerPawn == null || playerInfo == null) return;
 
             if ((LF[player.Slot] & PlayerFlags.FL_ONGROUND) != 0 && (flags & PlayerFlags.FL_ONGROUND) == 0 && (LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0)
             {
@@ -77,15 +79,10 @@ namespace jRandomSkills
             LB[player.Slot] = buttons;
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FFA500", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int extraJumpsMin = 1, int extraJumpsMax = 4) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int ExtraJumpsMin { get; set; }
-            public int ExtraJumpsMax { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#FFA500", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int extraJumpsMin = 1, int extraJumpsMax = 4) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                ExtraJumpsMin = extraJumpsMin;
-                ExtraJumpsMax = extraJumpsMax;
-            }
+            public int ExtraJumpsMin { get; set; } = extraJumpsMin;
+            public int ExtraJumpsMax { get; set; } = extraJumpsMax;
         }
     }
 }

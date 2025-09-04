@@ -8,9 +8,9 @@ namespace jRandomSkills
     public class Assassin : ISkill
     {
         private const Skills skillName = Skills.Assassin;
-        private static float damageMultiplier = Config.GetValue<float>(skillName, "damageMultiplier");
-        private static float toleranceDeg = Config.GetValue<float>(skillName, "toleranceDeg");
-        private static string[] nades = { "inferno", "flashbang", "smokegrenade", "decoy", "hegrenade" };
+        private static readonly float damageMultiplier = Config.GetValue<float>(skillName, "damageMultiplier");
+        private static readonly float toleranceDeg = Config.GetValue<float>(skillName, "toleranceDeg");
+        private static readonly string[] nades = ["inferno", "flashbang", "smokegrenade", "decoy", "hegrenade"];
 
         public static void LoadSkill()
         {
@@ -27,11 +27,11 @@ namespace jRandomSkills
                 if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
                 if (nades.Contains(weapon)) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
 
-                if (IsBehind(attacker, victim))
-                    SkillUtils.TakeHealth(victim.PlayerPawn.Value, (int)(damage * (damageMultiplier - 1f)));
+                if (IsBehind(attacker!, victim!))
+                    SkillUtils.TakeHealth(victim!.PlayerPawn.Value, (int)(damage * (damageMultiplier - 1f)));
                 
                 return HookResult.Continue;
             });
@@ -42,6 +42,7 @@ namespace jRandomSkills
             var attackerPawn = attacker.PlayerPawn.Value;
             var victimPawn = victim.PlayerPawn.Value;
             if (attackerPawn == null || !attackerPawn.IsValid || victimPawn == null || !victimPawn.IsValid) return false;
+            if (victimPawn.AbsRotation == null || attackerPawn.AbsRotation == null) return false;
             var angles = GetAngleRange(victimPawn.AbsRotation.Y);
             return IsBeetween(angles.Item1, angles.Item2, attackerPawn.AbsRotation.Y);
         }
@@ -64,15 +65,10 @@ namespace jRandomSkills
             return (target >= a || target <= b);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#d9d9d9", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float damageMultiplier = 2f, float toleranceDeg = 45f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float DamageMultiplier { get; set; }
-            public float ToleranceDeg { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#d9d9d9", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float damageMultiplier = 2f, float toleranceDeg = 45f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                DamageMultiplier = damageMultiplier;
-                ToleranceDeg = toleranceDeg;
-            }
+            public float DamageMultiplier { get; set; } = damageMultiplier;
+            public float ToleranceDeg { get; set; } = toleranceDeg;
         }
     }
 }

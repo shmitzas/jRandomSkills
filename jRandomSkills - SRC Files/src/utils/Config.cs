@@ -11,14 +11,13 @@ namespace jRandomSkills
     public static class Config
     {
         private static readonly string configPath = Path.Combine(Instance.ModuleDirectory, "Config.json");
-        public static ConfigModel config;
-        private static FileSystemWatcher fileWatcher;
+        private static ConfigModel config = LoadConfig();
+        private static FileSystemWatcher? fileWatcher;
 
         public static ConfigModel LoadedConfig => config;
 
         public static void Initialize()
         {
-            config = LoadConfig();
             SetupFileWatcher();
         }
 
@@ -38,21 +37,24 @@ namespace jRandomSkills
             try
             {
                 var root = JsonConvert.DeserializeObject<JObject>(json);
+                if (root == null) return config;
 
                 var settings = root["Settings"];
                 if (settings != null) JsonConvert.PopulateObject(settings.ToString(), config.Settings);
 
-                var skillsArray = (JArray)root["SkillsInfo"];
-                foreach (var skillObj in skillsArray)
-                {
-                    string name = skillObj["Name"]?.ToString();
-                    var instance = config.SkillsInfo.FirstOrDefault(x => x.Name == name);
-                    if (instance != null) JsonConvert.PopulateObject(skillObj.ToString(), instance);
-                }
+                var skillsArray = (JArray?)root["SkillsInfo"];
+                if (skillsArray != null)
+                    foreach (var skillObj in skillsArray)
+                    {
+                        var name = skillObj["Name"];
+                        if (name == null) continue;
+                        var instance = config.SkillsInfo.FirstOrDefault(x => x.Name == name.ToString());
+                        if (instance != null) JsonConvert.PopulateObject(skillObj.ToString(), instance);
+                    }
             }
-            catch (Exception ex)
+            catch
             {
-                Instance.Logger.LogError($"Error when loading the config file: {ex.Message}");
+                Instance.Logger.LogError("Error when loading the config file.");
             }
 
             return config;
@@ -65,15 +67,17 @@ namespace jRandomSkills
                 string json = JsonConvert.SerializeObject(config, Formatting.Indented);
                 File.WriteAllText(configPath, json);
             }
-            catch (Exception ex)
+            catch
             {
-                Instance.Logger.LogError($"Error when saving the config file: {ex.Message}");
+                Instance.Logger.LogError("Error when saving the config file.");
             }
         }
 
         private static void SetupFileWatcher()
         {
-            fileWatcher = new FileSystemWatcher(Path.GetDirectoryName(configPath))
+            string? path = Path.GetDirectoryName(configPath);
+            if (string.IsNullOrEmpty(path)) return;
+            fileWatcher = new FileSystemWatcher(path)
             {
                 Filter = Path.GetFileName(configPath),
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size
@@ -86,6 +90,7 @@ namespace jRandomSkills
         public static T GetValue<T>(object skill, string key)
         {
             var skillConfig = config.SkillsInfo.FirstOrDefault(s => s.Name == skill.ToString());
+            if (skillConfig == null) return default!;
 
             var prop = skillConfig.GetType().GetProperty(key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
             if (prop != null)
@@ -146,6 +151,7 @@ namespace jRandomSkills
             public string PauseCommands { get; set; }
             public string HealCommands { get; set; }
             public string SetScoreCommands { get; set; }
+            public VotingCommand[] VotingCommand { get; set; }
 
             public Settings()
             {
@@ -159,34 +165,41 @@ namespace jRandomSkills
                 SetSkillCommands = "ustawskill, setskill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能";
                 SkillsListCommands = "supermoc, skille, listamocy, supermoce, skills, listaHabilidades, habilidades, 技能列表, 超能力列表";
                 UseSkillCommands = "t, useSkill, usarHabilidade, 技能使用, 使用技能";
-                ChangeMapCommands = "map, mapa, changemap, zmienmape, zmienmape, mudarMapa, trocarMapa, 更换地图, 更改地图";
-                StartGameCommands = "start, go, começar, iniciar, 开始, 启动";
-                ConsoleCommands = "console, sv, 控制台, 服务器";
-                SwapCommands = "swap, zmiana, trocar, 交换, 切换";
-                ShuffleCommands = "shuffle, embaralhar, 随机排序, 洗牌";
-                PauseCommands = "pause, unpause, pausar, despausar, 暂停, 恢复";
                 HealCommands = "heal, ulecz, curar, tratar, 治疗, 治愈";
-                SetScoreCommands = "setscore, wynik, definirPontuacao, configurarPontos, 设置分数, 调整分数";
+                ConsoleCommands = "console, sv, 控制台, 服务器";
+
+                VotingCommand = [
+                    new VotingCommand("StartGameCommands", true, "start, go, começar, iniciar, 开始, 启动", "@jRandmosSkills/admin", 15, 60, 15, 500, 2),
+                    new VotingCommand("ChangeMapCommands", true, "map, mapa, changemap, zmienmape, zmienmape, mudarMapa, trocarMapa, 更换地图, 更改地图", "@jRandmosSkills/admin", 25, 90, 15, 500, 2),
+                    new VotingCommand("SwapCommands", true, "swap, zmiana, trocar, 交换, 切换", "@jRandmosSkills/admin", 15, 90, 15, 20, 2),
+                    new VotingCommand("ShuffleCommands", true, "shuffle, embaralhar, 随机排序, 洗牌", "@jRandmosSkills/admin", 15, 90, 15, 90, 2),
+                    new VotingCommand("PauseCommands", true, "pause, unpause, pausar, despausar, 暂停, 恢复", "@jRandmosSkills/admin", 15, 60, 15, 90, 2),
+                    new VotingCommand("SetScoreCommands", true, "setscore, wynik, definirPontuacao, configurarPontos, 设置分数, 调整分数", "@jRandmosSkills/root", 15, 90, 15, 90, 2),
+                ];
             }
 
         }
 
-        public class DefaultSkillInfo
+        public class VotingCommand(string name, bool enableVoting, string alias, string permissions, float timeToVote, float percentagesToSuccess, float timeToNextVoting, float timeToNextSameVoting, int minimumPlayersToStartVoting)
         {
-            public bool NeedsTeammates { get; set; }
-            public int OnlyTeam { get; set; }
-            public string Color { get; set; }
-            public bool Active { get; set; }
-            public string Name { get; set; }
+            public string Name { get; set; } = name;
+            public bool EnableVoting { get; set; } = enableVoting;
+            public string Alias { get; set; } = alias;
+            public string Permissions { get; set; } = permissions;
+            public float TimeToVote { get; set; } = timeToVote;
+            public float PercentagesToSuccess { get; set; } = percentagesToSuccess;
+            public float TimeToNextVoting { get; set; } = timeToNextVoting;
+            public float TimeToNextSameVoting { get; set; } = timeToNextSameVoting;
+            public int MinimumPlayersToStartVoting { get; set; } = minimumPlayersToStartVoting;
+        }
 
-            public DefaultSkillInfo(Skills skill, bool active = true, string color = "#ffffff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false)
-            {
-                Name = skill.ToString();
-                Active = active;
-                Color = color;
-                OnlyTeam = (int)onlyTeam;
-                NeedsTeammates = needsTeammates;
-            }
+        public class DefaultSkillInfo(Skills skill, bool active = true, string color = "#ffffff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false)
+        {
+            public bool NeedsTeammates { get; set; } = needsTeammates;
+            public int OnlyTeam { get; set; } = (int)onlyTeam;
+            public string Color { get; set; } = color;
+            public bool Active { get; set; } = active;
+            public string Name { get; set; } = skill.ToString();
         }
 
         public enum GameModes

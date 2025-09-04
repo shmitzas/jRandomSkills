@@ -11,8 +11,8 @@ namespace jRandomSkills
     public class EnemySpawn : ISkill
     {
         private const Skills skillName = Skills.EnemySpawn;
-        private static float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
-        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = new Dictionary<ulong, PlayerSkillInfo>();
+        private static readonly float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
+        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
 
         public static void LoadSkill()
         {
@@ -25,7 +25,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) return;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill == skillName)
                         {
                             EnableSkill(player);
@@ -45,11 +45,10 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
-
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                        SkillPlayerInfo.Remove(player.SteamID);
+                    SkillPlayerInfo.Remove(player.SteamID);
 
                 return HookResult.Continue;
             });
@@ -58,7 +57,7 @@ namespace jRandomSkills
             {
                 foreach (var player in Utilities.GetPlayers())
                 {
-                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill == skillName)
                         if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                               UpdateHUD(player, skillInfo);
@@ -78,22 +77,7 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                SkillPlayerInfo.Remove(player.SteamID);
-        }
-
-        public static Vector GetEnemySpawn(CCSPlayerController player)
-        {
-            List<CCSPlayerController> enemy = Utilities.GetPlayers().FindAll(p => Instance.IsPlayerValid(p) && p.Team != player.Team && p.PawnIsAlive);
-            if (enemy.Count == 0)
-            {
-                var abs = player.PlayerPawn.Value.AbsOrigin;
-                return new Vector(abs.X, abs.Y, abs.Z);
-            }
-
-            CCSPlayerController randomEnemy = enemy[Instance.Random.Next(0, enemy.Count)];
-            var eAbs = randomEnemy.PlayerPawn.Value.AbsOrigin;
-            return new Vector(eAbs.X, eAbs.Y, eAbs.Z);
+            SkillPlayerInfo.Remove(player.SteamID);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
@@ -138,14 +122,15 @@ namespace jRandomSkills
 
         private static Vector GetEnemySpawnVector(CCSPlayerController player)
         {
-            var abs = player.PlayerPawn.Value.AbsOrigin;
+            var abs = player!.PlayerPawn!.Value?.AbsOrigin;
             var spawns = Utilities.FindAllEntitiesByDesignerName<SpawnPoint>(player.Team == CsTeam.CounterTerrorist ? "info_player_terrorist" : "info_player_counterterrorist").ToList();
-            if (spawns.Any())
+            if (spawns.Count != 0)
             {
                 var randomSpawn = spawns[Instance.Random.Next(spawns.Count)];
-                return randomSpawn.AbsOrigin;
+                if (randomSpawn.AbsOrigin != null)
+                    return randomSpawn.AbsOrigin;
             }
-            return new Vector(abs.X, abs.Y, abs.Z);
+            return abs == null ? new Vector(0, 0, 0) : new Vector(abs.X, abs.Y, abs.Z);
         }
 
         public class PlayerSkillInfo
@@ -155,13 +140,9 @@ namespace jRandomSkills
             public DateTime Cooldown { get; set; }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff8c92", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 15f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float Cooldown { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff8c92", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 15f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                Cooldown = cooldown;
-            }
+            public float Cooldown { get; set; } = cooldown;
         }
     }
 }

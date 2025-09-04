@@ -23,7 +23,7 @@ namespace jRandomSkills
             if (Server.TickCount % (int)(64 * cooldown) != 0) return;
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill != skillName) continue;
 
                 var pawn = player.PlayerPawn.Value;

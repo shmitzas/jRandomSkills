@@ -27,7 +27,7 @@ namespace jRandomSkills
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
 
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -39,7 +39,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
 
             float newScale = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
             playerInfo.SkillChance = newScale;
@@ -55,8 +56,8 @@ namespace jRandomSkills
             if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
                 return HookResult.Continue;
 
-            CCSPlayerPawn attackerPawn = new CCSPlayerPawn(param2.Attacker.Value.Handle);
-            CCSPlayerPawn victimPawn = new CCSPlayerPawn(param.Handle);
+            CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
+            CCSPlayerPawn victimPawn = new(param.Handle);
 
             if (attackerPawn.DesignerName != "player" || victimPawn.DesignerName != "player")
                 return HookResult.Continue;
@@ -67,24 +68,22 @@ namespace jRandomSkills
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
             CCSPlayerController victim = victimPawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
             if (playerInfo == null) return HookResult.Continue;
 
             if (playerInfo.Skill == skillName && victim.PawnIsAlive)
-                param2.Damage *= (float)playerInfo.SkillChance;
+            {
+                float? skillChance = playerInfo.SkillChance;
+                param2.Damage *= skillChance ?? 1f;
+            }
 
             return HookResult.Continue;
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#d1430a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .65f, float chanceTo = .85f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float ChanceFrom { get; set; }
-            public float ChanceTo { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#d1430a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .65f, float chanceTo = .85f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                ChanceFrom = chanceFrom;
-                ChanceTo = chanceTo;
-            }
+            public float ChanceFrom { get; set; } = chanceFrom;
+            public float ChanceTo { get; set; } = chanceTo;
         }
     }
 }

@@ -11,9 +11,9 @@ namespace jRandomSkills
     public class Noclip : ISkill
     {
         private const Skills skillName = Skills.Noclip;
-        private static float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
-        private static float duration = Config.GetValue<float>(skillName, "duration");
-        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = new Dictionary<ulong, PlayerSkillInfo>();
+        private static readonly float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
+        private static readonly float duration = Config.GetValue<float>(skillName, "duration");
+        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
 
         public static void LoadSkill()
         {
@@ -25,7 +25,7 @@ namespace jRandomSkills
                 {
                     foreach (var player in Utilities.GetPlayers())
                     {
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill == skillName)
                         {
                             EnableSkill(player);
@@ -45,11 +45,10 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
-
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                        SkillPlayerInfo.Remove(player.SteamID);
+                     SkillPlayerInfo.Remove(player.SteamID);
 
                 return HookResult.Continue;
             });
@@ -58,7 +57,7 @@ namespace jRandomSkills
             {
                 foreach (var player in Utilities.GetPlayers())
                 {
-                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill == skillName)
                         if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                               UpdateHUD(player, skillInfo);
@@ -78,8 +77,7 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                SkillPlayerInfo.Remove(player.SteamID);
+            SkillPlayerInfo.Remove(player.SteamID);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
@@ -140,15 +138,10 @@ namespace jRandomSkills
             public DateTime Cooldown { get; set; }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#44ebd4", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 30f, float duration = 2f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float Cooldown { get; set; }
-            public float Duration { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#44ebd4", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 30f, float duration = 2f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                Cooldown = cooldown;
-                Duration = duration;
-            }
+            public float Cooldown { get; set; } = cooldown;
+            public float Duration { get; set; } = duration;
         }
     }
 }

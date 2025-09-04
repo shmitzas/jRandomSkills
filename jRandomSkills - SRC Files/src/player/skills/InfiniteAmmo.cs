@@ -19,12 +19,10 @@ namespace jRandomSkills
 
                 if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
 
                 if (playerInfo?.Skill == skillName)
-                {
-                    ApplyInfiniteAmmo(player);
-                }
+                    ApplyInfiniteAmmo(player!);
 
                 return HookResult.Continue;
             });
@@ -35,10 +33,10 @@ namespace jRandomSkills
 
                 if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
 
                 if (playerInfo?.Skill == skillName)
-                    player.GiveNamedItem($"weapon_{@event.Weapon}");
+                    player!.GiveNamedItem($"weapon_{@event.Weapon}");
 
                 return HookResult.Continue;
             });
@@ -49,12 +47,10 @@ namespace jRandomSkills
 
                 if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
 
                 if (playerInfo?.Skill == skillName)
-                {
-                    ApplyInfiniteAmmo(player);
-                }
+                    ApplyInfiniteAmmo(player!);
                 
                 return HookResult.Continue;
             });
@@ -64,16 +60,11 @@ namespace jRandomSkills
         {
             var activeWeaponHandle = player.PlayerPawn.Value?.WeaponServices?.ActiveWeapon;
             if (activeWeaponHandle?.Value != null)
-            {
                 activeWeaponHandle.Value.Clip1 = 100;
-            }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#0000FF", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#0000FF", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

@@ -23,7 +23,7 @@ namespace jRandomSkills
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
 
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -38,9 +38,9 @@ namespace jRandomSkills
                 var victim = @event.Userid;
 
                 if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
-                if (playerInfo?.Skill == skillName && victim.PawnIsAlive)
+                if (playerInfo?.Skill == skillName && victim!.PawnIsAlive)
                 {
                     if (Instance.Random.NextDouble() <= playerInfo.SkillChance)
                     {
@@ -59,7 +59,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             float newChance = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "chanceTo") - Config.GetValue<float>(skillName, "chanceFrom")) + Config.GetValue<float>(skillName, "chanceFrom");
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
@@ -67,15 +68,10 @@ namespace jRandomSkills
             SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("disarmament")}{ChatColors.Lime}: " + Localization.GetTranslation("disarmament_desc2", newChance), false);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FF4500", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .2f, float chanceTo = .5f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float ChanceFrom { get; set; }
-            public float ChanceTo { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#FF4500", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .2f, float chanceTo = .5f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                ChanceFrom = chanceFrom;
-                ChanceTo = chanceTo;
-            }
+            public float ChanceFrom { get; set; } = chanceFrom;
+            public float ChanceTo { get; set; } = chanceTo;
         }
     }
 }

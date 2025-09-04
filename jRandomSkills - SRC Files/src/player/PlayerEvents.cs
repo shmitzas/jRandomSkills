@@ -9,12 +9,12 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public static class Event
+    public static partial class Event
     {
-        private static jSkill_SkillInfo ctSkill = new jSkill_SkillInfo(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
-        private static jSkill_SkillInfo tSkill = new jSkill_SkillInfo(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
-        private static jSkill_SkillInfo allSkill = new jSkill_SkillInfo(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
-        private static List<jSkill_SkillInfo> debugSkills = new List<jSkill_SkillInfo>(SkillData.Skills);
+        private static jSkill_SkillInfo ctSkill = new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
+        private static jSkill_SkillInfo tSkill = new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
+        private static jSkill_SkillInfo allSkill = new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
+        private static List<jSkill_SkillInfo> debugSkills = new(SkillData.Skills);
 
         public static void Load()
         {
@@ -24,7 +24,7 @@ namespace jRandomSkills
 
                 if (player == null || !player.IsValid) return HookResult.Continue;
 
-                Instance.skillPlayer.Add(new jSkill_PlayerInfo
+                Instance.SkillPlayer.Add(new jSkill_PlayerInfo
                 {
                     SteamID = player.SteamID,
                     PlayerName = player.PlayerName,
@@ -39,11 +39,11 @@ namespace jRandomSkills
                     + "Original plugin created by:\n{AUTHOR1}\n"
                     + "Modified and improved by:\n{AUTHOR2}";
                 string langWelcomeMsg = Localization.GetTranslation("welcome_message", "welcome");
-                string welcomeMsg = Regex.IsMatch(langWelcomeMsg, @"\{AUTHOR1\}", RegexOptions.IgnoreCase) && Regex.IsMatch(langWelcomeMsg, @"\{AUTHOR2\}", RegexOptions.IgnoreCase) ? langWelcomeMsg : defaultWelcomeMsg;
+                string welcomeMsg = MyRegex().IsMatch(langWelcomeMsg) && MyRegex1().IsMatch(langWelcomeMsg) ? langWelcomeMsg : defaultWelcomeMsg;
 
                 foreach (string line in welcomeMsg.Split("\n"))
                     player.PrintToChat($" {ChatColors.Green}" + line.Replace("{PLAYER}", $" {ChatColors.Red}{player.PlayerName}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
-                                            .Replace("{SERVER_NAME}", $" {ChatColors.Red}{ConVar.Find("hostname").StringValue ?? "Default Server"}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
+                                            .Replace("{SERVER_NAME}", $" {ChatColors.Red}{ConVar.Find("hostname")?.StringValue ?? "Default Server"}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
                                             .Replace("{VERSION}", $" {ChatColors.Red}v{Instance.ModuleVersion}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
                                             .Replace("{SKILLS_COUNT}", $" {ChatColors.Red}{SkillData.Skills.Count - 1}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
                                             .Replace("{AUTHOR1}", $" {ChatColors.Red}Jakub Bartosik (D3X){ChatColors.Green} ({ChatColors.Red}https://github.com/jakubbartosik/dRandomSkills{ChatColors.Green})", StringComparison.OrdinalIgnoreCase)
@@ -58,10 +58,10 @@ namespace jRandomSkills
 
                 if (player == null || !player.IsValid) return HookResult.Continue;
 
-                var skillPlayer = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var skillPlayer = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (skillPlayer != null)
                 {
-                    Instance.skillPlayer.Remove(skillPlayer);
+                    Instance.SkillPlayer.Remove(skillPlayer);
                 }
 
                 return HookResult.Continue;
@@ -71,7 +71,7 @@ namespace jRandomSkills
             {
                 foreach (var player in Utilities.GetPlayers())
                 {
-                    var skillPlayer = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var skillPlayer = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (skillPlayer != null)
                         skillPlayer.IsDrawing = true;
                 }
@@ -90,16 +90,17 @@ namespace jRandomSkills
                         string skillsText = "";
                         foreach (var _player in _players)
                         {
-                            var _playerSkill = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == _player.SteamID);
+                            var _playerSkill = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == _player.SteamID);
                             if (_playerSkill != null)
                             {
                                 var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == _playerSkill.Skill);
                                 var specialSkillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == _playerSkill.SpecialSkill);
-                                skillsText += $" {ChatColors.DarkRed}{_player.PlayerName}{ChatColors.Lime}: {(_playerSkill.SpecialSkill == Skills.None ? skillInfo.Name : $"{specialSkillInfo.Name} -> {skillInfo.Name}")}\n";
+                                if (skillInfo == null) continue;
+                                skillsText += $" {ChatColors.DarkRed}{_player.PlayerName}{ChatColors.Lime}: {(_playerSkill.SpecialSkill == Skills.None || specialSkillInfo == null ? skillInfo.Name : $"{specialSkillInfo.Name} -> {skillInfo.Name}")}\n";
                             }
                         }
 
-                        if (Config.config.Settings.SummaryAfterTheRound && !string.IsNullOrEmpty(skillsText))
+                        if (Config.LoadedConfig.Settings.SummaryAfterTheRound && !string.IsNullOrEmpty(skillsText))
                         {
                             player.PrintToChat(" ");
                             player.PrintToChat($" {ChatColors.Lime}{Localization.GetTranslation("summary_start")}");
@@ -117,28 +118,28 @@ namespace jRandomSkills
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
-                Config.DefaultSkillInfo[] terroristSkills = Config.config.SkillsInfo.Where(s => s.OnlyTeam == (int)CsTeam.Terrorist).ToArray();
-                Config.DefaultSkillInfo[] counterterroristSkills = Config.config.SkillsInfo.Where(s => s.OnlyTeam == (int)CsTeam.CounterTerrorist).ToArray();
-                Config.DefaultSkillInfo[] allTeamsSkills = Config.config.SkillsInfo.Where(s => s.OnlyTeam == 0).ToArray();
+                Config.DefaultSkillInfo[] terroristSkills = Config.LoadedConfig.SkillsInfo.Where(s => s.OnlyTeam == (int)CsTeam.Terrorist).ToArray();
+                Config.DefaultSkillInfo[] counterterroristSkills = Config.LoadedConfig.SkillsInfo.Where(s => s.OnlyTeam == (int)CsTeam.CounterTerrorist).ToArray();
+                Config.DefaultSkillInfo[] allTeamsSkills = Config.LoadedConfig.SkillsInfo.Where(s => s.OnlyTeam == 0).ToArray();
 
-                if (Config.config.Settings.GameMode == (int)Config.GameModes.TeamSkills)
+                if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.TeamSkills)
                 {
-                    List<jSkill_SkillInfo> tSkills = new List<jSkill_SkillInfo>(SkillData.Skills);
+                    List<jSkill_SkillInfo> tSkills = new(SkillData.Skills);
                     tSkills.RemoveAll(s => s.Skill == tSkill.Skill || s.Skill == Skills.None || counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                    tSkill = tSkills.Count == 0 ? new jSkill_SkillInfo(Skills.None, Config.GetValue<string>(Skills.None, "color"), false) : tSkills[Instance.Random.Next(tSkills.Count)];
+                    tSkill = tSkills.Count == 0 ? new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false) : tSkills[Instance.Random.Next(tSkills.Count)];
 
-                    List<jSkill_SkillInfo> ctSkills = new List<jSkill_SkillInfo>(SkillData.Skills);
+                    List<jSkill_SkillInfo> ctSkills = new(SkillData.Skills);
                     ctSkills.RemoveAll(s => s.Skill == ctSkill.Skill || s.Skill == Skills.None || terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                    ctSkill = ctSkills.Count == 0 ? new jSkill_SkillInfo(Skills.None, Config.GetValue<string>(Skills.None, "color"), false) : ctSkills[Instance.Random.Next(ctSkills.Count)];
+                    ctSkill = ctSkills.Count == 0 ? new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false) : ctSkills[Instance.Random.Next(ctSkills.Count)];
                 }
-                else if (Config.config.Settings.GameMode == (int)Config.GameModes.SameSkills)
+                else if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.SameSkills)
                 {
-                    List<jSkill_SkillInfo> allSkills = new List<jSkill_SkillInfo>(SkillData.Skills);
+                    List<jSkill_SkillInfo> allSkills = new(SkillData.Skills);
                     allSkills.RemoveAll(s => s.Skill == allSkill.Skill || s.Skill == Skills.None || !allTeamsSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                    allSkill = allSkills.Count == 0 ? new jSkill_SkillInfo(Skills.None, Config.GetValue<string>(Skills.None, "color"), false) : allSkills[Instance.Random.Next(allSkills.Count)];
+                    allSkill = allSkills.Count == 0 ? new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false) : allSkills[Instance.Random.Next(allSkills.Count)];
                 }
-                else if (Config.config.Settings.GameMode == (int)Config.GameModes.Debug && debugSkills.Count == 0)
-                    debugSkills = new List<jSkill_SkillInfo>(SkillData.Skills);
+                else if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.Debug && debugSkills.Count == 0)
+                    debugSkills = new(SkillData.Skills);
 
                 foreach (var player in Utilities.GetPlayers())
                 {
@@ -146,23 +147,22 @@ namespace jRandomSkills
                     var teammates = Utilities.GetPlayers().Where(p => p.Team == playerTeam && p != player);
                     string teammateSkills = "";
 
-                    var skillPlayer = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-
+                    var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (skillPlayer != null)
                     {
                         skillPlayer.IsDrawing = false;
-                        jSkill_SkillInfo randomSkill = new jSkill_SkillInfo(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
+                        jSkill_SkillInfo randomSkill = new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
 
-                        if (Instance?.GameRules?.WarmupPeriod == false)
+                        if (Instance?.GameRules != null && Instance?.GameRules.WarmupPeriod == false)
                         {
-                            if (Config.config.Settings.GameMode == (int)Config.GameModes.Normal)
+                            if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.Normal)
                             {
-                                List<jSkill_SkillInfo> skillList = new List<jSkill_SkillInfo>(SkillData.Skills);
+                                List<jSkill_SkillInfo> skillList = new(SkillData.Skills);
                                 skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
 
                                 if (Utilities.GetPlayers().FindAll(p => p.Team == player.Team && p.IsValid && !p.IsBot).Count == 1)
                                 {
-                                    Config.DefaultSkillInfo[] skillsNeedsTeammates = Config.config.SkillsInfo.Where(s => s.NeedsTeammates).ToArray();
+                                    Config.DefaultSkillInfo[] skillsNeedsTeammates = Config.LoadedConfig.SkillsInfo.Where(s => s.NeedsTeammates).ToArray();
                                     skillList.RemoveAll(s => skillsNeedsTeammates.Any(s2 => s2.Name == s.Skill.ToString()));
                                 }
 
@@ -173,11 +173,11 @@ namespace jRandomSkills
 
                                 randomSkill = skillList.Count == 0 ? new jSkill_SkillInfo(Skills.None, Config.GetValue<string>(Skills.None, "color"), false) : skillList[Instance.Random.Next(skillList.Count)];
                             }
-                            else if (Config.config.Settings.GameMode == (int)Config.GameModes.TeamSkills)
+                            else if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.TeamSkills)
                                 randomSkill = player.Team == CsTeam.Terrorist ? tSkill : ctSkill;
-                            else if (Config.config.Settings.GameMode == (int)Config.GameModes.SameSkills)
+                            else if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.SameSkills)
                                 randomSkill = allSkill;
-                            else if (Config.config.Settings.GameMode == (int)Config.GameModes.Debug)
+                            else if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.Debug)
                             {
                                 if (debugSkills.Count == 0)
                                     debugSkills = new List<jSkill_SkillInfo>(SkillData.Skills);
@@ -194,17 +194,17 @@ namespace jRandomSkills
                         if (randomSkill.Display)
                             SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{randomSkill.Name}{ChatColors.Lime}: {randomSkill.Description}", false);
 
-                        if (Config.config.Settings.TeamMateSkillInfo)
+                        if (Config.LoadedConfig.Settings.TeamMateSkillInfo)
                         {
-                            Instance.AddTimer(0.5f, () =>
+                            Instance?.AddTimer(0.5f, () =>
                             {
                                 foreach (var teammate in teammates)
                                 {
-                                    var teammateSkill = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == teammate.SteamID)?.Skill;
+                                    var teammateSkill = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == teammate.SteamID)?.Skill;
                                     if (teammateSkill != null)
                                     {
                                         var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == teammateSkill);
-                                        teammateSkills += $" {ChatColors.DarkRed}{teammate.PlayerName}{ChatColors.Lime}: {skillInfo.Name}\n";
+                                        teammateSkills += $" {ChatColors.DarkRed}{teammate.PlayerName}{ChatColors.Lime}: {(skillInfo == null ? Skills.None : skillInfo.Name)}\n";
                                     }
                                 }
 
@@ -231,14 +231,15 @@ namespace jRandomSkills
 
                 if (victim == null || attacker == null || victim == attacker) return HookResult.Continue;
 
-                if(Config.config.Settings.KillerSkillInfo)
+                if(Config.LoadedConfig.Settings.KillerSkillInfo)
                 {
-                    var attackerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+                    var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
                     if (attackerInfo != null)
                     {
                         var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == attackerInfo.Skill);
                         var specialSkillData = SkillData.Skills.FirstOrDefault(s => s.Skill == attackerInfo.SpecialSkill);
-                        string skillDesc = skillData?.Description;
+                        if (skillData == null || specialSkillData == null) return HookResult.Continue;
+                        string skillDesc = skillData.Description;
 
                         SkillUtils.PrintToChat(victim, $"{Localization.GetTranslation("enemy_skill")} {ChatColors.DarkRed}{attacker.PlayerName}{ChatColors.Lime}:", false);
                         SkillUtils.PrintToChat(victim, $"{ChatColors.DarkRed}{(attackerInfo.SpecialSkill == Skills.None ? skillData.Name : $"{specialSkillData.Name} -> {skillData.Name}")}{ChatColors.Lime} - {skillDesc}", false);
@@ -248,5 +249,10 @@ namespace jRandomSkills
                 return HookResult.Continue;
             });
         }
+
+        [GeneratedRegex(@"\{AUTHOR1\}", RegexOptions.IgnoreCase, "pl-PL")]
+        private static partial Regex MyRegex();
+        [GeneratedRegex(@"\{AUTHOR2\}", RegexOptions.IgnoreCase, "pl-PL")]
+        private static partial Regex MyRegex1();
     }
 }

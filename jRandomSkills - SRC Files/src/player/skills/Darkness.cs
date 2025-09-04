@@ -10,9 +10,9 @@ namespace jRandomSkills
     public class Darkness : ISkill
     {
         private const Skills skillName = Skills.Darkness;
-        private static float brightness = Config.GetValue<float>(skillName, "brightness");
-        private static Dictionary<CCSPlayerController, CPostProcessingVolume> deafultPostProcessing = new Dictionary<CCSPlayerController, CPostProcessingVolume>();
-        private static List<CPostProcessingVolume> newPostProcessing = new List<CPostProcessingVolume>();
+        private static readonly float brightness = Config.GetValue<float>(skillName, "brightness");
+        private static readonly Dictionary<CCSPlayerController, CPostProcessingVolume> deafultPostProcessing = [];
+        private static readonly List<CPostProcessingVolume> newPostProcessing = [];
 
         public static void LoadSkill()
         {
@@ -25,7 +25,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -46,7 +46,9 @@ namespace jRandomSkills
 
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
-                SetUpPostProcessing(@event.Userid, true);
+                var player = @event.Userid;
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                SetUpPostProcessing(player, true);
                 return HookResult.Continue;
             });
         }
@@ -54,7 +56,7 @@ namespace jRandomSkills
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (playerInfo.SkillChance == 1)
@@ -80,7 +82,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
             SkillUtils.PrintToChat(player, Localization.GetTranslation("darkness") + ":", false);
@@ -104,11 +107,18 @@ namespace jRandomSkills
 
         private static void SetUpPostProcessing(CCSPlayerController player, bool dontCreateNew = false)
         {
+            if (player == null || !player.IsValid) return;
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid || pawn.CameraServices == null) return;
+
+            var postProcessingVolumes = pawn.CameraServices.PostProcessingVolumes.FirstOrDefault();
+            if (postProcessingVolumes == null || postProcessingVolumes.Value == null) return;
+
             if (deafultPostProcessing.TryGetValue(player, out var oldPostProcessing))
             {
-                player.PlayerPawn.Value.CameraServices.PostProcessingVolumes.FirstOrDefault().Raw = oldPostProcessing.EntityHandle.Raw;
+                postProcessingVolumes.Raw = oldPostProcessing.EntityHandle.Raw;
                 deafultPostProcessing.Remove(player);
-                Utilities.SetStateChanged(player.PlayerPawn.Value, "CBasePlayerPawn", "m_pCameraServices");
+                Utilities.SetStateChanged(pawn, "CBasePlayerPawn", "m_pCameraServices");
                 return;
             }
 
@@ -116,21 +126,19 @@ namespace jRandomSkills
                 return;
 
             var postProcessing = Utilities.CreateEntityByName<CPostProcessingVolume>("post_processing_volume");
+            if (postProcessing == null) return;
+
             postProcessing.ExposureControl = true;
             postProcessing.MaxExposure = brightness;
             postProcessing.MinExposure = brightness;
-            deafultPostProcessing.TryAdd(player, player.PlayerPawn.Value.CameraServices.PostProcessingVolumes.FirstOrDefault().Value);
-            player.PlayerPawn.Value.CameraServices.PostProcessingVolumes.FirstOrDefault().Raw = postProcessing.EntityHandle.Raw;
-            Utilities.SetStateChanged(player.PlayerPawn.Value, "CBasePlayerPawn", "m_pCameraServices");
+            deafultPostProcessing.TryAdd(player, postProcessingVolumes.Value);
+            postProcessingVolumes.Raw = postProcessing.EntityHandle.Raw;
+            Utilities.SetStateChanged(pawn, "CBasePlayerPawn", "m_pCameraServices");
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#383838", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float brightness = .01f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float Brightness { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#383838", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float brightness = .01f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                Brightness = brightness;
-            }
+            public float Brightness { get; set; } = brightness;
         }
     }
 }

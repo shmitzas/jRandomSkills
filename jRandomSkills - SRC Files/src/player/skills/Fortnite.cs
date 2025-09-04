@@ -13,12 +13,12 @@ namespace jRandomSkills
     public class Fortnite : ISkill
     {
         private const Skills skillName = Skills.Fortnite;
-        private static float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
-        private static int barricadeHealth = Config.GetValue<int>(skillName, "barricadeHealth");
-        private static string propModel = Config.GetValue<string>(skillName, "propModel");
+        private static readonly float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
+        private static readonly int barricadeHealth = Config.GetValue<int>(skillName, "barricadeHealth");
+        private static readonly string propModel = Config.GetValue<string>(skillName, "propModel");
 
-        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = new Dictionary<ulong, PlayerSkillInfo>();
-        private static Dictionary<ulong, int> barricades = new Dictionary<ulong, int>();
+        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static readonly Dictionary<ulong, int> barricades = [];
 
         public static void LoadSkill()
         {
@@ -31,7 +31,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) return;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill == skillName)
                             EnableSkill(player);
                     }
@@ -50,11 +50,10 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
-
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                        SkillPlayerInfo.Remove(player.SteamID);
+                      SkillPlayerInfo.Remove(player.SteamID);
                 return HookResult.Continue;
             });
 
@@ -62,7 +61,7 @@ namespace jRandomSkills
             {
                 foreach (var player in Utilities.GetPlayers())
                 {
-                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill == skillName)
                         if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                             UpdateHUD(player, skillInfo);
@@ -89,8 +88,7 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                SkillPlayerInfo.Remove(player.SteamID);
+              SkillPlayerInfo.Remove(player.SteamID);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
@@ -137,13 +135,13 @@ namespace jRandomSkills
         {
             var playerPawn = player.PlayerPawn.Value;
             var box = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic_override");
-            if (box == null) return;
+            if (box == null || playerPawn == null || !playerPawn.IsValid || playerPawn.AbsOrigin == null || playerPawn.AbsRotation == null) return;
 
             float distance = 50;
             Vector pos = playerPawn.AbsOrigin + SkillUtils.GetForwardVector(playerPawn.AbsRotation) * distance;
-            QAngle angle = new QAngle(playerPawn.AbsRotation.X, playerPawn.AbsRotation.Y + 90, playerPawn.AbsRotation.Z);
+            QAngle angle = new(playerPawn.AbsRotation.X, playerPawn.AbsRotation.Y + 90, playerPawn.AbsRotation.Z);
 
-            box.Entity.Name = box.Globalname = $"FortniteWall_{Server.TickCount}";
+            box.Entity!.Name = box.Globalname = $"FortniteWall_{Server.TickCount}";
             box.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
             box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             box.DispatchSpawn();
@@ -187,17 +185,11 @@ namespace jRandomSkills
             public DateTime Cooldown { get; set; }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1b04cc", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 2f, int barricadeHealth = 115, string propModel = "models/props/de_aztec/hr_aztec/aztec_scaffolding/aztec_scaffold_wall_support_128.vmdl") : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float Cooldown { get; set; }
-            public int BarricadeHealth { get; set; }
-            public string PropModel { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#1b04cc", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 2f, int barricadeHealth = 115, string propModel = "models/props/de_aztec/hr_aztec/aztec_scaffolding/aztec_scaffold_wall_support_128.vmdl") : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                Cooldown = cooldown;
-                BarricadeHealth = barricadeHealth;
-                PropModel = propModel;
-            }
+            public float Cooldown { get; set; } = cooldown;
+            public int BarricadeHealth { get; set; } = barricadeHealth;
+            public string PropModel { get; set; } = propModel;
         }
     }
 }

@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class Distancer : ISkill
     {
         private const Skills skillName = Skills.Distancer;
-        private static HashSet<CCSPlayerController> distancerPlayers = new HashSet<CCSPlayerController>();
+        private static readonly HashSet<CCSPlayerController> distancerPlayers = [];
 
         public static void LoadSkill()
         {
@@ -23,7 +23,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -60,7 +60,7 @@ namespace jRandomSkills
                 {
                     var enemyPawn = enemy.PlayerPawn.Value;
                     if (enemyPawn == null || !enemyPawn.IsValid) continue;
-                    if (enemyPawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) continue;
+                    if (enemyPawn.LifeState != (byte)LifeState_t.LIFE_ALIVE || playerPawn.AbsOrigin == null || enemyPawn.AbsOrigin == null) continue;
                     double distance = (int)SkillUtils.GetDistance(playerPawn.AbsOrigin, enemyPawn.AbsOrigin);
                     if (distance >= closetDistance) continue;
                     closetDistance = distance;
@@ -88,11 +88,8 @@ namespace jRandomSkills
             distancerPlayers.Remove(player);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#00f2ff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#00f2ff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

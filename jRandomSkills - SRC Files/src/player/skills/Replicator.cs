@@ -13,8 +13,8 @@ namespace jRandomSkills
     public class Replicator : ISkill
     {
         private const Skills skillName = Skills.Replicator;
-        private static float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
-        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = new Dictionary<ulong, PlayerSkillInfo>();
+        private static readonly float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
+        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
 
         public static void LoadSkill()
         {
@@ -27,7 +27,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) return;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill == skillName)
                             EnableSkill(player);
                     }
@@ -45,11 +45,10 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
-
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                        SkillPlayerInfo.Remove(player.SteamID);
+                    SkillPlayerInfo.Remove(player.SteamID);
                 return HookResult.Continue;
             });
 
@@ -57,7 +56,7 @@ namespace jRandomSkills
             {
                 foreach (var player in Utilities.GetPlayers())
                 {
-                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill == skillName)
                         if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                             UpdateHUD(player, skillInfo);
@@ -79,8 +78,7 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                SkillPlayerInfo.Remove(player.SteamID);
+            SkillPlayerInfo.Remove(player.SteamID);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
@@ -127,7 +125,7 @@ namespace jRandomSkills
         {
             var playerPawn = player.PlayerPawn.Value;
             var replica = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic");
-            if (replica == null)
+            if (replica == null || playerPawn == null || !playerPawn.IsValid || playerPawn.AbsOrigin == null || playerPawn.AbsRotation == null)
                 return;
 
             float distance = 40;
@@ -140,7 +138,7 @@ namespace jRandomSkills
             replica.Flags |= (uint)Flags_t.FL_DUCKING;
             replica.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(replica.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             replica.SetModel(playerPawn!.CBodyComponent!.SceneNode!.GetSkeletonInstance().ModelState.ModelName);
-            replica.Entity.Name = replica.Globalname = $"Replica_{Server.TickCount}_{(player.Team == CsTeam.CounterTerrorist ? "CT" : "TT")}";
+            replica.Entity!.Name = replica.Globalname = $"Replica_{Server.TickCount}_{(player.Team == CsTeam.CounterTerrorist ? "CT" : "TT")}";
             replica.Teleport(pos, playerPawn.AbsRotation, null);
             replica.DispatchSpawn();
             replica.AcceptInput("EnableCollision");
@@ -154,7 +152,7 @@ namespace jRandomSkills
             if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
                 return HookResult.Continue;
 
-            CCSPlayerPawn attackerPawn = new CCSPlayerPawn(param2.Attacker.Value.Handle);
+            CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
             if (string.IsNullOrEmpty(param.Entity.Name)) return HookResult.Continue;
             if (!param.Entity.Name.StartsWith("Replica_")) return HookResult.Continue;
 
@@ -176,13 +174,9 @@ namespace jRandomSkills
             public DateTime Cooldown { get; set; }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#a3000b", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 15f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float Cooldown { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#a3000b", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 15f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                Cooldown = cooldown;
-            }
+            public float Cooldown { get; set; } = cooldown;
         }
     }
 }

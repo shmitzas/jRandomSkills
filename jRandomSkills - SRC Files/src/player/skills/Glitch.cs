@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class Glitch : ISkill
     {
         private const Skills skillName = Skills.Glitch;
-        private static HashSet<CCSPlayerController> glitchedPlayers = new HashSet<CCSPlayerController>();
+        private static readonly HashSet<CCSPlayerController> glitchedPlayers = [];
 
         public static void LoadSkill()
         {
@@ -23,7 +23,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -43,7 +43,7 @@ namespace jRandomSkills
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (playerInfo.SkillChance == 1)
@@ -70,7 +70,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
             SkillUtils.PrintToChat(player, Localization.GetTranslation("glitch") + ":", false);
@@ -93,11 +94,8 @@ namespace jRandomSkills
             glitchedPlayers.Remove(player);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#f542ef", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#f542ef", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

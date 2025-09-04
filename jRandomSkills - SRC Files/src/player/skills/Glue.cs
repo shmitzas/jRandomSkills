@@ -23,19 +23,19 @@ namespace jRandomSkills
                 if (grenade.OwnerEntity.Value == null || !grenade.OwnerEntity.Value.IsValid) return;
 
                 var pawn = grenade.OwnerEntity.Value.As<CCSPlayerPawn>();
-                var player = pawn.Controller.Value.As<CCSPlayerController>();
+                if (pawn == null || !pawn.IsValid || pawn.Controller == null || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var player = pawn.Controller.Value.As<CCSPlayerController>();
+                if (player == null || !player.IsValid) return;
+
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill != skillName) return;
                 grenade.Bounces = 555;
             });
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#fff52e", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#fff52e", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

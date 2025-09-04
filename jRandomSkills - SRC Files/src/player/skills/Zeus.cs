@@ -22,7 +22,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -36,12 +36,16 @@ namespace jRandomSkills
                 var player = @event.Userid;
                 if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
 
                 if (playerInfo?.Skill == skillName)
                 {
-                    var activeWeapon = player.Pawn.Value.WeaponServices.ActiveWeapon.Value;
-                    if (activeWeapon?.DesignerName != "weapon_taser") return HookResult.Continue;
+                    var pawn = player!.PlayerPawn!.Value!;
+                    if (pawn.WeaponServices == null || pawn.WeaponServices.ActiveWeapon == null || !pawn.WeaponServices.ActiveWeapon.IsValid) return HookResult.Continue;
+                    if (pawn.WeaponServices.ActiveWeapon.Value == null || !pawn.WeaponServices.ActiveWeapon.Value.IsValid) return HookResult.Continue;
+                    
+                    var activeWeapon = pawn.WeaponServices.ActiveWeapon.Value;
+                    if (activeWeapon.DesignerName != "weapon_taser") return HookResult.Continue;
                     var taser = activeWeapon.As<CWeaponTaser>();
                     Instance.AddTimer(.1f, () =>
                     {
@@ -62,11 +66,8 @@ namespace jRandomSkills
             SkillUtils.TryGiveWeapon(player, CsItem.Zeus);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#fbff00", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#fbff00", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

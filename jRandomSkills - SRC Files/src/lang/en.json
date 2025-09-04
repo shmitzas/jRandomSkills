@@ -414,6 +414,14 @@
   "healed": "You have been healed.",
   "game_start": "Game started!",
 
+  "vote_started": "Vote started: '{0}'",
+  "vote_timeout": "Vote '{0}' timed out!",
+  "vote_wait": "You need to wait before starting another vote!",
+  "vote_same_wait": "You need to wait before starting the same vote again!",
+  "vote_not_enough_players": "Not enough players to start a vote!",
+  "vote_alredy_voted": "You have already voted!",
+  "vote_vote": "Vote",
+
   "teammate_skills": "Your teammates' skills",
   "summary_start": "======SUMMARY=OF=THE=LAST=ROUND======",
   "summary_end": "======================================="

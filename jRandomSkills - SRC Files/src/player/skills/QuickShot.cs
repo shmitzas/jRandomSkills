@@ -22,14 +22,17 @@ namespace jRandomSkills
             foreach (var player in Utilities.GetPlayers())
             {
                 if (!Instance.IsPlayerValid(player)) continue;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
 
                 if (playerInfo?.Skill == skillName)
                 {
-                    var weapon = player.Pawn.Value.WeaponServices?.ActiveWeapon.Value;
-                    if (weapon == null) continue;
-
-                    var pawn = player.PlayerPawn.Value;
+                    var pawn = player.PlayerPawn.Value!;
+                    var weaponServices = pawn.WeaponServices;
+                    if (weaponServices == null || weaponServices.ActiveWeapon == null || !weaponServices.ActiveWeapon.IsValid) continue;
+                   
+                    var weapon = weaponServices.ActiveWeapon.Value;
+                    if (weapon == null || !weapon.IsValid || pawn.CameraServices == null) continue;
+                    
                     pawn.AimPunchTickBase = 0;
                     pawn.AimPunchTickFraction = 0f;
                     pawn.CameraServices.CsViewPunchAngleTick = 0;
@@ -41,11 +44,8 @@ namespace jRandomSkills
             }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#8a42f5", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#8a42f5", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

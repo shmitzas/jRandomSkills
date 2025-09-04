@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class Jammer : ISkill
     {
         private const Skills skillName = Skills.Jammer;
-        private static HashSet<CCSPlayerController> jammedPlayers = new HashSet<CCSPlayerController>();
+        private static readonly HashSet<CCSPlayerController> jammedPlayers = [];
 
         public static void LoadSkill()
         {
@@ -23,7 +23,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -44,7 +44,7 @@ namespace jRandomSkills
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (playerInfo.SkillChance == 1)
@@ -72,6 +72,7 @@ namespace jRandomSkills
         private static void SetCrosshair(CCSPlayerController player, bool enabled)
         {
             var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid) return;
             pawn.HideHUD = (uint)(enabled
                 ? (pawn.HideHUD & ~(1 << 8))
                 : (pawn.HideHUD | (1 << 8)));
@@ -80,7 +81,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
             SkillUtils.PrintToChat(player, Localization.GetTranslation("jammer") + ":", false);
@@ -103,11 +105,8 @@ namespace jRandomSkills
             jammedPlayers.Remove(player);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#42f5a7", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#42f5a7", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

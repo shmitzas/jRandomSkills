@@ -10,8 +10,8 @@ namespace jRandomSkills
     public class Push : ISkill
     {
         private const Skills skillName = Skills.Push;
-        private static float jumpVelocity = Config.GetValue<float>(skillName, "jumpVelocity");
-        private static float pushVelocity = Config.GetValue<float>(skillName, "pushVelocity");
+        private static readonly float jumpVelocity = Config.GetValue<float>(skillName, "jumpVelocity");
+        private static readonly float pushVelocity = Config.GetValue<float>(skillName, "pushVelocity");
 
         public static void LoadSkill()
         {
@@ -25,7 +25,7 @@ namespace jRandomSkills
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
 
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -42,12 +42,12 @@ namespace jRandomSkills
                 if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) 
                     return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
-                if (playerInfo?.Skill == skillName && victim.PawnIsAlive)
+                if (playerInfo?.Skill == skillName && victim!.PawnIsAlive)
                 {
                     if (Instance.Random.NextDouble() <= playerInfo.SkillChance)
-                        PushEnemy(victim, attacker.PlayerPawn.Value.EyeAngles);
+                        PushEnemy(victim, attacker!.PlayerPawn.Value!.EyeAngles);
                 }
                 
                 return HookResult.Continue;
@@ -56,7 +56,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             float newChance = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
@@ -66,7 +67,7 @@ namespace jRandomSkills
 
         private static void PushEnemy(CCSPlayerController player, QAngle attackerAngle)
         {
-            if (player.PlayerPawn.Value.LifeState != (int)LifeState_t.LIFE_ALIVE)
+            if (player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid || player.PlayerPawn.Value.LifeState != (int)LifeState_t.LIFE_ALIVE)
                 return;
 
             var currentPosition = player.PlayerPawn.Value.AbsOrigin;
@@ -78,19 +79,12 @@ namespace jRandomSkills
             player.PlayerPawn.Value.Teleport(currentPosition, currentAngles, newVelocity);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1e9ab0", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = 1f, float chanceTo = 1f, float jumpVelocity = 300f, float pushVelocity = 400f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float ChanceFrom { get; set; }
-            public float ChanceTo { get; set; }
-            public float JumpVelocity { get; set; }
-            public float PushVelocity { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#1e9ab0", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = 1f, float chanceTo = 1f, float jumpVelocity = 300f, float pushVelocity = 400f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                ChanceFrom = chanceFrom;
-                ChanceTo = chanceTo;
-                JumpVelocity = jumpVelocity;
-                PushVelocity = pushVelocity;
-            }
+            public float ChanceFrom { get; set; } = chanceFrom;
+            public float ChanceTo { get; set; } = chanceTo;
+            public float JumpVelocity { get; set; } = jumpVelocity;
+            public float PushVelocity { get; set; } = pushVelocity;
         }
     }
 }

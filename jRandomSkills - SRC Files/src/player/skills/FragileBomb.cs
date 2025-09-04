@@ -14,16 +14,13 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.FragileBomb;
         private static int bombHealth = Config.GetValue<int>(skillName, "maxBombHealth");
-        private static int maxBombHealth = Config.GetValue<int>(skillName, "maxBombHealth");
+        private static readonly int maxBombHealth = Config.GetValue<int>(skillName, "maxBombHealth");
 
-        private static CPlantedC4 plantedC4;
-        private static CTriggerMultiple triggerC4;
+        private static CPlantedC4? plantedC4;
+        private static CTriggerMultiple? triggerC4;
 
         public static void LoadSkill()
         {
-            if (Config.config.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
@@ -49,7 +46,7 @@ namespace jRandomSkills
         private static void CreateTrigger()
         {
             var trigger = Utilities.CreateEntityByName<CTriggerMultiple>("trigger_multiple");
-            if (trigger == null || plantedC4 == null) return;
+            if (trigger == null || plantedC4 == null || trigger.AbsOrigin == null || plantedC4.AbsOrigin == null) return;
 
             trigger.Collision.SolidType = SolidType_t.SOLID_CAPSULE;
             trigger.Collision.SolidFlags = 0;
@@ -93,19 +90,19 @@ namespace jRandomSkills
             if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
                 return HookResult.Continue;
 
-            CCSPlayerPawn attackerPawn = new CCSPlayerPawn(param2.Attacker.Value.Handle);
+            CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
 
             if (attackerPawn.DesignerName != "player" || param.DesignerName != "trigger_multiple")
                 return HookResult.Continue;
 
-            CTriggerMultiple trigger = new CTriggerMultiple(param.Handle);
+            CTriggerMultiple trigger = new(param.Handle);
 
             if (attackerPawn == null || attackerPawn.Controller?.Value == null || trigger == null || !trigger.Globalname.StartsWith("planted_bomb_prop_"))
                 return HookResult.Continue;
 
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
             if (playerInfo == null || playerInfo.Skill != skillName) return HookResult.Continue;
 
             bombHealth -= (int)param2.TotalledDamage;
@@ -119,13 +116,9 @@ namespace jRandomSkills
             return HookResult.Continue;
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#5d00ff", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false, int maxBombHealth = 1000) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int MaxBombHealth { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#5d00ff", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false, int maxBombHealth = 1000) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                MaxBombHealth = maxBombHealth;
-            }
+            public int MaxBombHealth { get; set; } = maxBombHealth;
         }
     }
 }

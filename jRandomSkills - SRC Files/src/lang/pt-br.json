@@ -414,6 +414,14 @@
   "healed": "Você foi curado.",
   "game_start": "Jogo iniciado!",
 
+  "vote_started": "Votação iniciada: '{0}'",
+  "vote_timeout": "Votação '{0}' expirou!",
+  "vote_wait": "Você precisa esperar antes de iniciar outra votação!",
+  "vote_same_wait": "Você precisa esperar antes de iniciar a mesma votação novamente!",
+  "vote_not_enough_players": "Não há jogadores suficientes para iniciar uma votação!",
+  "vote_alredy_voted": "Você já votou!",
+  "vote_vote": "Votar",
+
   "teammate_skills": "Habilidades dos seus companheiros de equipe",
   "summary_start": "=======RESUMO=DA=ÚLTIMA=RODADA=======",
   "summary_end": "======================================="

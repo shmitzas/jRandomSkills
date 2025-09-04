@@ -9,8 +9,8 @@ namespace jRandomSkills
     public class SecondLife : ISkill
     {
         private const Skills skillName = Skills.SecondLife;
-        private static int secondLifeHealth = Config.GetValue<int>(skillName, "startHealth");
-        private static HashSet<nint> secondLifePlayers = new HashSet<nint>();
+        private static readonly int secondLifeHealth = Config.GetValue<int>(skillName, "startHealth");
+        private static readonly HashSet<nint> secondLifePlayers = [];
 
         public static void LoadSkill()
         {
@@ -24,7 +24,7 @@ namespace jRandomSkills
                     {
                         if (player == null || !player.IsValid || player.PlayerPawn?.Value == null) continue;
 
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -45,16 +45,18 @@ namespace jRandomSkills
                 int damage = @event.DmgHealth;
 
                 if (!Instance.IsPlayerValid(victim)) return HookResult.Continue;
-                var victimInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
+                var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
                 if (victimInfo == null || victimInfo.Skill != skillName) return HookResult.Continue;
 
-                var victimPawn = victim.PlayerPawn.Value;
-                if (victimPawn.Health > 0 || secondLifePlayers.TryGetValue(victim.Handle, out _) == true)
+                var victimPawn = victim!.PlayerPawn.Value;
+                if (victimPawn!.Health > 0 || secondLifePlayers.TryGetValue(victim.Handle, out _) == true)
                     return HookResult.Continue;
 
                 secondLifePlayers.Add(victim.Handle);
                 SetHealth(victim, secondLifeHealth);
-                victimPawn.Teleport(GetSpawnVector(victim), victimPawn.AbsRotation, null);
+                var spawn = GetSpawnVector(victim);
+                if (spawn != null)
+                    victimPawn.Teleport(spawn, victimPawn.AbsRotation, null);
                 return HookResult.Stop;
             });
         }
@@ -83,25 +85,24 @@ namespace jRandomSkills
             Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
         }
 
-        private static Vector GetSpawnVector(CCSPlayerController player)
+        private static Vector? GetSpawnVector(CCSPlayerController player)
         {
-            var abs = player.PlayerPawn.Value.AbsOrigin;
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid) return null;
+            
+            var abs = pawn.AbsOrigin;
             var spawns = Utilities.FindAllEntitiesByDesignerName<SpawnPoint>(player.Team == CsTeam.Terrorist ? "info_player_terrorist" : "info_player_counterterrorist").ToList();
-            if (spawns.Any())
+            if (spawns.Count != 0)
             {
                 var randomSpawn = spawns[Instance.Random.Next(spawns.Count)];
                 return randomSpawn.AbsOrigin;
             }
-            return new Vector(abs.X, abs.Y, abs.Z);
+            return abs == null ? null : new Vector(abs.X, abs.Y, abs.Z);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#d41c1c", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int startHealth = 50) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int StartHealth { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#d41c1c", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int startHealth = 50) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                StartHealth = startHealth;
-            }
+            public int StartHealth { get; set; } = startHealth;
         }
     }
 }

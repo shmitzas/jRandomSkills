@@ -23,7 +23,7 @@ namespace jRandomSkills
                     {
                         if (!IsDeadPlayerValid(player)) continue;
 
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -35,10 +35,9 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
+                if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return HookResult.Continue;
 
-                if (player == null || !player.IsValid || !player.PlayerPawn.Value.IsValid) return HookResult.Continue;
-
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                 {
                     if (Instance.Random.NextDouble() <= playerInfo.SkillChance)
@@ -55,7 +54,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             float newChance = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
@@ -68,15 +68,10 @@ namespace jRandomSkills
             return player != null && player.IsValid && player.PlayerPawn?.Value != null;
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff5C0A", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .2f, float chanceTo = .4f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float ChanceFrom { get; set; }
-            public float ChanceTo { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff5C0A", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .2f, float chanceTo = .4f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                ChanceFrom = chanceFrom;
-                ChanceTo = chanceTo;
-            }
+            public float ChanceFrom { get; set; } = chanceFrom;
+            public float ChanceTo { get; set; } = chanceTo;
         }
     }
 }

@@ -11,8 +11,8 @@ namespace jRandomSkills
     public class SwapPosition : ISkill
     {
         private const Skills skillName = Skills.SwapPosition;
-        private static float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
-        private static readonly Dictionary<ulong, ZamianaMiejsc_PlayerInfo> SkillPlayerInfo = new Dictionary<ulong, ZamianaMiejsc_PlayerInfo>();
+        private static readonly float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
+        private static readonly Dictionary<ulong, ZamianaMiejsc_PlayerInfo> SkillPlayerInfo = [];
         
         public static void LoadSkill()
         {
@@ -24,7 +24,7 @@ namespace jRandomSkills
                 {
                     foreach (var player in Utilities.GetPlayers())
                     {
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill == skillName)
                         {
                             EnableSkill(player);
@@ -44,11 +44,11 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
+                if (player == null || !player.IsValid) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                        SkillPlayerInfo.Remove(player.SteamID);
+                    SkillPlayerInfo.Remove(player.SteamID);
 
                 return HookResult.Continue;
             });
@@ -57,7 +57,7 @@ namespace jRandomSkills
             {
                 foreach (var player in Utilities.GetPlayers())
                 {
-                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill == skillName)
                         if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                             if (skillInfo.LastClick.AddSeconds(4) >= DateTime.Now)
@@ -82,8 +82,7 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                SkillPlayerInfo.Remove(player.SteamID);
+            SkillPlayerInfo.Remove(player.SteamID);
         }
 
         private static void UpdateHUD(CCSPlayerController player, ZamianaMiejsc_PlayerInfo skillInfo, bool showInfo)
@@ -107,7 +106,7 @@ namespace jRandomSkills
 
             if (showInfo)
                 remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>"
-                                : !skillInfo.FindedEnemy ? $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("hud_info_no_enemy")}</font> <br>"
+                                : skillInfo != null && !skillInfo.FindedEnemy ? $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("hud_info_no_enemy")}</font> <br>"
                                 : "";
             else
                 remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>" : "";
@@ -149,14 +148,16 @@ namespace jRandomSkills
         {
             var attackerPawn = attacker.PlayerPawn.Value;
             var victimPawn = victim.PlayerPawn.Value;
+            if (attackerPawn == null || !attackerPawn.IsValid || victimPawn == null || !victimPawn.IsValid) return;
+            if (attackerPawn.AbsOrigin == null || attackerPawn.AbsRotation == null || victimPawn.AbsOrigin == null || victimPawn.AbsRotation == null) return;
 
-            Vector attackerPosition = new Vector(attackerPawn.AbsOrigin.X, attackerPawn.AbsOrigin.Y, attackerPawn.AbsOrigin.Z);
-            QAngle attackerAngles = new QAngle(attackerPawn.AbsRotation.X, attackerPawn.AbsRotation.Y, attackerPawn.AbsRotation.Z);
-            Vector attackerVelocity = new Vector(attackerPawn.AbsVelocity.X, attackerPawn.AbsVelocity.Y, attackerPawn.AbsVelocity.Z);
+            Vector attackerPosition = new(attackerPawn.AbsOrigin.X, attackerPawn.AbsOrigin.Y, attackerPawn.AbsOrigin.Z);
+            QAngle attackerAngles = new(attackerPawn.AbsRotation.X, attackerPawn.AbsRotation.Y, attackerPawn.AbsRotation.Z);
+            Vector attackerVelocity = new(attackerPawn.AbsVelocity.X, attackerPawn.AbsVelocity.Y, attackerPawn.AbsVelocity.Z);
 
-            Vector victimPosition = new Vector(victimPawn.AbsOrigin.X, victimPawn.AbsOrigin.Y, victimPawn.AbsOrigin.Z);
-            QAngle victimAngles = new QAngle(victimPawn.AbsRotation.X, victimPawn.AbsRotation.Y, victimPawn.AbsRotation.Z);
-            Vector victimVelocity = new Vector(victimPawn.AbsVelocity.X, victimPawn.AbsVelocity.Y, victimPawn.AbsVelocity.Z);
+            Vector victimPosition = new(victimPawn.AbsOrigin.X, victimPawn.AbsOrigin.Y, victimPawn.AbsOrigin.Z);
+            QAngle victimAngles = new(victimPawn.AbsRotation.X, victimPawn.AbsRotation.Y, victimPawn.AbsRotation.Z);
+            Vector victimVelocity = new(victimPawn.AbsVelocity.X, victimPawn.AbsVelocity.Y, victimPawn.AbsVelocity.Z);
 
             victimPawn.Teleport(attackerPosition, attackerAngles, attackerVelocity);
             attackerPawn.Teleport(victimPosition, victimAngles, victimVelocity);
@@ -171,13 +172,9 @@ namespace jRandomSkills
             public bool FindedEnemy { get; set; }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1466F5", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 30f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float Cooldown { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#1466F5", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 30f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                Cooldown = cooldown;
-            }
+            public float Cooldown { get; set; } = cooldown;
         }
     }
 }

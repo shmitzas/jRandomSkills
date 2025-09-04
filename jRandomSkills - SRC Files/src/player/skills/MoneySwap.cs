@@ -22,7 +22,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -35,7 +35,7 @@ namespace jRandomSkills
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (playerInfo.SkillChance == 1)
@@ -61,7 +61,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
             SkillUtils.PrintToChat(player, Localization.GetTranslation("moneyswap") + ":", false);
@@ -71,7 +72,8 @@ namespace jRandomSkills
             if (enemies.Length > 0)
             {
                 foreach (var enemy in enemies)
-                    player.PrintToChat($" {ChatColors.Green}⠀⠀⠀[{ChatColors.Red}{enemy.Index}{ChatColors.Green}] {enemy.PlayerName}: ${enemy.InGameMoneyServices.Account}");
+                    if (enemy != null && enemy.IsValid && enemy.InGameMoneyServices != null)
+                        player.PrintToChat($" {ChatColors.Green}⠀⠀⠀[{ChatColors.Red}{enemy.Index}{ChatColors.Green}] {enemy.PlayerName}: ${enemy.InGameMoneyServices.Account}");
             }
             else
                 player.PrintToChat($" {ChatColors.Red}⠀⠀⠀{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
@@ -80,8 +82,10 @@ namespace jRandomSkills
 
         private static void SwapMoney(CCSPlayerController player, CCSPlayerController enemy)
         {
-            var playerMoneyServices = player?.InGameMoneyServices;
-            var enemyMoneyServices = enemy?.InGameMoneyServices;
+            if (player == null || !player.IsValid || enemy == null || !enemy.IsValid) return;
+
+            var playerMoneyServices = player.InGameMoneyServices;
+            var enemyMoneyServices = enemy.InGameMoneyServices;
             if (playerMoneyServices == null || enemyMoneyServices == null) return;
 
             int playerMoney = playerMoneyServices.Account;
@@ -92,11 +96,8 @@ namespace jRandomSkills
             Utilities.SetStateChanged(enemy, "CCSPlayerController", "m_pInGameMoneyServices");
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#52f54c", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#52f54c", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

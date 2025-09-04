@@ -10,8 +10,8 @@ namespace jRandomSkills
     public class Magnifier : ISkill
     {
         private const Skills skillName = Skills.Magnifier;
-        private static uint customFOV = Config.GetValue<uint>(skillName, "customFOV");
-        private static Dictionary<CCSPlayerController, uint> playersFOV = new Dictionary<CCSPlayerController, uint>();
+        private static readonly uint customFOV = Config.GetValue<uint>(skillName, "customFOV");
+        private static readonly Dictionary<CCSPlayerController, uint> playersFOV = [];
 
         public static void LoadSkill()
         {
@@ -24,7 +24,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -44,7 +44,7 @@ namespace jRandomSkills
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (playerInfo.SkillChance == 1)
@@ -75,7 +75,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
             SkillUtils.PrintToChat(player, Localization.GetTranslation("magnifier") + ":", false);
@@ -102,13 +103,9 @@ namespace jRandomSkills
             playersFOV.Remove(player);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#9ba882", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, uint customFOV = 50) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public uint CustomFOV { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#9ba882", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, uint customFOV = 50) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                CustomFOV = customFOV;
-            }
+            public uint CustomFOV { get; set; } = customFOV;
         }
     }
 }

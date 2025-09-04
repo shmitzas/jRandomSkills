@@ -9,7 +9,7 @@ namespace jRandomSkills
     public class Dracula : ISkill
     {
         private const Skills skillName = Skills.Dracula;
-        private static float healthRegainScale = Config.GetValue<float>(skillName, "healthRegainScale");
+        private static readonly float healthRegainScale = Config.GetValue<float>(skillName, "healthRegainScale");
 
         public static void LoadSkill()
         {
@@ -22,11 +22,11 @@ namespace jRandomSkills
 
                 if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
-                if (playerInfo?.Skill == skillName && victim.PawnIsAlive)
+                if (playerInfo?.Skill == skillName && victim!.PawnIsAlive)
                 {
-                    HealAttacker(attacker, @event.DmgHealth);
+                    HealAttacker(attacker!, @event.DmgHealth);
                 }
                 return HookResult.Continue;
             });
@@ -46,13 +46,9 @@ namespace jRandomSkills
             Utilities.SetStateChanged(attackerPawn, "CBaseEntity", "m_iHealth");
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FA050D", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float healthRegainScale = .3f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float HealthRegainScale { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#FA050D", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float healthRegainScale = .3f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                HealthRegainScale = healthRegainScale;
-            }
+            public float HealthRegainScale { get; set; } = healthRegainScale;
         }
     }
 }

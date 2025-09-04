@@ -6,7 +6,7 @@ namespace jRandomSkills.src.utils
     public static class Localization
     {
         private static readonly string path = Path.Combine(jRandomSkills.Instance.ModuleDirectory, "lang");
-        private static readonly Dictionary<string, Dictionary<string, string>> _translations = new Dictionary<string, Dictionary<string, string>>();
+        private static readonly Dictionary<string, Dictionary<string, string>> _translations = [];
         private static string langCode = "pl";
 
         public static void Load()
@@ -18,7 +18,7 @@ namespace jRandomSkills.src.utils
 
         private static void SetLangCode()
         {
-            langCode = Config.config.Settings.LangCode;
+            langCode = Config.LoadedConfig.Settings.LangCode;
         }
 
         private static void LoadAllLanguages()
@@ -46,7 +46,7 @@ namespace jRandomSkills.src.utils
         public static string GetTranslation(string key, params object[] args)
         {
             if (_translations.TryGetValue(langCode, out var langDict) && langDict.TryGetValue(key, out var translation))
-                if (args.Length != 0 && args[0] == "welcome")
+                if (args.Length != 0 && args[0].ToString() == "welcome")
                     return translation;
                 else
                     return string.Format(translation, args).Replace("CHATCOLORS.RED", ChatColors.Red.ToString());

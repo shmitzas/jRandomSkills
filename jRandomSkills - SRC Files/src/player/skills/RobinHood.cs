@@ -9,7 +9,7 @@ namespace jRandomSkills
     public class RobinHood : ISkill
     {
         private const Skills skillName = Skills.RobinHood;
-        private static int moneyMultiplier = Config.GetValue<int>(skillName, "moneyMultiplier");
+        private static readonly int moneyMultiplier = Config.GetValue<int>(skillName, "moneyMultiplier");
 
         public static void LoadSkill()
         {
@@ -22,11 +22,11 @@ namespace jRandomSkills
                 var damage = @event.DmgHealth;
                 if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
 
-                var attackerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
                 if (attackerInfo?.Skill != skillName) return HookResult.Continue;
 
                 int moneyToSteal = damage * moneyMultiplier;
-                StealMoney(victim, attacker, moneyToSteal);
+                StealMoney(victim!, attacker!, moneyToSteal);
 
                 return HookResult.Continue;
             });
@@ -40,19 +40,15 @@ namespace jRandomSkills
 
             var moneyToAdd = victimMoneyServices.Account < money ? victimMoneyServices.Account : money;
             victimMoneyServices.Account = Math.Max(victimMoneyServices.Account - money, 0);
-            Utilities.SetStateChanged(victim, "CCSPlayerController", "m_pInGameMoneyServices");
+            Utilities.SetStateChanged(victim!, "CCSPlayerController", "m_pInGameMoneyServices");
 
             attackerMoneyServices.Account = Math.Min(attackerMoneyServices.Account + moneyToAdd, 16000);
-            Utilities.SetStateChanged(attacker, "CCSPlayerController", "m_pInGameMoneyServices");
+            Utilities.SetStateChanged(attacker!, "CCSPlayerController", "m_pInGameMoneyServices");
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#119125", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int moneyMultiplier = 35) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int MoneyMultiplier { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#119125", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int moneyMultiplier = 35) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                MoneyMultiplier = moneyMultiplier;
-            }
+            public int MoneyMultiplier { get; set; } = moneyMultiplier;
         }
     }
 }

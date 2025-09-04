@@ -22,12 +22,12 @@ namespace jRandomSkills
                 var hitgroup = (HitGroup_t)@event.Hitgroup;
 
                 if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim)) return HookResult.Continue;
-                var victimInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
+                var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
                 if (victimInfo == null || victimInfo.Skill != skillName) return HookResult.Continue;
 
-                HitGroup_t[] disabledHitbox = { HitGroup_t.HITGROUP_LEFTARM, HitGroup_t.HITGROUP_RIGHTARM, HitGroup_t.HITGROUP_LEFTLEG, HitGroup_t.HITGROUP_RIGHTLEG };
+                HitGroup_t[] disabledHitbox = [HitGroup_t.HITGROUP_LEFTARM, HitGroup_t.HITGROUP_RIGHTARM, HitGroup_t.HITGROUP_LEFTLEG, HitGroup_t.HITGROUP_RIGHTLEG];
                 if (hitgroup != HitGroup_t.HITGROUP_HEAD)
-                    RestoreHealth(victim, damage);
+                    RestoreHealth(victim!, damage);
                 return HookResult.Stop;
             });
         }
@@ -35,6 +35,7 @@ namespace jRandomSkills
         private static void RestoreHealth(CCSPlayerController victim, float damage)
         {
             var playerPawn = victim.PlayerPawn.Value;
+            if (playerPawn == null || !playerPawn.IsValid) return;
             var newHealth = playerPawn.Health + damage;
 
             if (newHealth > 100)
@@ -44,11 +45,8 @@ namespace jRandomSkills
             Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#3c47de", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#3c47de", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

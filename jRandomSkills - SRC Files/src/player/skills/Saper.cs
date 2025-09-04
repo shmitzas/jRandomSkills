@@ -20,12 +20,12 @@ namespace jRandomSkills
 
                 if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
                 if (playerInfo?.Skill == skillName)
                 {
                     var bombEntities = Utilities.FindAllEntitiesByDesignerName<CC4>("weapon_c4").ToList();
 
-                    if (bombEntities.Any())
+                    if (bombEntities.Count != 0)
                     {
                         var bomb = bombEntities.FirstOrDefault();
                         if (bomb != null)
@@ -45,7 +45,7 @@ namespace jRandomSkills
                 
                 if (Instance.IsPlayerValid(player))
                 {
-                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
                     if (playerInfo?.Skill == skillName)
                     {
                         var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
@@ -63,11 +63,8 @@ namespace jRandomSkills
             });
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#8A2BE2", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#8A2BE2", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

@@ -11,9 +11,9 @@ namespace jRandomSkills
     public class HealingSmoke : ISkill
     {
         private const Skills skillName = Skills.HealingSmoke;
-        private static int smokeHeal = Config.GetValue<int>(skillName, "smokeHeal");
-        private static float smokeRadius = Config.GetValue<float>(skillName, "smokeRadius");
-        private static List<Vector> smokes = new List<Vector>();
+        private static readonly int smokeHeal = Config.GetValue<int>(skillName, "smokeHeal");
+        private static readonly float smokeRadius = Config.GetValue<float>(skillName, "smokeRadius");
+        private static readonly List<Vector> smokes = [];
 
         public static void LoadSkill()
         {
@@ -32,7 +32,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -44,7 +44,8 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventSmokegrenadeDetonate>((@event, info) =>
             {
                 var player = @event.Userid;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
                 smokes.Add(new Vector(@event.X, @event.Y, @event.Z));
                 return HookResult.Continue;
@@ -53,7 +54,8 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventSmokegrenadeExpired>((@event, @info) =>
             {
                 var player = @event.Userid;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
                 smokes.RemoveAll(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z);
                 return HookResult.Continue;
@@ -65,10 +67,15 @@ namespace jRandomSkills
                 if (name != "smokegrenade_projectile") return;
 
                 var grenade = @event.As<CBaseCSGrenadeProjectile>();
-                var pawn = grenade.OwnerEntity.Value.As<CCSPlayerPawn>();
-                var player = pawn.Controller.Value.As<CCSPlayerController>();
+                if (grenade == null || !grenade.IsValid || grenade.OwnerEntity == null || !grenade.OwnerEntity.IsValid || grenade.OwnerEntity.Value == null || !grenade.OwnerEntity.Value.IsValid) return;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var pawn = grenade.OwnerEntity.Value.As<CCSPlayerPawn>();
+                if (pawn == null || !pawn.IsValid || pawn.Controller == null || !pawn.Controller.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
+
+                var player = pawn.Controller.Value.As<CCSPlayerController>();
+                if (player == null || !player.IsValid) return;
+
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill != skillName) return;
 
                 Server.NextFrame(() =>
@@ -85,8 +92,9 @@ namespace jRandomSkills
                 foreach (Vector smokePos in smokes)
                     foreach (var player in Utilities.GetPlayers())
                         if (Server.TickCount % 17 == 0)
-                            if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= smokeRadius)
-                                AddHealth(player.PlayerPawn.Value, smokeHeal);
+                            if (player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && player.PlayerPawn.Value.AbsOrigin != null)
+                                if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= smokeRadius)
+                                    AddHealth(player.PlayerPawn.Value, smokeHeal);
             });
         }
 
@@ -107,15 +115,10 @@ namespace jRandomSkills
             Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1fe070", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int smokeHeal = 1, float smokeRadius = 180) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int SmokeHeal { get; set; }
-            public float SmokeRadius { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#1fe070", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int smokeHeal = 1, float smokeRadius = 180) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                SmokeHeal = smokeHeal;
-                SmokeRadius = smokeRadius;
-            }
+            public int SmokeHeal { get; set; } = smokeHeal;
+            public float SmokeRadius { get; set; } = smokeRadius;
         }
     }
 }

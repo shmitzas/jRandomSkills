@@ -14,7 +14,7 @@ namespace jRandomSkills
     public class LongZeus : ISkill
     {
         private const Skills skillName = Skills.LongZeus;
-        private static float maxDistance = Config.GetValue<float>(skillName, "maxDistance");
+        private static readonly float maxDistance = Config.GetValue<float>(skillName, "maxDistance");
 
         public unsafe static void LoadSkill()
         {
@@ -27,7 +27,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -41,18 +41,20 @@ namespace jRandomSkills
                 var player = @event.Userid;
                 if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
 
-                var activeWeapon = player.Pawn.Value.WeaponServices.ActiveWeapon.Value;
-                if (activeWeapon?.DesignerName != "weapon_taser") return HookResult.Continue;
+                var pawn = player!.PlayerPawn.Value;
+                if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null || pawn.WeaponServices == null) return HookResult.Continue;
 
-                var pawn = player.PlayerPawn.Value;
-                Vector eyePos = new Vector(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + pawn.ViewOffset.Z);
+                var activeWeapon = pawn.WeaponServices.ActiveWeapon.Value;
+                if (activeWeapon == null || !activeWeapon.IsValid || activeWeapon.DesignerName != "weapon_taser") return HookResult.Continue;
+
+                Vector eyePos = new(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + pawn.ViewOffset.Z);
                 Vector endPos = eyePos + SkillUtils.GetForwardVector(pawn.EyeAngles) * maxDistance;
 
-                Ray ray = new Ray(Vector3.Zero);
-                CTraceFilter filter = new CTraceFilter(pawn.Index, pawn.Index)
+                Ray ray = new(Vector3.Zero);
+                CTraceFilter filter = new(pawn.Index, pawn.Index)
                 {
                     m_nObjectSetMask = 0xf,
                     m_nCollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT,
@@ -82,13 +84,9 @@ namespace jRandomSkills
             SkillUtils.TryGiveWeapon(player, CsItem.Zeus);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#6effc7", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float maxDistance = 4096f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float MaxDistance { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#6effc7", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float maxDistance = 4096f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                MaxDistance = maxDistance;
-            }
+            public float MaxDistance { get; set; } = maxDistance;
         }
     }
 }

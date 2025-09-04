@@ -20,12 +20,12 @@ namespace jRandomSkills
                 var weapon = @event.Weapon;
 
                 if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
 
                 if (weapon == "hegrenade" || weapon == "inferno")
                 {
-                    SkillUtils.AddHealth(player.PlayerPawn.Value, damage);
+                    SkillUtils.AddHealth(player!.PlayerPawn.Value, damage);
                     damage = 0;
                     return HookResult.Stop;
                 }
@@ -33,11 +33,8 @@ namespace jRandomSkills
             });
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#a38c1a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#a38c1a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

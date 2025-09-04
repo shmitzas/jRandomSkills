@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class Deaf : ISkill
     {
         private const Skills skillName = Skills.Deaf;
-        private static HashSet<CCSPlayerController> deafPlayers = new HashSet<CCSPlayerController>();
+        private static readonly HashSet<CCSPlayerController> deafPlayers = [];
 
         public static void LoadSkill()
         {
@@ -24,7 +24,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -35,7 +35,9 @@ namespace jRandomSkills
 
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
-                DisableSkill(@event.Userid);
+                var player = @event.Userid;
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                DisableSkill(player);
                 return HookResult.Continue;
             });
 
@@ -61,7 +63,7 @@ namespace jRandomSkills
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (playerInfo.SkillChance == 1)
@@ -87,7 +89,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
             SkillUtils.PrintToChat(player, Localization.GetTranslation("deaf") + ":", false);
@@ -109,11 +112,8 @@ namespace jRandomSkills
             deafPlayers.Remove(player);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#dae01f", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#dae01f", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

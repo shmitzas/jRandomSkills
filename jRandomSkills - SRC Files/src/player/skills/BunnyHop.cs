@@ -24,7 +24,7 @@ namespace jRandomSkills
         {
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                     GiveBunnyHop(player);
             }

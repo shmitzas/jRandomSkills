@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class Pyro : ISkill
     {
         private const Skills skillName = Skills.Pyro;
-        private static float regenerationMultiplier = Config.GetValue<float>(skillName, "regenerationMultiplier");
+        private static readonly float regenerationMultiplier = Config.GetValue<float>(skillName, "regenerationMultiplier");
 
         public static void LoadSkill()
         {
@@ -23,7 +23,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -39,10 +39,10 @@ namespace jRandomSkills
                 string weapon = @event.Weapon;
 
                 if (weapon != "inferno" || !Instance.IsPlayerValid(victim)) return HookResult.Continue;
-                var victimInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
+                var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
                 if (victimInfo == null || victimInfo.Skill != skillName) return HookResult.Continue;
 
-                RestoreHealth(victim, damage * regenerationMultiplier);
+                RestoreHealth(victim!, damage * regenerationMultiplier);
                 return HookResult.Stop;
             });
         }
@@ -55,6 +55,7 @@ namespace jRandomSkills
         private static void RestoreHealth(CCSPlayerController victim, float damage)
         {
             var playerPawn = victim.PlayerPawn.Value;
+            if (playerPawn == null || !playerPawn.IsValid) return;
             var newHealth = playerPawn.Health + damage;
 
             if (newHealth > 100)
@@ -64,13 +65,9 @@ namespace jRandomSkills
             Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#3c47de", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float regenerationMultiplier = 1.5f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float RegenerationMultiplier { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#3c47de", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float regenerationMultiplier = 1.5f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                RegenerationMultiplier = regenerationMultiplier;
-            }
+            public float RegenerationMultiplier { get; set; } = regenerationMultiplier;
         }
     }
 }

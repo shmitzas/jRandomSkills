@@ -9,7 +9,7 @@ namespace jRandomSkills
 {
     public static class Debug
     {
-        private static string sessionId;
+        private static string sessionId = "00000";
 
         public static void Load()
         {
@@ -83,6 +83,7 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerShoot>((@event, info) =>
             {
                 var player = @event.Userid;
+                if (player == null || !player.IsValid) return HookResult.Continue;
                 Debug.WriteToDebug($"{(player.IsBot ? "Bot" : "Player")} {player.PlayerName} fired a shot.");
                 return HookResult.Continue;
             });
@@ -98,8 +99,8 @@ namespace jRandomSkills
             if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
                 return HookResult.Continue;
 
-            CCSPlayerPawn attackerPawn = new CCSPlayerPawn(param2.Attacker.Value.Handle);
-            CCSPlayerPawn victimPawn = new CCSPlayerPawn(param.Handle);
+            CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
+            CCSPlayerPawn victimPawn = new(param.Handle);
 
             if (attackerPawn.DesignerName != "player" || victimPawn.DesignerName != "player")
                 return HookResult.Continue;
@@ -110,7 +111,7 @@ namespace jRandomSkills
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
             CCSPlayerController victim = victimPawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
             if (playerInfo == null) return HookResult.Continue;
 
             Debug.WriteToDebug($"{(victim.IsBot ? "Bot" : "Player")} {victim.PlayerName} took damage from {(attacker.IsBot ? "bot" : "player")} {attacker.PlayerName}.");
@@ -119,7 +120,7 @@ namespace jRandomSkills
 
         public static void WriteToDebug(string message)
         {
-            if (Config.config.Settings.DebugMode != true)
+            if (Config.LoadedConfig.Settings.DebugMode != true)
                 return;
 
             string filename = $"Debug_{sessionId}.txt";

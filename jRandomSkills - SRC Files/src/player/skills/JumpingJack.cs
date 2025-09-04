@@ -8,7 +8,7 @@ namespace jRandomSkills
     public class JumpingJack : ISkill
     {
         private const Skills skillName = Skills.JumpingJack;
-        private static int addHealth = Config.GetValue<int>(skillName, "healthToAdd");
+        private static readonly int addHealth = Config.GetValue<int>(skillName, "healthToAdd");
 
         public static void LoadSkill()
         {
@@ -17,7 +17,8 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerJump>((@event, info) =>
             {
                 var player = @event.Userid;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
 
                 SkillUtils.AddHealth(player.PlayerPawn.Value, addHealth);
@@ -25,13 +26,9 @@ namespace jRandomSkills
             });
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#a86eff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int healthToAdd = 3) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int HealthToAdd { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#a86eff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int healthToAdd = 3) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                HealthToAdd = healthToAdd;
-            }
+            public int HealthToAdd { get; set; } = healthToAdd;
         }
     }
 }

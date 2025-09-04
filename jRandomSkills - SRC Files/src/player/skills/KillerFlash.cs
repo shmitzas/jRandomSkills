@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class KillerFlash : ISkill
     {
         private const Skills skillName = Skills.KillerFlash;
-        private static float flashDuration = Config.GetValue<float>(skillName, "flashDuration");
+        private static readonly float flashDuration = Config.GetValue<float>(skillName, "flashDuration");
 
         public static void LoadSkill()
         {
@@ -23,7 +23,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -36,12 +36,12 @@ namespace jRandomSkills
             {
                 var player = @event.Userid;
                 var attacker = @event.Attacker;
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
+                if (!Instance.IsPlayerValid(player) || !Instance.IsPlayerValid(attacker)) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                var attackerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
-                if (attackerInfo?.Skill == skillName && playerInfo?.Skill != Skills.AntyFlash && player?.PlayerPawn.Value.FlashDuration >= flashDuration)
+                if (attackerInfo?.Skill == skillName && playerInfo?.Skill != Skills.AntyFlash && player!.PlayerPawn.Value!.FlashDuration >= flashDuration)
                    player?.PlayerPawn?.Value?.CommitSuicide(false, true);
 
                 return HookResult.Continue;
@@ -53,13 +53,9 @@ namespace jRandomSkills
             SkillUtils.TryGiveWeapon(player, CsItem.FlashbangGrenade);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#57bcff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float flashDuration = 1f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float FlashDuration { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#57bcff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float flashDuration = 1f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                FlashDuration = flashDuration;
-            }
+            public float FlashDuration { get; set; } = flashDuration;
         }
     }
 }

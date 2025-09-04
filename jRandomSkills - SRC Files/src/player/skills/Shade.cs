@@ -16,8 +16,8 @@ namespace jRandomSkills
     public class Shade : ISkill
     {
         private const Skills skillName = Skills.Shade;
-        private static float teleportDistance = Config.GetValue<float>(skillName, "teleportDistance");
-        private static Dictionary<CCSPlayerController, float> noSpace = new Dictionary<CCSPlayerController, float>();
+        private static readonly float teleportDistance = Config.GetValue<float>(skillName, "teleportDistance");
+        private static readonly Dictionary<CCSPlayerController, float> noSpace = [];
 
         public static void LoadSkill()
         {
@@ -30,11 +30,11 @@ namespace jRandomSkills
 
                 if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim)) return HookResult.Continue;
 
-                var victimInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
-                var attackerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+                var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
                 if (attackerInfo?.Skill == skillName)
-                    TeleportAttackerBehindVictim(attacker, victim);
+                    TeleportAttackerBehindVictim(attacker!, victim!);
 
                 return HookResult.Continue;
             });
@@ -55,8 +55,7 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (noSpace.ContainsKey(player))
-                noSpace.Remove(player);
+            noSpace.Remove(player);
         }
 
         private static void UpdateHUD(CCSPlayerController player)
@@ -74,8 +73,9 @@ namespace jRandomSkills
         private unsafe static bool CheckTeleport(CCSPlayerController player, Vector startPos, Vector endPos)
         {
             var pawn = player.PlayerPawn.Value;
-            Ray ray = new Ray(new Vector3(-16, -16, -0), new Vector3(16, 16, 72));
-            CTraceFilter filter = new CTraceFilter(pawn.Index, pawn.Index)
+            if (pawn == null || !pawn.IsValid) return false;
+            Ray ray = new(new Vector3(-16, -16, -0), new Vector3(16, 16, 72));
+            CTraceFilter filter = new(pawn.Index, pawn.Index)
             {
                 m_nObjectSetMask = 0xf,
                 m_nCollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT,
@@ -98,19 +98,19 @@ namespace jRandomSkills
             var victimPawn = victim.PlayerPawn.Value;
             var attackerPawn = attacker.PlayerPawn.Value;
 
-            if (victimPawn == null || attackerPawn == null) return;
+            if (victimPawn == null || attackerPawn == null || victimPawn.AbsOrigin == null || victimPawn.AbsRotation == null) return;
 
             QAngle victimAngles = victimPawn.AbsRotation;
-            Vector victimEyePos = new Vector(victimPawn.AbsOrigin.X, victimPawn.AbsOrigin.Y, victimPawn.AbsOrigin.Z + victimPawn.ViewOffset.Z);
-            int[] angles = { 0, 90, -90 };
+            Vector victimEyePos = new(victimPawn.AbsOrigin.X, victimPawn.AbsOrigin.Y, victimPawn.AbsOrigin.Z + victimPawn.ViewOffset.Z);
+            int[] angles = [0, 90, -90];
 
             bool teleported = false;
             foreach (int extraAngle in angles)
             {
-                QAngle newAngle = new QAngle(victimAngles.X, victimAngles.Y + extraAngle, victimAngles.Z);
+                QAngle newAngle = new(victimAngles.X, victimAngles.Y + extraAngle, victimAngles.Z);
                 Vector behindPosition = victimEyePos - SkillUtils.GetForwardVector(newAngle) * teleportDistance;
                 if (!CheckTeleport(victim, victimEyePos, behindPosition)) continue;
-                attackerPawn.Teleport(behindPosition, newAngle, new Vector(0, 0, 0));
+                attackerPawn.Teleport(behindPosition, newAngle, new(0, 0, 0));
                 teleported = true;
                 break;
             }
@@ -118,13 +118,9 @@ namespace jRandomSkills
                 noSpace[attacker] = Server.TickCount + (64 * 2);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#4d4d4d", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float teleportDistance = 100f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float TeleportDistance { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#4d4d4d", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float teleportDistance = 100f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                TeleportDistance = teleportDistance;
-            }
+            public float TeleportDistance { get; set; } = teleportDistance;
         }
     }
 }

@@ -21,11 +21,11 @@ namespace jRandomSkills
 
                 if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
 
                 if (playerInfo?.Skill == skillName && hitgroup == (int)HitGroup_t.HITGROUP_HEAD)
                 {
-                    ApplyIronHeadEffect(victim, @event.DmgHealth);
+                    ApplyIronHeadEffect(victim!, @event.DmgHealth);
                     return HookResult.Stop;
                 }
 
@@ -36,6 +36,7 @@ namespace jRandomSkills
         private static void ApplyIronHeadEffect(CCSPlayerController victim, float damage)
         {
             var playerPawn = victim.PlayerPawn.Value;
+            if (playerPawn == null || !playerPawn.IsValid) return;
             var newHealth = playerPawn.Health + damage;
 
             if (newHealth > 100)
@@ -44,11 +45,8 @@ namespace jRandomSkills
             playerPawn.Health = (int)newHealth;
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#8B4513", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#8B4513", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

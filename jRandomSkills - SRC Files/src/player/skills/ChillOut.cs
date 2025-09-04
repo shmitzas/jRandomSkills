@@ -9,7 +9,7 @@ namespace jRandomSkills
     public class ChillOut : ISkill
     {
         private const Skills skillName = Skills.ChillOut;
-        private static float bombArmedTime = Config.GetValue<float>(skillName, "bombArmedTime");
+        private static readonly float bombArmedTime = Config.GetValue<float>(skillName, "bombArmedTime");
 
         public static void LoadSkill()
         {
@@ -21,12 +21,12 @@ namespace jRandomSkills
 
                 if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
 
-                var anyChillOut = Instance.skillPlayer.FirstOrDefault(p => p.Skill == skillName);
+                var anyChillOut = Instance.SkillPlayer.FirstOrDefault(p => p.Skill == skillName);
                 if (anyChillOut != null)
                 {
                     var bombEntities = Utilities.FindAllEntitiesByDesignerName<CC4>("weapon_c4").ToList();
 
-                    if (bombEntities.Any())
+                    if (bombEntities.Count != 0)
                     {
                         var bomb = bombEntities.FirstOrDefault();
                         if (bomb != null)
@@ -38,13 +38,9 @@ namespace jRandomSkills
             });
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#343deb", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false, float bombArmedTime = 10f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float BombArmedTime {  get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#343deb", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false, float bombArmedTime = 10f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                BombArmedTime = bombArmedTime;
-            }
+            public float BombArmedTime { get; set; } = bombArmedTime;
         }
     }
 }

@@ -12,11 +12,11 @@ namespace jRandomSkills
     public class Jackal : ISkill
     {
         private const Skills skillName = Skills.Jackal;
-        private static int maxStepBeam = Config.GetValue<int>(skillName, "maxStepBeam");
+        private static readonly int maxStepBeam = Config.GetValue<int>(skillName, "maxStepBeam");
         private static bool exists = false;
 
-        private static Dictionary<uint, uint> authorBeams = new Dictionary<uint, uint>();
-        private static Dictionary<CCSPlayerController, List<CBeam>> stepBeams = new Dictionary<CCSPlayerController, List<CBeam>>();
+        private static readonly Dictionary<uint, uint> authorBeams = [];
+        private static readonly Dictionary<CCSPlayerController, List<CBeam>> stepBeams = [];
 
         public static void LoadSkill()
         {
@@ -29,7 +29,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -63,7 +63,7 @@ namespace jRandomSkills
             foreach (var step in stepBeams.ToList())
             {
                 var player = step.Key;
-                if (player == null || !player.IsValid)
+                if (!player.IsValid)
                 {
                     stepBeams.Remove(player);
                     continue;
@@ -73,7 +73,8 @@ namespace jRandomSkills
                 if (pawn == null || !pawn.IsValid || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) continue;
 
                 var beams = step.Value;
-                Vector lastBeamVector = beams?.LastOrDefault()?.EndPos ?? pawn?.AbsOrigin;
+                if (beams.Count == 0 || pawn.AbsOrigin == null) continue;
+                Vector lastBeamVector = beams.LastOrDefault()?.EndPos ?? pawn.AbsOrigin;
 
                 var newBeam = CreateBeamStep(step.Key.Team, lastBeamVector, pawn.AbsOrigin);
                 if (newBeam != null)
@@ -109,7 +110,7 @@ namespace jRandomSkills
             }
         }
 
-        public static CBeam CreateBeamStep(CsTeam team, Vector start, Vector stop)
+        public static CBeam? CreateBeamStep(CsTeam team, Vector start, Vector stop)
         {
             CBeam beam = Utilities.CreateEntityByName<CBeam>("beam")!;
             if (beam == null) return null;
@@ -131,7 +132,7 @@ namespace jRandomSkills
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (playerInfo.SkillChance == 1)
@@ -150,7 +151,7 @@ namespace jRandomSkills
             }
 
             authorBeams.Add(player.Index, enemy.Index);
-            stepBeams.Add(enemy, new List<CBeam>());
+            stepBeams.Add(enemy, []);
             playerInfo.SkillChance = 1;
             player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("jackal_player_info", enemy.PlayerName));
         }
@@ -160,7 +161,8 @@ namespace jRandomSkills
             if (!exists)
                 Instance.RegisterListener<Listeners.CheckTransmit>(CheckTransmit);
             exists = true;
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
             SkillUtils.PrintToChat(player, Localization.GetTranslation("jackal") + ":", false);
@@ -183,13 +185,9 @@ namespace jRandomSkills
             stepBeams.Remove(player);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#f542ef", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int maxStepBeam = 50) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int MaxStepBeam { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#f542ef", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int maxStepBeam = 50) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                MaxStepBeam = maxStepBeam;
-            }
+            public int MaxStepBeam { get; set; } = maxStepBeam;
         }
     }
 }

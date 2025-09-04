@@ -11,7 +11,7 @@ namespace jRandomSkills
     public class Watchmaker : ISkill
     {
         private const Skills skillName = Skills.Watchmaker;
-        private static int roundTime = Config.GetValue<int>(skillName, "changeRoundTime");
+        private static readonly int roundTime = Config.GetValue<int>(skillName, "changeRoundTime");
         private static bool bombPlanted = false;
 
         public static void LoadSkill()
@@ -40,10 +40,11 @@ namespace jRandomSkills
                 if (grenade.OwnerEntity.Value == null || !grenade.OwnerEntity.Value.IsValid) return;
 
                 var pawn = grenade.OwnerEntity.Value.As<CCSPlayerPawn>();
+                if (pawn == null || !pawn.IsValid || pawn.Controller == null || !pawn.Controller.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
                 var player = pawn.Controller.Value.As<CCSPlayerController>();
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill != skillName) return;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill != skillName || Instance.GameRules == null) return;
 
                 Instance.GameRules.RoundTime += player.Team == CsTeam.Terrorist ? roundTime : -roundTime;
                 if (player.Team == CsTeam.Terrorist)
@@ -60,7 +61,7 @@ namespace jRandomSkills
             if (bombPlanted) return;
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                     UpdateHUD(player);
             }
@@ -81,13 +82,9 @@ namespace jRandomSkills
             player.PrintToCenterHtml(hudContent);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff462e", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int changeRoundTime = 10) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int ChangeRoundTime { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff462e", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int changeRoundTime = 10) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                ChangeRoundTime = changeRoundTime;
-            }
+            public int ChangeRoundTime { get; set; } = changeRoundTime;
         }
     }
 }

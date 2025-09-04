@@ -22,7 +22,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -35,7 +35,7 @@ namespace jRandomSkills
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (playerInfo.SkillChance == 1)
@@ -61,7 +61,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
             SkillUtils.PrintToChat(player, Localization.GetTranslation("lifeswap") + ":", false);
@@ -83,21 +84,16 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn.Value;
             var enemyPawn = enemy.PlayerPawn.Value;
 
-            if (playerPawn.LifeState != (byte)LifeState_t.LIFE_ALIVE || enemyPawn.LifeState != (byte)LifeState_t.LIFE_ALIVE)
-                return;
+            if (playerPawn == null || !playerPawn.IsValid || enemyPawn == null || !enemyPawn.IsValid) return;
+            if (playerPawn.LifeState != (byte)LifeState_t.LIFE_ALIVE || enemyPawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) return;
 
-            int playerHealth = playerPawn.Health;
-            playerPawn.Health = enemyPawn.Health;
-            enemyPawn.Health = playerHealth;
+            (enemyPawn.Health, playerPawn.Health) = (playerPawn.Health, enemyPawn.Health);
             Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
             Utilities.SetStateChanged(enemyPawn, "CBaseEntity", "m_iHealth");
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#a3651a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#a3651a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

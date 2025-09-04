@@ -20,7 +20,7 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn?.CBodyComponent == null) return;
 
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
             if (!player.IsValid || !player.PawnIsAlive) return;
 
@@ -29,18 +29,19 @@ namespace jRandomSkills
 
         private static void InstaReload(CCSPlayerPawn pawn)
         {
-            var activeWeapon = pawn.WeaponServices.ActiveWeapon.Value;
-            if (activeWeapon == null || !activeWeapon.IsValid) return;
+            if (pawn == null || !pawn.IsValid) return;
+            var weaponServices = pawn.WeaponServices;
+            if (weaponServices == null || weaponServices.ActiveWeapon == null || !weaponServices.ActiveWeapon.IsValid) return;
+
+            var activeWeapon = weaponServices.ActiveWeapon.Value;
+            if (activeWeapon == null || !activeWeapon.IsValid || activeWeapon.VData == null) return;
 
             activeWeapon.Clip1 = activeWeapon.VData.MaxClip1;
             Utilities.SetStateChanged(activeWeapon, "CBasePlayerWeapon", "m_iClip1");
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ffc061", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ffc061", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float distance = 1000f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

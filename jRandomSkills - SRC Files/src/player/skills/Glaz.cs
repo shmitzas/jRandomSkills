@@ -27,7 +27,7 @@ namespace jRandomSkills
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
 
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill == skillName)
                             EnableSkill(player);
                     }
@@ -61,10 +61,10 @@ namespace jRandomSkills
             foreach (var (info, player) in infoList)
             {
                 if (player == null) continue;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
 
                 var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
-                var observerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
+                var observerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
 
                 if (playerInfo?.Skill != skillName && observerInfo?.Skill != skillName) continue;
                 foreach (var smoke in smokes)

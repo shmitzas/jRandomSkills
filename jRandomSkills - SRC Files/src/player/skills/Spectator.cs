@@ -11,8 +11,8 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.Spectator;
         private static bool blocked = false;
-        private static float distance = Config.GetValue<float>(skillName, "distance");
-        private static Dictionary<ulong, (uint, CDynamicProp, CCSPlayerPawn)> cameras = new Dictionary<ulong, (uint, CDynamicProp, CCSPlayerPawn)>();
+        private static readonly float distance = Config.GetValue<float>(skillName, "distance");
+        private static readonly Dictionary<ulong, (uint, CDynamicProp, CCSPlayerPawn)> cameras = [];
 
         public static void LoadSkill()
         {
@@ -41,11 +41,12 @@ namespace jRandomSkills
             {
                 var player = @event.Userid;
                 if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
 
-                if (cameras.TryGetValue(player.SteamID, out var cameraInfo) && cameraInfo.Item1 != player.PlayerPawn.Value.CameraServices!.ViewEntity!.Raw)
+                var pawn = player!.PlayerPawn.Value;
+                if (pawn == null || !pawn.IsValid || pawn.CameraServices == null) return HookResult.Continue;
+                if (cameras.TryGetValue(player.SteamID, out var cameraInfo) && cameraInfo.Item1 != pawn.CameraServices.ViewEntity.Raw)
                     BlockWeapon(player, true);
                 return HookResult.Continue;
             });
@@ -76,6 +77,7 @@ namespace jRandomSkills
                         ChangeCamera(player, true);
                         continue;
                     }
+                    if (pawn.AbsOrigin == null) continue;
                     var pos = pawn.AbsOrigin - SkillUtils.GetForwardVector(pawn.EyeAngles) * distance;
                     pos.Z += pawn.ViewOffset.Z;
                     cameraInfo.Item2.Teleport(pos, pawn.V_angle);
@@ -87,6 +89,8 @@ namespace jRandomSkills
             uint orginalCameraRaw;
             uint newCameraRaw;
             var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid || pawn.CameraServices == null) return;
+
             if (cameras.TryGetValue(player.SteamID, out var cameraInfo) && cameraInfo.Item2.IsValid)
             {
                 orginalCameraRaw = cameraInfo.Item1;
@@ -94,15 +98,14 @@ namespace jRandomSkills
                 newCameraRaw = CreateCamera(player);
             } else
             {
-                orginalCameraRaw = pawn!.CameraServices!.ViewEntity.Raw;
+                orginalCameraRaw = pawn.CameraServices.ViewEntity.Raw;
                 newCameraRaw = CreateCamera(player);
             }
 
-            if (newCameraRaw == 0)
-                return;
+            if (newCameraRaw == 0) return;
 
-            bool defaultCam = forceToDefault ? true : (pawn.CameraServices!.ViewEntity!.Raw == orginalCameraRaw ? false : true);
-            pawn!.CameraServices!.ViewEntity.Raw = defaultCam ? orginalCameraRaw : newCameraRaw;
+            bool defaultCam = forceToDefault || (pawn.CameraServices.ViewEntity.Raw != orginalCameraRaw);
+            pawn.CameraServices.ViewEntity.Raw = defaultCam ? orginalCameraRaw : newCameraRaw;
             Utilities.SetStateChanged(pawn, "CBasePlayerPawn", "m_pCameraServices");
             BlockWeapon(player, !defaultCam);
         }
@@ -118,19 +121,25 @@ namespace jRandomSkills
             var enemy = enemies[Instance.Random.Next(enemies.Count)];
 
             var pawn = enemy.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid || pawn.CameraServices == null) return 0;
+
             camera.Render = Color.FromArgb(0, 255, 255, 255);
             camera.Teleport(pawn!.AbsOrigin, pawn.EyeAngles);
             camera.DispatchSpawn();
             if (cameras.TryGetValue(player.SteamID, out var cameraInfo))
                 cameras[player.SteamID] = (cameraInfo.Item1, camera, pawn);
             else
-                cameras[player.SteamID] = (player.PlayerPawn.Value.CameraServices!.ViewEntity.Raw, camera, pawn);
+                cameras[player.SteamID] = (pawn.CameraServices.ViewEntity.Raw, camera, pawn);
             return camera.EntityHandle.Raw;
         }
 
         private static void BlockWeapon(CCSPlayerController player, bool block)
         {
-            foreach (var weapon in player.Pawn.Value.WeaponServices?.MyWeapons)
+            if (player == null || !player.IsValid) return;
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return;
+
+            foreach (var weapon in pawn.WeaponServices.MyWeapons)
                 if (weapon != null && weapon.IsValid && weapon.Value != null && weapon.Value.IsValid)
                 {
                     weapon.Value.NextPrimaryAttackTick = block ? int.MaxValue : Server.TickCount;
@@ -141,13 +150,9 @@ namespace jRandomSkills
                 }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#42f5da", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float distance = 100f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float Distance { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#42f5da", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float distance = 100f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                Distance = distance;
-            }
+            public float Distance { get; set; } = distance;
         }
     }
 }

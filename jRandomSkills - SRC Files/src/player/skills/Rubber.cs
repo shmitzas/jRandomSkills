@@ -9,10 +9,10 @@ namespace jRandomSkills
     public class Rubber: ISkill
     {
         private const Skills skillName = Skills.Rubber;
-        private static float rubberTime = Config.GetValue<float>(skillName, "slownessTime");
-        private static float rubberModifier = Config.GetValue<float>(skillName, "slownessModifier");
+        private static readonly float rubberTime = Config.GetValue<float>(skillName, "slownessTime");
+        private static readonly float rubberModifier = Config.GetValue<float>(skillName, "slownessModifier");
 
-        private static Dictionary<CCSPlayerPawn, float> playersToSlow = new Dictionary<CCSPlayerPawn, float>();
+        private static readonly Dictionary<CCSPlayerPawn, float> playersToSlow = [];
 
         public static void LoadSkill()
         {
@@ -24,9 +24,9 @@ namespace jRandomSkills
                 var victim = @event.Userid;
 
                 if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
-                var attackerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
-                var victimPawn = victim.PlayerPawn.Value;
+                var victimPawn = victim!.PlayerPawn.Value;
                 if (victimPawn == null || !victimPawn.IsValid) return HookResult.Continue;
 
                 if (attackerInfo?.Skill == skillName)
@@ -65,15 +65,10 @@ namespace jRandomSkills
             pawn.VelocityModifier = rubberModifier;
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#8B4513", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float slownessTime = 2f, float slownessModifier = .2f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float SlownessTime { get; set; }
-            public float SlownessModifier { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#8B4513", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float slownessTime = 2f, float slownessModifier = .2f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                SlownessTime = slownessTime;
-                SlownessModifier = slownessModifier;
-            }
+            public float SlownessTime { get; set; } = slownessTime;
+            public float SlownessModifier { get; set; } = slownessModifier;
         }
     }
 }

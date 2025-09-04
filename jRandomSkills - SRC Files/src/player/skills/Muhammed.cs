@@ -9,8 +9,8 @@ namespace jRandomSkills
     public class Muhammed : ISkill
     {
         private const Skills skillName = Skills.Muhammed;
-        private static float explosionRadius = Config.GetValue<float>(skillName, "explosionRadius");
-        private static int explosionDamage = Config.GetValue<int>(skillName, "explosionDamage");
+        private static readonly float explosionRadius = Config.GetValue<float>(skillName, "explosionRadius");
+        private static readonly int explosionDamage = Config.GetValue<int>(skillName, "explosionDamage");
 
         public static void LoadSkill()
         {
@@ -18,12 +18,12 @@ namespace jRandomSkills
             
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
-                CCSPlayerController player = @event.Userid;
+                var player = @event.Userid;
                 if (!IsDeadPlayerValid(player)) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
                 if (playerInfo?.Skill == skillName)
-                    SpawnExplosion(player);
+                    SpawnExplosion(player!);
 
                 return HookResult.Continue;
             });
@@ -34,7 +34,10 @@ namespace jRandomSkills
             var heProjectile = Utilities.CreateEntityByName<CHEGrenadeProjectile>("hegrenade_projectile");
             if (heProjectile == null || !heProjectile.IsValid) return;
 
-            Vector pos = player.PlayerPawn.Value.AbsOrigin;
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null) return;
+
+            Vector pos = pawn.AbsOrigin;
             pos.Z += 10;
 
             heProjectile.TicksAtZeroVelocity = 100;
@@ -55,21 +58,15 @@ namespace jRandomSkills
             });
         }
 
-        private static bool IsDeadPlayerValid(CCSPlayerController player)
+        private static bool IsDeadPlayerValid(CCSPlayerController? player)
         {
             return player != null && player.IsValid && player.PlayerPawn?.Value != null;
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#F5CB42", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float explosionRadius = 500.0f, int explosionDamage = 999) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float ExplosionRadius { get; set; }
-            public int ExplosionDamage { get; set; }
-
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#F5CB42", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float explosionRadius = 500.0f, int explosionDamage = 999) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                ExplosionRadius = explosionRadius;
-                ExplosionDamage = explosionDamage;
-            }
+            public float ExplosionRadius { get; set; } = explosionRadius;
+            public int ExplosionDamage { get; set; } = explosionDamage;
         }
     }
 }

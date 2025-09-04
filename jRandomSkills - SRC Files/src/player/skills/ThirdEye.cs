@@ -11,8 +11,8 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.ThirdEye;
         private static bool blocked = false;
-        private static float distance = Config.GetValue<float>(skillName, "distance");
-        private static Dictionary<ulong, (uint, CDynamicProp)> cameras = new Dictionary<ulong, (uint, CDynamicProp)>();
+        private static readonly float distance = Config.GetValue<float>(skillName, "distance");
+        private static readonly Dictionary<ulong, (uint, CDynamicProp)> cameras = [];
 
         public static void LoadSkill()
         {
@@ -58,6 +58,7 @@ namespace jRandomSkills
                 if (cameras.TryGetValue(player.SteamID, out var cameraInfo) && cameraInfo.Item2.IsValid)
                 {
                     var pawn = player.PlayerPawn.Value;
+                    if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null) continue;
                     if (pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE)
                     {
                         ChangeCamera(player, true);
@@ -110,13 +111,9 @@ namespace jRandomSkills
             return camera.EntityHandle.Raw;
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1b04cc", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float distance = 100f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float Distance { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#1b04cc", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float distance = 100f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                Distance = distance;
-            }
+            public float Distance { get; set; } = distance;
         }
     }
 }

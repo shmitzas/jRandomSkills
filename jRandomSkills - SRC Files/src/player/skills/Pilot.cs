@@ -11,8 +11,8 @@ namespace jRandomSkills
     public class Pilot : ISkill
     {
         private const Skills skillName = Skills.Pilot;
-        private static float maximumFuel = Config.GetValue<float>(skillName, "maximumFuel");
-        private static readonly Dictionary<ulong, Pilot_PlayerInfo> PlayerPilotInfo = new Dictionary<ulong, Pilot_PlayerInfo>();
+        private static readonly float maximumFuel = Config.GetValue<float>(skillName, "maximumFuel");
+        private static readonly Dictionary<ulong, Pilot_PlayerInfo> PlayerPilotInfo = [];
 
         public static void LoadSkill()
         {
@@ -24,11 +24,9 @@ namespace jRandomSkills
                 {
                     foreach (var player in Utilities.GetPlayers())
                     {
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill == skillName)
-                        {
                             EnableSkill(player);
-                        }
                     }
                 });
 
@@ -38,13 +36,10 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
-                
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                {
-                    if (PlayerPilotInfo.ContainsKey(player.SteamID))
-                        PlayerPilotInfo.Remove(player.SteamID);
-                }
+                     PlayerPilotInfo.Remove(player.SteamID);
 
                 return HookResult.Continue;
             });
@@ -53,7 +48,7 @@ namespace jRandomSkills
             {
                 foreach (var player in Utilities.GetPlayers())
                 {
-                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill == skillName)
                         HandlePilot(player);
                 }
@@ -73,8 +68,7 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (PlayerPilotInfo.ContainsKey(player.SteamID))
-                PlayerPilotInfo.Remove(player.SteamID);
+            PlayerPilotInfo.Remove(player.SteamID);
         }
 
         private static void HandlePilot(CCSPlayerController player)
@@ -155,11 +149,11 @@ namespace jRandomSkills
             QAngle eye_angle = playerPawn.EyeAngles;
             double pitch = (Math.PI / 180) * eye_angle.X;
             double yaw = (Math.PI / 180) * eye_angle.Y;
-            Vector eye_vector = new Vector((float)(Math.Cos(yaw) * Math.Cos(pitch)), (float)(Math.Sin(yaw) * Math.Cos(pitch)), (float)(-Math.Sin(pitch)));
+            Vector eye_vector = new((float)(Math.Cos(yaw) * Math.Cos(pitch)), (float)(Math.Sin(yaw) * Math.Cos(pitch)), (float)(-Math.Sin(pitch)));
 
             Vector currentVelocity = playerPawn.AbsVelocity;
 
-            Vector jetpackVelocity = new Vector(
+            Vector jetpackVelocity = new(
                 eye_vector.X * 5.0f,
                 eye_vector.Y * 5.0f,
                 0.80f * 15.0f
@@ -183,13 +177,9 @@ namespace jRandomSkills
             public DateTime PilotStartTime { get; set; }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1466F5", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float maximumFuel = 100f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float MaximumFuel { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#1466F5", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float maximumFuel = 100f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                MaximumFuel = maximumFuel;
-            }
+            public float MaximumFuel { get; set; } = maximumFuel;
         }
     }
 }

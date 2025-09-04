@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class JumpBan : ISkill
     {
         private const Skills skillName = Skills.JumpBan;
-        private static Dictionary<CCSPlayerPawn, int> bannedPlayers = new Dictionary<CCSPlayerPawn, int>();
+        private static readonly Dictionary<CCSPlayerPawn, int> bannedPlayers = [];
 
         public static void LoadSkill()
         {
@@ -23,7 +23,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -41,6 +41,7 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerJump>((@event, info) =>
             {
                 var player = @event.Userid;
+                if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return HookResult.Continue;
                 if (!bannedPlayers.TryGetValue(player.PlayerPawn.Value, out _)) return HookResult.Continue;
                 bannedPlayers[player.PlayerPawn.Value] = Server.TickCount + 10;
                 return HookResult.Stop;
@@ -63,7 +64,7 @@ namespace jRandomSkills
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (playerInfo.SkillChance == 1)
@@ -75,7 +76,7 @@ namespace jRandomSkills
             string enemyId = commands[0];
             var enemy = Utilities.GetPlayers().FirstOrDefault(p => p.Team != player.Team && p.Index.ToString() == enemyId);
 
-            if (enemy == null)
+            if (enemy == null || !enemy.IsValid || enemy.PlayerPawn.Value == null || !enemy.PlayerPawn.Value.IsValid)
             {
                 player.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("selectplayerskill_incorrect_enemy_index"));
                 return;
@@ -89,7 +90,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
             SkillUtils.PrintToChat(player, Localization.GetTranslation("jumpban") + ":", false);
@@ -108,14 +110,12 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
             bannedPlayers.Remove(player.PlayerPawn.Value);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#b01e5d", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#b01e5d", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

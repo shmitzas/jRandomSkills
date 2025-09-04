@@ -9,7 +9,7 @@ namespace jRandomSkills
     public class ShortBomb : ISkill
     {
         private const Skills skillName = Skills.ShortBomb;
-        private static int detonationTime = Config.GetValue<int>(skillName, "detonationTime");
+        private static readonly int detonationTime = Config.GetValue<int>(skillName, "detonationTime");
 
         public static void LoadSkill()
         {
@@ -20,7 +20,7 @@ namespace jRandomSkills
                 var player = @event.Userid;
                 if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
 
                 var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
@@ -31,13 +31,9 @@ namespace jRandomSkills
             });
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#f5b74c", CsTeam onlyTeam = CsTeam.Terrorist, bool needsTeammates = false, int detonationTime = 20) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int DetonationTime { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#f5b74c", CsTeam onlyTeam = CsTeam.Terrorist, bool needsTeammates = false, int detonationTime = 20) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                DetonationTime = detonationTime;
-            }
+            public int DetonationTime { get; set; } = detonationTime;
         }
     }
 }

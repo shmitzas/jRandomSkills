@@ -2,7 +2,6 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
-using System.Reflection.Metadata;
 using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
@@ -40,15 +39,14 @@ namespace jRandomSkills
         {
             if (Instance?.GameRules == null || Instance?.GameRules?.Handle == IntPtr.Zero)
                 InitializeGameRules();
-            else
-                Instance.GameRules.GameRestart = Instance?.GameRules?.RestartRoundTime < Server.CurrentTime;
+            else if (Instance != null)
+                Instance.GameRules.GameRestart = Instance.GameRules?.RestartRoundTime < Server.CurrentTime;
         }
 
         private static void UpdatePlayerHud(CCSPlayerController player)
         {
             if (player == null) return;
-
-            var skillPlayer = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var skillPlayer = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (skillPlayer == null) return;
 
             string infoLine = "";
@@ -83,7 +81,7 @@ namespace jRandomSkills
                     var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == pawn?.ObserverServices?.ObserverTarget?.Value?.Handle);
                     if (observedPlayer == null) return;
 
-                    var observeredPlayerSkill = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer.SteamID);
+                    var observeredPlayerSkill = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer.SteamID);
                     if (observeredPlayerSkill == null) return;
                     
                     var observeredPlayerSkillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == observeredPlayerSkill.Skill);
@@ -97,10 +95,9 @@ namespace jRandomSkills
                 }
             }
 
-            if (string.IsNullOrEmpty(infoLine) && string.IsNullOrEmpty(skillLine))
-                return;
-
+            if (string.IsNullOrEmpty(infoLine) && string.IsNullOrEmpty(skillLine)) return;
             var hudContent = infoLine + skillLine;
+            if (player == null || !player.IsValid) return;
             player.PrintToCenterHtml(hudContent);
         }
     }

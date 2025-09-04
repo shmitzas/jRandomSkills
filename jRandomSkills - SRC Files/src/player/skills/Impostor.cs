@@ -24,7 +24,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill == skillName)
                         {
                             string model = GetEnemyModel(player);
@@ -50,11 +50,15 @@ namespace jRandomSkills
 
         private static string GetEnemyModel(CCSPlayerController player)
         {
-            CCSPlayerController[] models = Utilities.GetPlayers().FindAll(p => p.IsValid && p.PawnIsAlive && p.Team != player.Team).ToArray();
-            if (models.Length > 0)
+            CCSPlayerController[] models = [.. Utilities.GetPlayers().FindAll(p => p.IsValid && p.PawnIsAlive && p.Team != player.Team)];
+            if (models != null && models.Length > 0)
             {
-                string modelName = models[Instance.Random.Next(models.Length)].PlayerPawn.Value.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName;
-                if (modelName != null) return modelName;
+                var model = models[Instance.Random.Next(models.Length)];
+                if (model != null && model.IsValid && model.PlayerPawn.Value != null && model.PlayerPawn.Value.IsValid && model.PlayerPawn.Value.CBodyComponent != null && model.PlayerPawn.Value.CBodyComponent.SceneNode != null)
+                {
+                    string modelName = model.PlayerPawn.Value.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName;
+                    if (!string.IsNullOrEmpty(modelName)) return modelName;
+                }
             }
             return player.Team == CsTeam.CounterTerrorist ? defaultTModel : defaultCTModel;
         }
@@ -73,11 +77,8 @@ namespace jRandomSkills
             });
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#99140B", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#99140B", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

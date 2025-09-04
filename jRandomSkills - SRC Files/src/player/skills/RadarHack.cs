@@ -23,7 +23,7 @@ namespace jRandomSkills
             {
                 if (!Instance.IsPlayerValid(player)) continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                 {
                     SetEnemiesVisibleOnRadar(player);

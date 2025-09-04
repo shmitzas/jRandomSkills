@@ -11,11 +11,11 @@ namespace jRandomSkills
     public class PsychicDefusing : ISkill
     {
         private const Skills skillName = Skills.PsychicDefusing;
-        private static readonly Dictionary<CCSPlayerPawn, PlayerSkillInfo> SkillPlayerInfo = new Dictionary<CCSPlayerPawn, PlayerSkillInfo>();
-        private static Vector bombLocation = null;
-        private static float maxDefusingRange = Config.GetValue<float>(skillName, "maxDefusingRange");
-        private static float defusingTime = Config.GetValue<float>(skillName, "defusingTime");
-        private static float tickRate = 64f;
+        private static readonly Dictionary<CCSPlayerPawn, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static Vector? bombLocation = null;
+        private static readonly float maxDefusingRange = Config.GetValue<float>(skillName, "maxDefusingRange");
+        private static readonly float defusingTime = Config.GetValue<float>(skillName, "defusingTime");
+        private static readonly float tickRate = 64f;
 
         public static void LoadSkill()
         {
@@ -28,7 +28,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -47,11 +47,14 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
+                if (player == null || !player.IsValid) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var pawn = player.PlayerPawn.Value;
+                if (pawn == null || !pawn.IsValid) return HookResult.Continue;
+
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.ContainsKey(player.PlayerPawn.Value))
-                        SkillPlayerInfo.Remove(player.PlayerPawn.Value);
+                    SkillPlayerInfo.Remove(pawn);
 
                 return HookResult.Continue;
             });
@@ -72,7 +75,7 @@ namespace jRandomSkills
                     var player = skillInfo.Key;
                     var info = skillInfo.Value;
 
-                    if (SkillUtils.GetDistance(player.AbsOrigin, bombLocation) > maxDefusingRange)
+                    if (player.AbsOrigin == null || SkillUtils.GetDistance(player.AbsOrigin, bombLocation) > maxDefusingRange)
                     {
                         info.Defusing = false;
                         info.DefusingTime = defusingTime;
@@ -96,14 +99,18 @@ namespace jRandomSkills
                         SkillPlayerInfo.Clear();
                     }
 
-                    UpdateHUD(player.Controller.Value.As<CCSPlayerController>(), info);
+                    var playerController = player.Controller.Value;
+                    if (playerController == null || !player.Controller.IsValid) return;
+                    UpdateHUD(playerController.As<CCSPlayerController>(), info);
                 }
             });
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo[player.PlayerPawn.Value] = new PlayerSkillInfo
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid) return;
+            SkillPlayerInfo[pawn] = new PlayerSkillInfo
             {
                 SteamID = player.SteamID,
                 Defusing = false,
@@ -113,8 +120,9 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (SkillPlayerInfo.ContainsKey(player.PlayerPawn.Value))
-                SkillPlayerInfo.Remove(player.PlayerPawn.Value);
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid) return;
+            SkillPlayerInfo.Remove(pawn);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
@@ -139,15 +147,10 @@ namespace jRandomSkills
             public float DefusingTime { get; set; }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#507529", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false, float maxDefusingRange = 80f, float defusingTime = 10f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float MaxDefusingRange { get; set; }
-            public float DefusingTime { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#507529", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false, float maxDefusingRange = 80f, float defusingTime = 10f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                MaxDefusingRange = maxDefusingRange;
-                DefusingTime = defusingTime;
-            }
+            public float MaxDefusingRange { get; set; } = maxDefusingRange;
+            public float DefusingTime { get; set; } = defusingTime;
         }
     }
 }

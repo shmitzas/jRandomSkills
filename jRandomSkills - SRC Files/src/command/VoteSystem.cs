@@ -1,49 +1,75 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Utils;
+using jRandomSkills.src.utils;
 
 namespace jRandomSkills
 {
     public static class VoteSystem
     {
-        private static HashSet<VoteData> votes = new HashSet<VoteData>();
+        private static readonly HashSet<VoteData> votes = [];
 
-        public static void Load()
+        private static VoteData? CreateVote(VoteType voteType, string? args = null)
         {
-            jRandomSkills.Instance.DeregisterEventHandler<EventPlayerChat>((@event, info) =>
-            {
-                var player = @event.Userid;
-                var text = @event.Text;
-                return HookResult.Continue;
-            });
-        }
+            var vote = new VoteData(10,
+                () => {
+                    Server.ExecuteCommand($"{VoteTypeCommands.GetCommand(voteType)}{(!string.IsNullOrEmpty(args) ? $" {args}" : "")}");
+                }, 60, 2, 5, 2, voteType, args);
 
-        private static VoteData CreateVote(VoteType voteType, string? args = null)
-        {
-            var vote = new VoteData(10, 
-                () => { 
-                    Server.ExecuteCommand($"{VoteTypeCommands.GetCommand(voteType)}{(args != null ? $" {args}" : "")}");
-                }, 60, voteType, args);
+            if (vote.MinimumPlayersToStartVoting > Utilities.GetPlayers().Count(p => !p.IsBot))
+                return null;
+
             votes.Add(vote);
+            string commandName = $"!{VoteTypeCommands.GetCommand(vote.Type)?.Replace("css_", "")}{(!string.IsNullOrEmpty(vote?.Args) ? $" {vote?.Args}" : "")}";
 
-            jRandomSkills.Instance.AddTimer(vote?.TimeToVote ?? 0, () =>
+            Server.PrintToChatAll($" {ChatColors.Lime}{Localization.GetTranslation("vote_started", commandName)}");
+            foreach (var player in Utilities.GetPlayers())
+                player.EmitSound("UIPanorama.tab_mainmenu_news");
+
+            if (vote == null) return vote;
+            jRandomSkills.Instance.AddTimer(vote.TimeToVote, () =>
+            {
+                if (!votes.Contains(vote) || !vote.GetActive()) return;
+                vote.SetActive(false);
+                Server.PrintToChatAll($" {ChatColors.Red}{Localization.GetTranslation("vote_timeout", commandName)}");
+            });
+
+            float[] times = [vote.TimeToVote, vote.TimeToVote + vote.TimeToNextVoting, vote.TimeToVote + vote.TimeToNextSameVoting];
+            jRandomSkills.Instance.AddTimer(times.Max(), () =>
             {
                 if (!votes.Contains(vote)) return;
                 votes.Remove(vote);
-                Server.PrintToChatAll($" {ChatColors.Red}Vote '!{VoteTypeCommands.GetCommand(vote.Type)?.Replace("css_", "")}' timed out!");
             });
             return vote;
         }
 
         public static void Vote(this CCSPlayerController player, VoteType voteType, string? args = null)
         {
-            var vote = votes.FirstOrDefault(v => v.Type == voteType);
+            var vote = votes.FirstOrDefault(v => v.Type == voteType && v.Args == args && v.GetActive());
             if (vote == null)
+            {
+                if (votes.Any(v => v.NextVoting() > DateTime.Now))
+                {
+                    player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("vote_wait")}");
+                    return;
+                }
+                else if (votes.Any(v => v.Type == voteType && v.NextSameVoting() > DateTime.Now))
+                {
+                    player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("vote_same_wait")}");
+                    return;
+                }
+
                 vote = CreateVote(voteType, args);
+            }
+
+            if (vote == null)
+            {
+                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("vote_not_enough_players")}");
+                return;
+            }
 
             if (!vote.PlayersVoted.Add(player.SteamID))
-                player.PrintToChat($" {ChatColors.Red}You have already voted!");
+                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("vote_alredy_voted")}");
             else CheckVote(vote);
         }
 
@@ -56,30 +82,46 @@ namespace jRandomSkills
             if (voted >= playersNeeded)
             {
                 vote.SuccessAction.Invoke();
-                votes.Remove(vote);
+                vote.SetActive(false);
             }
             else
-                Server.PrintToChatAll($" {ChatColors.Yellow}Vote '!{VoteTypeCommands.GetCommand(vote.Type)?.Replace("css_", "")}': {ChatColors.Green}{voted}/{playersNeeded}");
+                Server.PrintToChatAll($" {ChatColors.Yellow}{Localization.GetTranslation("vote_vote")} '!{VoteTypeCommands.GetCommand(vote.Type)?.Replace("css_", "")}{(!string.IsNullOrEmpty(vote?.Args) ? $" {vote?.Args}" : "")}': {ChatColors.Green}{voted}/{playersNeeded}");
         }
     }
 
-    public class VoteData
+    public class VoteData(float timeToVote, Action successAction, float percentagesToSuccess, float timeToNextVoting, float timeToNextSameVoting, int minimumPlayersToStartVoting, VoteType type, string? args = null)
     {
-        public float TimeToVote { get; set; }
-        public Action SuccessAction { get; set; }
-        public float PercentagesToSuccess { get; set; }
-        public VoteType Type { get; set; }
-        public string Args { get; set; }
-        public HashSet<ulong> PlayersVoted { get; set; }
+        private bool Active { get; set; } = true;
+        public float TimeToVote { get; set; } = timeToVote;
+        public Action SuccessAction { get; set; } = successAction;
+        public float PercentagesToSuccess { get; set; } = percentagesToSuccess;
+        public float TimeToNextVoting { get; set; } = timeToNextVoting;
+        public float TimeToNextSameVoting { get; set; } = timeToNextSameVoting;
+        public int MinimumPlayersToStartVoting { get; set; } = minimumPlayersToStartVoting;
+        public VoteType Type { get; set; } = type;
+        public string? Args { get; set; } = args;
+        public HashSet<ulong> PlayersVoted { get; set; } = [];
 
-        public VoteData(float timeToVote, Action successAction, float percentagesToSuccess, VoteType type, string? args = null)
+        private DateTime CreatedTime { get; set; } = DateTime.Now;
+
+        public void SetActive(bool active)
         {
-            TimeToVote = timeToVote;
-            SuccessAction = successAction;
-            PercentagesToSuccess = percentagesToSuccess;
-            Type = type;
-            Args = args;
-            PlayersVoted = new HashSet<ulong>();
+            Active = active;
+        }
+
+        public bool GetActive()
+        {
+            return Active;
+        }
+
+        public DateTime NextVoting()
+        {
+            return CreatedTime.AddSeconds(TimeToVote + TimeToNextVoting);
+        }
+
+        public DateTime NextSameVoting()
+        {
+            return CreatedTime.AddSeconds(TimeToVote + TimeToNextSameVoting);
         }
     }
 
@@ -95,7 +137,7 @@ namespace jRandomSkills
 
     public static class VoteTypeCommands
     {
-        private static readonly Dictionary<VoteType, string> names = new Dictionary<VoteType, string>()
+        private static readonly Dictionary<VoteType, string> names = new()
         {
             { VoteType.StartGame, "css_start" },
             { VoteType.PauseGame, "css_pause" },

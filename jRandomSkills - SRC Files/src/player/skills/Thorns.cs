@@ -8,7 +8,7 @@ namespace jRandomSkills
     public class Thorns : ISkill
     {
         private const Skills skillName = Skills.Thorns;
-        private static float healthTakenScale = Config.GetValue<float>(skillName, "healthTakenScale");
+        private static readonly float healthTakenScale = Config.GetValue<float>(skillName, "healthTakenScale");
 
         public static void LoadSkill()
         {
@@ -20,8 +20,8 @@ namespace jRandomSkills
                 var victim = @event.Userid;
 
                 if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
-                var victimInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
-                if (victimInfo?.Skill == skillName && victim.PawnIsAlive && attacker.PawnIsAlive)
+                var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+                if (victimInfo?.Skill == skillName && victim!.PawnIsAlive && attacker!.PawnIsAlive)
                 {
                     SkillUtils.TakeHealth(attacker.PlayerPawn.Value, (int)(@event.DmgHealth * healthTakenScale));
                     attacker.EmitSound("Player.DamageBody.Onlooker");
@@ -30,13 +30,9 @@ namespace jRandomSkills
             });
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#962631", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float healthTakenScale = .3f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float HealthTakenScale { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#962631", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float healthTakenScale = .3f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                HealthTakenScale = healthTakenScale;
-            }
+            public float HealthTakenScale { get; set; } = healthTakenScale;
         }
     }
 }

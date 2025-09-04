@@ -12,7 +12,7 @@ namespace jRandomSkills
 {
     public static class SkillUtils
     {
-        private static MemoryFunctionVoid<nint, float, RoundEndReason, nint, nint> TerminateRoundFunc = new(GameData.GetSignature("CCSGameRules_TerminateRound"));
+        private static readonly MemoryFunctionVoid<nint, float, RoundEndReason, nint, nint> TerminateRoundFunc = new(GameData.GetSignature("CCSGameRules_TerminateRound"));
 
         public static void PrintToChat(CCSPlayerController player, string msg, bool isError)
         {
@@ -31,7 +31,11 @@ namespace jRandomSkills
             string? itemString = EnumUtils.GetEnumMemberAttributeValue(item);
             if (string.IsNullOrWhiteSpace(itemString)) return;
 
-            var exists = player.PlayerPawn.Value.WeaponServices.MyWeapons.FirstOrDefault(w => w.Value.DesignerName == itemString);
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
+            if (player.PlayerPawn.Value.WeaponServices == null) return;
+
+            var exists = player.PlayerPawn.Value.WeaponServices.MyWeapons
+                .FirstOrDefault(w => w != null && w.IsValid && w.Value != null && w.Value.IsValid && w.Value.DesignerName == itemString);
             if (exists == null)
                 for (int i = 0; i < count; i++)
                     player.GiveNamedItem(item);
@@ -62,9 +66,9 @@ namespace jRandomSkills
             return new Vector(x, y, z);
         }
 
-        public static void TakeHealth(CCSPlayerPawn pawn, int damage)
+        public static void TakeHealth(CCSPlayerPawn? pawn, int damage)
         {
-            if (pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE)
+            if (pawn == null || !pawn.IsValid || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE)
                 return;
 
             int newHealth = (int)(pawn.Health - damage);
@@ -78,9 +82,9 @@ namespace jRandomSkills
                 });
         }
 
-        public static void AddHealth(CCSPlayerPawn pawn, int extraHealth, int maxHealth = 100)
+        public static void AddHealth(CCSPlayerPawn? pawn, int extraHealth, int maxHealth = 100)
         {
-            if (pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE)
+            if (pawn == null || !pawn.IsValid || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE)
                 return;
 
             int newHealth = (int)(pawn.Health + extraHealth);
@@ -110,12 +114,14 @@ namespace jRandomSkills
 
         public static void SetTeamScores(short ctScore, short tScore, RoundEndReason roundEndReason)
         {
+            if (jRandomSkills.Instance == null || jRandomSkills.Instance.GameRules == null) return;
             UpdateServerTeamScores(ctScore, tScore);
             TerminateRoundFunc.Invoke(jRandomSkills.Instance.GameRules.Handle, 5f, roundEndReason, 0, 0);
         }
 
         public static void TerminateRound(CsTeam winnerTeam)
         {
+            if (jRandomSkills.Instance == null || jRandomSkills.Instance.GameRules == null) return;
             var teams = Utilities.FindAllEntitiesByDesignerName<CCSTeam>("cs_team_manager");
             var ctTeam = teams.First(t => t.IsValid && (CsTeam)t.TeamNum == CsTeam.CounterTerrorist);
             var tTeams = teams.First(t => t.IsValid && (CsTeam)t.TeamNum == CsTeam.Terrorist);
@@ -130,6 +136,7 @@ namespace jRandomSkills
 
         private static void UpdateServerTeamScores(short ctScore, short tScore)
         {
+            if (jRandomSkills.Instance == null || jRandomSkills.Instance.GameRules == null) return;
             int totalRoundsPlayed = ctScore + tScore;
             int maxRounds = ConVar.Find("mp_maxrounds")?.GetPrimitiveValue<int>() ?? 24;
             int halfRounds = maxRounds / 2;

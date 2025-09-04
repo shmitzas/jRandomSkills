@@ -9,7 +9,7 @@ namespace jRandomSkills
     public class Hermit : ISkill
     {
         private const Skills skillName = Skills.Hermit;
-        private static readonly Dictionary<string, int> maxReserveAmmo = new Dictionary<string, int>
+        private static readonly Dictionary<string, int> dictionary = new()
         {
             { "weapon_glock", 120 },
             { "weapon_usp_silencer", 24 },
@@ -47,8 +47,9 @@ namespace jRandomSkills
             { "weapon_m249", 200 },
             { "weapon_negev", 300 }
         };
+        private static readonly Dictionary<string, int> maxReserveAmmo = dictionary;
 
-        private static int healthToAdd = Config.GetValue<int>(skillName, "healthToAdd");
+        private static readonly int healthToAdd = Config.GetValue<int>(skillName, "healthToAdd");
 
         public static void LoadSkill()
         {
@@ -59,14 +60,14 @@ namespace jRandomSkills
                 var attacker = @event.Attacker;
                 if (!Instance.IsPlayerValid(attacker)) return HookResult.Continue;
 
-                var attackerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
                 if (attackerInfo?.Skill != skillName) return HookResult.Continue;
 
-                var pawn = attacker.PlayerPawn.Value;
-                if (pawn == null || !pawn.IsValid) return HookResult.Continue;
+                var pawn = attacker!.PlayerPawn.Value;
+                if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return HookResult.Continue;
 
                 var weapon = pawn.WeaponServices.ActiveWeapon.Value;
-                if (weapon == null || !weapon.IsValid) return HookResult.Continue;
+                if (weapon == null || !weapon.IsValid || weapon.VData == null) return HookResult.Continue;
 
                 var maxReserveAmmoClip = maxReserveAmmo.TryGetValue(weapon.DesignerName, out var reserve) ? reserve : 100;
                 weapon.Clip1 = weapon.VData.MaxClip1;
@@ -80,13 +81,9 @@ namespace jRandomSkills
             });
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ded678", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int healthToAdd = 25) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int HealthToAdd { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ded678", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int healthToAdd = 25) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                HealthToAdd = healthToAdd;
-            }
+            public int HealthToAdd { get; set; } = healthToAdd;
         }
     }
 }

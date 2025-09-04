@@ -10,9 +10,9 @@ namespace jRandomSkills
     public class Poison : ISkill
     {
         private const Skills skillName = Skills.Poison;
-        private static float cooldown = Config.GetValue<float>(skillName, "Cooldown");
-        private static int healthToDamage = Config.GetValue<int>(skillName, "Damage");
-        private static HashSet<CCSPlayerController> poisonedPlayers = new HashSet<CCSPlayerController>();
+        private static readonly float cooldown = Config.GetValue<float>(skillName, "Cooldown");
+        private static readonly int healthToDamage = Config.GetValue<int>(skillName, "Damage");
+        private static readonly HashSet<CCSPlayerController> poisonedPlayers = [];
 
         public static void LoadSkill()
         {
@@ -25,7 +25,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -58,7 +58,7 @@ namespace jRandomSkills
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (playerInfo.SkillChance == 1)
@@ -84,7 +84,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
             SkillUtils.PrintToChat(player, Localization.GetTranslation("poison") + ":", false);
@@ -106,15 +107,10 @@ namespace jRandomSkills
             poisonedPlayers.Remove(player);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#902eff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 1, int damage = 1) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int Damage { get; set; }
-            public float Cooldown { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#902eff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 1, int damage = 1) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                Damage = damage;
-                Cooldown = cooldown;
-            }
+            public int Damage { get; set; } = damage;
+            public float Cooldown { get; set; } = cooldown;
         }
     }
 }

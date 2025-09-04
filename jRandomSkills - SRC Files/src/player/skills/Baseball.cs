@@ -10,10 +10,10 @@ namespace jRandomSkills
     public class Baseball : ISkill
     {
         private const Skills skillName = Skills.Baseball;
-        private static float speedMultipier = Config.GetValue<float>(skillName, "speedMultipier");
-        private static float maxSpeed = Config.GetValue<float>(skillName, "maxSpeed");
-        private static int damageDeal = Config.GetValue<int>(skillName, "damageDeal");
-        private static HashSet<CDecoyProjectile> decoys = new HashSet<CDecoyProjectile>();
+        private static readonly float speedMultipier = Config.GetValue<float>(skillName, "speedMultipier");
+        private static readonly float maxSpeed = Config.GetValue<float>(skillName, "maxSpeed");
+        private static readonly int damageDeal = Config.GetValue<int>(skillName, "damageDeal");
+        private static readonly HashSet<CDecoyProjectile> decoys = [];
 
         public static void LoadSkill()
         {
@@ -26,7 +26,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -44,10 +44,10 @@ namespace jRandomSkills
                 if (weapon != "decoy") return HookResult.Continue;
                 if (!Instance.IsPlayerValid(victim) || !Instance.IsPlayerValid(attacker)) return HookResult.Continue;
 
-                var attackerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
                 if (attackerInfo?.Skill != skillName) return HookResult.Continue;
 
-                SkillUtils.TakeHealth(victim.PlayerPawn.Value, damageDeal);
+                SkillUtils.TakeHealth(victim!.PlayerPawn.Value, damageDeal);
                 return HookResult.Continue;
             });
 
@@ -58,10 +58,15 @@ namespace jRandomSkills
                     return;
 
                 var decoy = @event.As<CDecoyProjectile>();
+                if (decoy == null || !decoy.IsValid || decoy.OwnerEntity == null || decoy.OwnerEntity.Value == null || !decoy.OwnerEntity.Value.IsValid) return;
+                
                 var pawn = decoy.OwnerEntity.Value.As<CCSPlayerPawn>();
+                if (pawn == null || !pawn.IsValid || pawn.Controller == null || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
+                
                 var player = pawn.Controller.Value.As<CCSPlayerController>();
+                if (player == null || !player.IsValid) return;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill != skillName) return;
                 decoys.Add(decoy);
             });
@@ -69,7 +74,8 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventDecoyStarted>((@event, info) =>
             {
                 var player = @event.Userid;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
 
                 var decoy = decoys.FirstOrDefault(d => d.Index == @event.Entityid);
@@ -86,7 +92,7 @@ namespace jRandomSkills
         {
             foreach (var decoy in decoys)
             {
-                if (decoy == null || !decoy.IsValid)
+                if (!decoy.IsValid)
                 {
                     decoys.Remove(decoy);
                     continue;
@@ -114,17 +120,11 @@ namespace jRandomSkills
             SkillUtils.TryGiveWeapon(player, CsItem.DecoyGrenade);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#2effc7", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float speedMultipier = 2f, float maxSpeed = 900f, int damageDeal = 9999) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float SpeedMultipier { get; set; }
-            public float MaxSpeed { get; set; }
-            public float DamageDeal { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#2effc7", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float speedMultipier = 2f, float maxSpeed = 900f, int damageDeal = 9999) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                SpeedMultipier = speedMultipier;
-                MaxSpeed = maxSpeed;
-                DamageDeal = damageDeal;
-            }
+            public float SpeedMultipier { get; set; } = speedMultipier;
+            public float MaxSpeed { get; set; } = maxSpeed;
+            public float DamageDeal { get; set; } = damageDeal;
         }
     }
 }

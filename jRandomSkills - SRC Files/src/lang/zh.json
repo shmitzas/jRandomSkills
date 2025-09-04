@@ -414,6 +414,14 @@
   "healed": "你已被治疗。",
   "game_start": "游戏开始！",
 
+  "vote_started": "投票开始：'{0}'",
+  "vote_timeout": "投票'{0}'超时！",
+  "vote_wait": "您需要等待才能开始另一轮投票！",
+  "vote_same_wait": "您需要等待才能再次发起相同投票！",
+  "vote_not_enough_players": "投票人数不足！",
+  "vote_alredy_voted": "您已投票！",
+  "vote_vote": "投票",
+
   "teammate_skills": "你队友的技能",
   "summary_start": "=============上一回合总结==============",
   "summary_end": "======================================="

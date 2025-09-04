@@ -12,8 +12,8 @@ namespace jRandomSkills
     public class ExplosiveShot : ISkill
     {
         private const Skills skillName = Skills.ExplosiveShot;
-        private static float damage = Config.GetValue<float>(skillName, "damage");
-        private static float damageRadius = Config.GetValue<float>(skillName, "damageRadius");
+        private static readonly float damage = Config.GetValue<float>(skillName, "damage");
+        private static readonly float damageRadius = Config.GetValue<float>(skillName, "damageRadius");
 
         public static void LoadSkill()
         {
@@ -26,7 +26,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -40,7 +40,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             float newChance = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
@@ -72,7 +73,7 @@ namespace jRandomSkills
             if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
                 return HookResult.Continue;
 
-            CCSPlayerPawn attackerPawn = new CCSPlayerPawn(param2.Attacker.Value.Handle);
+            CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
             if (attackerPawn.DesignerName != "player")
                 return HookResult.Continue;
 
@@ -80,7 +81,7 @@ namespace jRandomSkills
                 return HookResult.Continue;
 
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
             if (playerInfo == null || playerInfo.Skill != skillName) return HookResult.Continue;
 
             if (Instance.Random.NextDouble() <= playerInfo.SkillChance)
@@ -88,19 +89,12 @@ namespace jRandomSkills
             return HookResult.Continue;
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#9c0000", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float damage = 10f, float damageRadius = 190f, float chanceFrom = .15f, float chanceTo = .3f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float Damage { get; set; }
-            public float DamageRadius { get; set; }
-            public float ChanceFrom { get; set; }
-            public float ChanceTo { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#9c0000", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float damage = 10f, float damageRadius = 190f, float chanceFrom = .15f, float chanceTo = .3f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                Damage = damage;
-                DamageRadius = damageRadius;
-                ChanceFrom = chanceFrom;
-                ChanceTo = chanceTo;
-            }
+            public float Damage { get; set; } = damage;
+            public float DamageRadius { get; set; } = damageRadius;
+            public float ChanceFrom { get; set; } = chanceFrom;
+            public float ChanceTo { get; set; } = chanceTo;
         }
     }
 }

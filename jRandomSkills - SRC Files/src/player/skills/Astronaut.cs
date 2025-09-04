@@ -21,7 +21,7 @@ namespace jRandomSkills
                 {
                     foreach (var player in Utilities.GetPlayers())
                     {
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         var playerPawn = player.PlayerPawn.Value;
 
                         if (playerInfo?.Skill == skillName && playerPawn != null)
@@ -48,25 +48,22 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            player.Pawn.Value.ActualGravityScale = 1;
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
+            player.PlayerPawn.Value.ActualGravityScale = 1;
         }
 
         private static void ApplyGravityModifier(CCSPlayerController player)
         {
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
             float gravityModifier = (float)Math.Round(Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "chanceFrom")) + Config.GetValue<float>(skillName, "chanceFrom"), 1);
             SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("astronaut")}{ChatColors.Lime}: " + Localization.GetTranslation("astronaut_desc2", gravityModifier), false);
-            player.Pawn.Value.ActualGravityScale = gravityModifier;
+            player.PlayerPawn.Value.ActualGravityScale = gravityModifier;
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#7E10AD", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .1f, float chanceTo = .7f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float ChanceFrom { get; set; }
-            public float ChanceTo { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#7E10AD", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .1f, float chanceTo = .7f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                ChanceFrom = chanceFrom;
-                ChanceTo = chanceTo;
-            }
+            public float ChanceFrom { get; set; } = chanceFrom;
+            public float ChanceTo { get; set; } = chanceTo;
         }
     }
 }

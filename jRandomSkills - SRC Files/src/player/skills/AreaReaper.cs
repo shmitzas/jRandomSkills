@@ -10,6 +10,8 @@ namespace jRandomSkills
     public class AreaReaper : ISkill
     {
         private const Skills skillName = Skills.AreaReaper;
+        private static readonly string[] bombsiteA = ["A", "a"];
+        private static readonly string[] bombsiteB = ["B", "b"];
 
         public static void LoadSkill()
         {
@@ -22,7 +24,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -44,7 +46,7 @@ namespace jRandomSkills
 
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (playerInfo.SkillChance == 1)
@@ -53,7 +55,7 @@ namespace jRandomSkills
                 return;
             }
 
-            int site = new string[]{ "A", "a" }.Contains(commands[0]) ? 0 : new string[] { "B", "b" }.Contains(commands[0]) ? 1 : -1;
+            int site = bombsiteA.Contains(commands[0]) ? 0 : bombsiteB.Contains(commands[0]) ? 1 : -1;
             if (site == -1) {
                 player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("areareaper_incorrect_site")}");
                 return;
@@ -72,7 +74,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
             SkillUtils.PrintToChat(player, Localization.GetTranslation("areareaper") + ":", false);
@@ -81,9 +84,11 @@ namespace jRandomSkills
             player.PrintToChat($" {ChatColors.Green}· {ChatColors.Red}/t {ChatColors.Green}B");
         }
 
+#pragma warning disable IDE0060 // Usuń nieużywany parametr
         public static void DisableSkill(CCSPlayerController player)
+#pragma warning restore IDE0060 // Usuń nieużywany parametr
         {
-            if (Instance.skillPlayer.FirstOrDefault(p => p.Skill == skillName) != null)
+            if (Instance.SkillPlayer.FirstOrDefault(p => p.Skill == skillName) != null)
                 return;
             EnableBombsite();
         }
@@ -95,11 +100,8 @@ namespace jRandomSkills
                 bombTarget.AcceptInput("Enable");
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#edf5b5", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#edf5b5", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

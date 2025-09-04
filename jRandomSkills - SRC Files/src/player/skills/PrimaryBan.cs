@@ -10,12 +10,12 @@ namespace jRandomSkills
     public class PrimaryBan : ISkill
     {
         private const Skills skillName = Skills.PrimaryBan;
-        private static HashSet<ulong> bannedPlayers = new HashSet<ulong>();
-        private static string[] disabledWeapons =
-        {
+        private static readonly HashSet<ulong> bannedPlayers = [];
+        private static readonly string[] disabledWeapons =
+        [
             "ak47", "m4a1", "m4a4", "m4a1_silencer", "famas", "galilar", "aug", "sg553", "mp9", "mac10", "bizon", "mp7", "ump45",
             "p90", "mp5sd", "ssg08", "awp", "scar20", "g3sg1", "nova", "xm1014", "mag7", "sawedoff", "m249", "negev"
-        };
+        ];
 
         public static void LoadSkill()
         {
@@ -28,7 +28,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -47,7 +47,7 @@ namespace jRandomSkills
             {
                 var player = @event.Userid;
                 var weapon = @event.Item;
-
+                if (player == null || !player.IsValid) return HookResult.Continue;
                 if (!bannedPlayers.Contains(player.SteamID) || !disabledWeapons.Contains(weapon)) return HookResult.Continue;
                 player.ExecuteClientCommand("slot3");
                 return HookResult.Stop;
@@ -57,7 +57,7 @@ namespace jRandomSkills
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (playerInfo.SkillChance == 1)
@@ -94,7 +94,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
             SkillUtils.PrintToChat(player, Localization.GetTranslation("primaryban") + ":", false);
@@ -116,11 +117,8 @@ namespace jRandomSkills
             bannedPlayers.Remove(player.SteamID);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ffc061", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ffc061", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

@@ -13,35 +13,17 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.Chicken;
         private static bool roundEnd = false;
-        private static string[] disabledWeapons =
-        {
-            "weapon_ak47",
-            "weapon_m4a4",
-            "weapon_m4a1",
-            "weapon_m4a1_silencer",
-            "weapon_famas",
-            "weapon_galilar",
-            "weapon_aug",
-            "weapon_sg553", 
-            "weapon_mp9",
-            "weapon_mac10",
-            "weapon_bizon",
-            "weapon_mp7",
-            "weapon_ump45",
-            "weapon_p90",
-            "weapon_mp5sd",
-            "weapon_ssg08",
-            "weapon_awp",
-            "weapon_scar20",
-            "weapon_g3sg1",
-            "weapon_nova",
-            "weapon_xm1014",
-            "weapon_mag7",
-            "weapon_sawedoff",
-            "weapon_m249",
+        private static readonly string[] disabledWeapons =
+        [
+            "weapon_ak47", "weapon_m4a4", "weapon_m4a1", "weapon_m4a1_silencer",
+            "weapon_famas", "weapon_galilar", "weapon_aug", "weapon_sg553", 
+            "weapon_mp9", "weapon_mac10", "weapon_bizon", "weapon_mp7",
+            "weapon_ump45", "weapon_p90", "weapon_mp5sd", "weapon_ssg08",
+            "weapon_awp", "weapon_scar20", "weapon_g3sg1", "weapon_nova",
+            "weapon_xm1014", "weapon_mag7", "weapon_sawedoff", "weapon_m249",
             "weapon_negev"
-        };
-        private static Dictionary<CCSPlayerController, CBaseModelEntity> chickens = new Dictionary<CCSPlayerController, CBaseModelEntity>();
+        ];
+        private static readonly Dictionary<CCSPlayerController, CBaseModelEntity> chickens = [];
 
         public static void LoadSkill()
         {
@@ -55,7 +37,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -70,7 +52,7 @@ namespace jRandomSkills
                 {
                     if (!Instance.IsPlayerValid(player)) continue;
 
-                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill != skillName) continue;
                     DisableSkill(player);
                 }
@@ -81,9 +63,9 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
-                if (!player.IsValid || player.PlayerPawn.Value == null) return HookResult.Continue;
+                if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                     DisableSkill(player);
 
@@ -93,7 +75,8 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventItemPickup>((@event, info) =>
             {
                 var player = @event.Userid;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
                 SetWeaponAttack(player, true);
                 return HookResult.Continue;
@@ -112,13 +95,14 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn?.Value;
-            if (playerPawn != null)
+            if (playerPawn != null && playerPawn.IsValid)
             {
                 playerPawn.VelocityModifier = 1.1f;
 
                 playerPawn.Health = 50;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
 
+                if (playerPawn.CBodyComponent == null || playerPawn.CBodyComponent.SceneNode == null) return;
                 playerPawn.CBodyComponent.SceneNode.Scale = 0.2f;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
 
@@ -141,6 +125,7 @@ namespace jRandomSkills
                 playerPawn.Health += 50;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
 
+                if (playerPawn.CBodyComponent == null || playerPawn.CBodyComponent.SceneNode == null) return;
                 playerPawn.CBodyComponent.SceneNode.Scale = 1f;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
 
@@ -163,11 +148,11 @@ namespace jRandomSkills
         {
             if (roundEnd || player == null || !player.IsValid) return;
             var pawn = player?.PlayerPawn?.Value;
-            if (pawn == null || !pawn.IsValid) return;
+            if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null || pawn.WeaponServices.MyWeapons == null) return;
 
-            foreach (var weapon in pawn?.WeaponServices?.MyWeapons)
+            foreach (var weapon in pawn.WeaponServices.MyWeapons)
                 if (weapon != null && weapon.IsValid && weapon.Value != null && weapon.Value.IsValid)
-                    if (disabledWeapons.Contains(weapon?.Value?.DesignerName))
+                    if (disabledWeapons.Contains(weapon.Value.DesignerName))
                     {
                         weapon.Value.NextPrimaryAttackTick = disableWeapon ? int.MaxValue : Server.TickCount;
                         weapon.Value.NextSecondaryAttackTick = disableWeapon ? int.MaxValue : Server.TickCount;
@@ -180,10 +165,11 @@ namespace jRandomSkills
         private static void CreateChicken(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
+            if (playerPawn == null || !playerPawn.IsValid) return;
             var chickenModel = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic");
             if (chickenModel == null)
                 return;
-            Vector pos = new Vector(0, 0, 0);
+            Vector pos = new(0, 0, 0);
 
             chickenModel.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(chickenModel.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             chickenModel.SetModel("models/chicken/chicken.vmdl");
@@ -195,22 +181,22 @@ namespace jRandomSkills
             Instance.AddTimer(1f, () => chickens.TryAdd(player, chickenModel));
         }
 
-        private static async void OnTick()
+        private static void OnTick()
         {
             foreach (var valuePair in chickens)
             {
                 var player = valuePair.Key;
                 var chicken = valuePair.Value;
                 if (player == null || !player.IsValid) continue;
-                if (chicken == null && !chicken.IsValid) continue;
+                if (chicken == null || !chicken.IsValid) continue;
 
                 var pawn = player.Pawn.Value;
-                if (pawn == null && !pawn.IsValid) continue;
+                if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null || chicken.AbsOrigin == null) continue;
 
                 float X = (float)Math.Round(pawn.AbsOrigin.X, 2);
                 float Y = (float)Math.Round(pawn.AbsOrigin.Y, 2);
                 float Z = (float)Math.Round(pawn.AbsOrigin.Z, 2);
-                Vector pos = new Vector(X, Y, Z);
+                Vector pos = new(X, Y, Z);
                 if (chicken.AbsOrigin.X != pos.X || chicken.AbsOrigin.Y != pos.Y || chicken.AbsOrigin.Z != pos.Z)
                     chicken.Teleport(pos, pawn.AbsRotation, null);
                 UpdateHUD(player);
@@ -219,10 +205,14 @@ namespace jRandomSkills
 
         private static void UpdateHUD(CCSPlayerController player)
         {
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
+            var pawn = player.PlayerPawn.Value;
+            if (pawn.WeaponServices == null || pawn.WeaponServices.ActiveWeapon == null || !pawn.WeaponServices.ActiveWeapon.IsValid || pawn.WeaponServices.ActiveWeapon.Value == null || !pawn.WeaponServices.ActiveWeapon.Value.IsValid) return;
+
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
             if (skillData == null) return;
 
-            var weapon = player.PlayerPawn.Value.WeaponServices.ActiveWeapon.Value;
+            var weapon = pawn.WeaponServices.ActiveWeapon.Value;
             if (weapon == null || !disabledWeapons.Contains(weapon.DesignerName)) return;
 
             string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
@@ -233,11 +223,8 @@ namespace jRandomSkills
             player.PrintToCenterHtml(hudContent);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FF8B42", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#FF8B42", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

@@ -25,7 +25,7 @@ namespace jRandomSkills
                         if (!Instance.IsPlayerValid(player)) continue;
                         var playerPawn = player.PlayerPawn?.Value;
 
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -37,9 +37,9 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
-                if (!player.IsValid || player.PlayerPawn.Value == null) return HookResult.Continue;
+                if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                     DisableSkill(player);
 
@@ -50,9 +50,9 @@ namespace jRandomSkills
             {
                 var player = @event.Userid;
                 if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
-                EnableSkill(player);
+                EnableSkill(player!);
                 return HookResult.Continue;
             });
 
@@ -62,18 +62,18 @@ namespace jRandomSkills
                 var weapon = @event.Item;
                 
                 if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
 
                 if (weapon == "c4")
                 {
-                    SetPlayerVisibility(player, false);
-                    SetWeaponVisibility(player, false);
+                    SetPlayerVisibility(player!, false);
+                    SetWeaponVisibility(player!, false);
                 }
                 else
                 {
-                    SetPlayerVisibility(player, true);
-                    SetWeaponVisibility(player, true);
+                    SetPlayerVisibility(player!, true);
+                    SetWeaponVisibility(player!, true);
                 }
                 return HookResult.Continue;
             });
@@ -81,8 +81,16 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var activeWeapon = player.PlayerPawn.Value.WeaponServices.ActiveWeapon.Value;
-            if (activeWeapon == null || !activeWeapon.IsValid || activeWeapon.DesignerName != "weapon_c4") return;
+            if (player == null || !player.IsValid) return;
+            var playerPawn = player.PlayerPawn.Value;
+
+            if (playerPawn == null || !playerPawn.IsValid) return;
+            if (playerPawn.WeaponServices == null || playerPawn.WeaponServices.ActiveWeapon == null || !playerPawn.WeaponServices.ActiveWeapon.IsValid) return;
+            if (playerPawn.WeaponServices.ActiveWeapon.Value == null || !playerPawn.WeaponServices.ActiveWeapon.Value.IsValid) return;
+
+            var activeWeapon = playerPawn.WeaponServices.ActiveWeapon.Value;
+            if (activeWeapon.DesignerName != "weapon_c4") return;
+
             SetPlayerVisibility(player, false);
             SetWeaponVisibility(player, false);
         }
@@ -97,7 +105,7 @@ namespace jRandomSkills
         private static void SetPlayerVisibility(CCSPlayerController player, bool enabled)
         {
             var playerPawn = player.PlayerPawn.Value;
-            if (playerPawn != null)
+            if (playerPawn != null && playerPawn.IsValid)
             {
                 var color = Color.FromArgb(enabled ? 255 : 0, 255, 255, 255);
                 playerPawn.Render = color;
@@ -109,10 +117,12 @@ namespace jRandomSkills
         {
             if (!Instance.IsPlayerValid(player)) return;
             var playerPawn = player.PlayerPawn.Value;
+            if (playerPawn == null || !playerPawn.IsValid) return;
+            var weaponServices = playerPawn.WeaponServices;
+            if (weaponServices == null) return;
 
             var color = Color.FromArgb(enabled ? 255 : 0, 255, 255, 255);
-
-            foreach (var weapon in playerPawn.WeaponServices?.MyWeapons)
+            foreach (var weapon in weaponServices.MyWeapons)
             {
                 if (weapon != null && weapon.IsValid && weapon.Value != null && weapon.Value.IsValid)
                 {
@@ -122,11 +132,8 @@ namespace jRandomSkills
             }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#00911f", CsTeam onlyTeam = CsTeam.Terrorist, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#00911f", CsTeam onlyTeam = CsTeam.Terrorist, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

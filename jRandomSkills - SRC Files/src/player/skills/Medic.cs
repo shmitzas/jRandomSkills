@@ -11,10 +11,10 @@ namespace jRandomSkills
     public class Medic : ISkill
     {
         private const Skills skillName = Skills.Medic;
-        private static int healthToAdd = Config.GetValue<int>(skillName, "healthToAdd");
-        private static int healthShotLimit = Config.GetValue<int>(skillName, "healthShotLimit");
-        private static float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
-        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = new Dictionary<ulong, PlayerSkillInfo>();
+        private static readonly int healthToAdd = Config.GetValue<int>(skillName, "healthToAdd");
+        private static readonly int healthShotLimit = Config.GetValue<int>(skillName, "healthShotLimit");
+        private static readonly float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
+        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
 
         public static void LoadSkill()
         {
@@ -27,7 +27,7 @@ namespace jRandomSkills
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (!Instance.IsPlayerValid(player)) return;
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill == skillName)
                             EnableSkill(player);
                     }
@@ -45,11 +45,10 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
-
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                        SkillPlayerInfo.Remove(player.SteamID);
+                      SkillPlayerInfo.Remove(player.SteamID);
                 return HookResult.Continue;
             });
 
@@ -57,7 +56,7 @@ namespace jRandomSkills
             {
                 foreach (var player in Utilities.GetPlayers())
                 {
-                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill == skillName)
                         if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                             UpdateHUD(player, skillInfo);
@@ -78,8 +77,7 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                SkillPlayerInfo.Remove(player.SteamID);
+            SkillPlayerInfo.Remove(player.SteamID);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
@@ -101,7 +99,7 @@ namespace jRandomSkills
             string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
             string remainingLine = cooldown != 0
                 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>"
-                : $"<font class='fontSize-m' color='#{(skillInfo.Count == 0 ? "FF0000" : "00FF00")}'>{skillInfo.Count}/{healthShotLimit}</font> <br>";
+                : $"<font class='fontSize-m' color='#{(skillInfo == null || skillInfo.Count == 0 ? "FF0000" : "00FF00")}'>{(skillInfo == null ? 0 : skillInfo.Count)}/{healthShotLimit}</font> <br>";
 
             var hudContent = infoLine + skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
@@ -134,17 +132,11 @@ namespace jRandomSkills
             public DateTime Cooldown { get; set; }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#10c212", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int healthToAdd = 50, int healthShotLimit = 3, float cooldown = 1f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int HealthToAdd { get; set; }
-            public int HealthShotLimit { get; set; }
-            public float Cooldown { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#10c212", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int healthToAdd = 50, int healthShotLimit = 3, float cooldown = 1f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                HealthToAdd = healthToAdd;
-                HealthShotLimit = healthShotLimit;
-                Cooldown = cooldown;
-            }
+            public int HealthToAdd { get; set; } = healthToAdd;
+            public int HealthShotLimit { get; set; } = healthShotLimit;
+            public float Cooldown { get; set; } = cooldown;
         }
     }
 }

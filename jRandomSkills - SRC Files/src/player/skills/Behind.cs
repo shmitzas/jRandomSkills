@@ -23,7 +23,7 @@ namespace jRandomSkills
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
 
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill != skillName) continue;
                         EnableSkill(player);
                     }
@@ -40,9 +40,9 @@ namespace jRandomSkills
                 if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) 
                     return HookResult.Continue;
 
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
-                if (playerInfo?.Skill == skillName && victim.PawnIsAlive)
+                if (playerInfo?.Skill == skillName && victim!.PawnIsAlive)
                 {
                     if (Instance.Random.NextDouble() <= playerInfo.SkillChance)
                         RotateEnemy(victim);
@@ -54,7 +54,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             float newChance = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
@@ -64,30 +65,27 @@ namespace jRandomSkills
 
         private static void RotateEnemy(CCSPlayerController player)
         {
-            if (player.PlayerPawn.Value.LifeState != (int)LifeState_t.LIFE_ALIVE)
-                return;
+            if (player == null || !player.IsValid) return;
+            var pawn = player.PlayerPawn.Value;
 
-            var currentPosition = player.PlayerPawn.Value.AbsOrigin;
-            var currentAngles = player.PlayerPawn.Value.EyeAngles;
+            if (pawn == null || !pawn.IsValid || pawn.LifeState != (int)LifeState_t.LIFE_ALIVE) return;
 
-            QAngle newAngles = new QAngle(
+            var currentPosition = pawn.AbsOrigin;
+            var currentAngles = pawn.EyeAngles;
+
+            QAngle newAngles = new(
                 currentAngles.X,
                 currentAngles.Y + 180,
                 currentAngles.Z
             );
 
-            player.PlayerPawn.Value.Teleport(currentPosition, newAngles, new Vector(0, 0, 0));
+            pawn.Teleport(currentPosition, newAngles, new Vector(0, 0, 0));
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#00FF00", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .2f, float chanceTo = .4f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float ChanceFrom { get; set; }
-            public float ChanceTo { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#00FF00", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .2f, float chanceTo = .4f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                ChanceFrom = chanceFrom;
-                ChanceTo = chanceTo;
-            }
+            public float ChanceFrom { get; set; } = chanceFrom;
+            public float ChanceTo { get; set; } = chanceTo;
         }
     }
 }

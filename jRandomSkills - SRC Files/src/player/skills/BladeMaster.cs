@@ -9,9 +9,9 @@ namespace jRandomSkills
     public class BladeMaster : ISkill
     {
         private const Skills skillName = Skills.BladeMaster;
-        private static string[] noReflectionWeapon = { "inferno", "flashbang", "smokegrenade", "decoy", "hegrenade", "knife", "taser" };
-        private static float torseReflectionChance = Config.GetValue<float>(skillName, "torseReflectionChance") * 100;
-        private static float legReflectionChance = Config.GetValue<float>(skillName, "legReflectionChance") * 100;
+        private static readonly string[] noReflectionWeapon = ["inferno", "flashbang", "smokegrenade", "decoy", "hegrenade", "knife", "taser"];
+        private static readonly float torseReflectionChance = Config.GetValue<float>(skillName, "torseReflectionChance") * 100;
+        private static readonly float legReflectionChance = Config.GetValue<float>(skillName, "legReflectionChance") * 100;
 
         public static void LoadSkill()
         {
@@ -25,7 +25,7 @@ namespace jRandomSkills
                 string weapon = @event.Weapon;
 
                 if (noReflectionWeapon.Contains(weapon) || !Instance.IsPlayerValid(victim)) return HookResult.Continue;
-                var victimInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
+                var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
                 if (victimInfo == null || victimInfo.Skill != skillName) return HookResult.Continue;
 
                 int chance = Instance.Random.Next(0, 101);
@@ -38,11 +38,12 @@ namespace jRandomSkills
                     if (chance > torseReflectionChance)
                     return HookResult.Continue;
 
-                var pawn = victim.PlayerPawn.Value;
+                var pawn = victim!.PlayerPawn.Value;
                 if (pawn == null || !pawn.IsValid) return HookResult.Continue;
 
-                var activeWeapon = pawn.WeaponServices.ActiveWeapon.Value;
-                if (activeWeapon == null || !activeWeapon.IsValid || activeWeapon.DesignerName != "weapon_knife") return HookResult.Continue;
+                var weaponServices = pawn.WeaponServices;
+                if (weaponServices == null) return HookResult.Continue;
+                if (weaponServices.ActiveWeapon == null || !weaponServices.ActiveWeapon.IsValid || weaponServices.ActiveWeapon.Value == null || !weaponServices.ActiveWeapon.Value.IsValid || weaponServices.ActiveWeapon.Value.DesignerName != "weapon_knife") return HookResult.Continue;
 
                 RestoreHealth(victim, damage);
                 return HookResult.Stop;
@@ -52,6 +53,7 @@ namespace jRandomSkills
         private static void RestoreHealth(CCSPlayerController victim, float damage)
         {
             var playerPawn = victim.PlayerPawn.Value;
+            if (playerPawn == null || !playerPawn.IsValid || playerPawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) return;
             var newHealth = playerPawn.Health + damage;
 
             if (newHealth > 100)
@@ -61,15 +63,10 @@ namespace jRandomSkills
             Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#cc7504", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float torseReflectionChance = .95f, float legReflectionChance = .80f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float TorseReflectionChance { get; set; }
-            public float LegReflectionChance { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#cc7504", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float torseReflectionChance = .95f, float legReflectionChance = .80f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                TorseReflectionChance = torseReflectionChance;
-                LegReflectionChance = legReflectionChance;
-            }
+            public float TorseReflectionChance { get; set; } = torseReflectionChance;
+            public float LegReflectionChance { get; set; } = legReflectionChance;
         }
     }
 }

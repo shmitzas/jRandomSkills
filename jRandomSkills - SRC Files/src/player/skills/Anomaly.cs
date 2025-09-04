@@ -11,10 +11,10 @@ namespace jRandomSkills
     public class Anomaly : ISkill
     {
         private const Skills skillName = Skills.Anomaly;
-        private static int maxSize = Config.GetValue<int>(skillName, "secondsInBack");
-        private static float tickRate = 64;
-        private static float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
-        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = new Dictionary<ulong, PlayerSkillInfo>();
+        private static readonly int maxSize = Config.GetValue<int>(skillName, "secondsInBack");
+        private static readonly float tickRate = 64;
+        private static readonly float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
+        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
 
         public static void LoadSkill()
         {
@@ -26,7 +26,7 @@ namespace jRandomSkills
                 {
                     foreach (var player in Utilities.GetPlayers())
                     {
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill == skillName)
                             EnableSkill(player);
                     }
@@ -44,11 +44,10 @@ namespace jRandomSkills
             Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var player = @event.Userid;
-
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (player == null || !player.IsValid) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                        SkillPlayerInfo.Remove(player.SteamID);
+                    SkillPlayerInfo.Remove(player.SteamID);
 
                 return HookResult.Continue;
             });
@@ -57,15 +56,16 @@ namespace jRandomSkills
             {
                 foreach (var player in Utilities.GetPlayers())
                 {
-                    var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (playerInfo?.Skill == skillName)
                         if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                         {
                             UpdateHUD(player, skillInfo);
                             if (Server.TickCount % tickRate != 0) return;
                             var pawn = player.PlayerPawn.Value;
-                            if (pawn != null && pawn.IsValid)
+                            if (pawn != null && pawn.IsValid && pawn.AbsOrigin != null)
                             {
+                                if (skillInfo.LastRotations == null || skillInfo.LastPositions == null) continue;
                                 skillInfo.LastPositions.Add(new Vector(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z));
                                 skillInfo.LastRotations.Add(new QAngle(pawn.EyeAngles.X, pawn.EyeAngles.Y, pawn.EyeAngles.Z));
                                 if (skillInfo.LastRotations.Count > maxSize)
@@ -86,15 +86,14 @@ namespace jRandomSkills
                 SteamID = player.SteamID,
                 CanUse = true,
                 Cooldown = DateTime.MinValue,
-                LastPositions = new List<Vector>(),
-                LastRotations = new List<QAngle>(), 
+                LastPositions = [],
+                LastRotations = [], 
             };
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (SkillPlayerInfo.ContainsKey(player.SteamID))
-                SkillPlayerInfo.Remove(player.SteamID);
+            SkillPlayerInfo.Remove(player.SteamID);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
@@ -132,8 +131,9 @@ namespace jRandomSkills
                 {
                     skillInfo.CanUse = false;
                     skillInfo.Cooldown = DateTime.Now;
-                    Vector lastPosition = skillInfo.LastPositions.FirstOrDefault();
-                    QAngle lastRotation = skillInfo.LastRotations.FirstOrDefault();
+                    if (skillInfo.LastRotations == null || skillInfo.LastRotations.Count == 0 || skillInfo.LastPositions == null || skillInfo.LastPositions.Count == 0) return;
+                    Vector? lastPosition = skillInfo.LastPositions.FirstOrDefault();
+                    QAngle? lastRotation = skillInfo.LastRotations.FirstOrDefault();
                     if (lastPosition != null && lastRotation != null)
                         playerPawn.Teleport(lastPosition, lastRotation, null);
                 }
@@ -145,19 +145,14 @@ namespace jRandomSkills
             public ulong SteamID { get; set; }
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
-            public List<Vector> LastPositions { get; set; }
-            public List<QAngle> LastRotations { get; set; }
+            public List<Vector>? LastPositions { get; set; }
+            public List<QAngle>? LastRotations { get; set; }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#a86eff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int secondsInBack = 5, float cooldown = 15) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int SecondsInBack { get; set; }
-            public float Cooldown { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#a86eff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int secondsInBack = 5, float cooldown = 15) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                SecondsInBack = secondsInBack;
-                Cooldown = cooldown;
-            }
+            public int SecondsInBack { get; set; } = secondsInBack;
+            public float Cooldown { get; set; } = cooldown;
         }
     }
 }

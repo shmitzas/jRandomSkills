@@ -12,7 +12,7 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.Wallhack;
         private static bool exists = false;
-        private static List<(CDynamicProp, CDynamicProp)> glows = new List<(CDynamicProp, CDynamicProp)>();
+        private static readonly List<(CDynamicProp, CDynamicProp)> glows = [];
 
         public static void LoadSkill()
         {
@@ -27,7 +27,7 @@ namespace jRandomSkills
                     {
                         if (!Instance.IsPlayerValid(player)) continue;
 
-                        var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                         if (playerInfo?.Skill == skillName)
                             EnableSkill(player);
                     }
@@ -55,10 +55,10 @@ namespace jRandomSkills
             foreach (var (info, player) in infoList)
             {
                 if (player == null) continue;
-                var playerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
 
                 var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
-                var observerInfo = Instance.skillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
+                var observerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
 
                 if (playerInfo?.Skill == skillName || (observerInfo != null && observerInfo?.Skill == skillName))
                     continue;
@@ -79,12 +79,12 @@ namespace jRandomSkills
             SetGlowEffectForEnemies(player);
         }
 
-        private static async void SetGlowEffectForEnemies(CCSPlayerController player)
+        private static void SetGlowEffectForEnemies(CCSPlayerController player)
         {
             CsTeam originalTeam = player.Team;
             foreach (var enemy in Utilities.GetPlayers().FindAll(p => p.Team != originalTeam && p.PawnIsAlive))
             {
-                var enemyInfo = Instance.skillPlayer.FirstOrDefault(e => e.SteamID == enemy.SteamID);
+                var enemyInfo = Instance.SkillPlayer.FirstOrDefault(e => e.SteamID == enemy.SteamID);
                 if (enemyInfo?.Skill == Skills.Ghost)
                     return;
 
@@ -119,11 +119,8 @@ namespace jRandomSkills
             }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#5d00ff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#5d00ff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }
