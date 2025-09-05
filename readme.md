@@ -38,7 +38,7 @@ Join the 3v3 test server and try out the jRandomSkills plugin:
 Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.html).
 
 
-## ✨ Current Skills (102)
+## ✨ Current Skills (104)
 <details>
 <summary>The table below lists all available skills in the game, along with their descriptions.</summary>
 
@@ -96,6 +96,7 @@ Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.
 | Life Swap | Choose a player to swap health with | - |
 | Long Knife | A primary knife attack deals damage regardless of distance | - |
 | Long Zeus | Zeus deals damage regardless of distance | - |
+| Magnifier | Forces the enemy's screen to zoom in, reducing their field of view | - |
 | Medic | Click [css_useSkill] to use a healing charge that restores 50 health | 1 s  |
 | Taxman | Choose a player to swap money with  | - |
 | Muhammed | You explode upon death, killing nearby players  | - |
@@ -141,6 +142,7 @@ Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.
 | Teleporter | You swap places with the hit enemy  | - |
 | Thief | You can steal a skill from a chosen player | - |
 | Third Eye | Click [css_useSkill] to activate third-person view  | 0 s  |
+| Thorns | Your opponent will receive a portion of the damage that they inflicted on you | - |
 | Toxic Smoke  | Your smoke grenades deal damage  | - |
 | Wallhack | You can see enemies through walls | - |
 | Watchmaker | Every grenade throw alters the round time  | - |
@@ -183,7 +185,7 @@ Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.
 
 | Command | Example | Description | Permissions |
 | - | - | - | - |
-| `!setskill <playerName> <skill>` | `!setskill Juzlus Aimbot` | Giving skill to a player | `@jRandmosSkills/admin` |
+| `!setskill <playerName/steamID> <skill>` | `!setskill Juzlus Aimbot` | Giving skill to a player | `@jRandmosSkills/admin` |
 | `!skills` | `!skills` | List of skills | - |
 | `!map <mapName>` | `!map de_nuke` | Change map | `@jRandmosSkills/admin` |
 | `!map <mapWorkshopId>` | `!map 3332005394` | Change map from workshop | `@jRandmosSkills/admin` |
@@ -195,6 +197,8 @@ Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.
 | `!pause` | `!pause` | Pause the game | `@jRandmosSkills/admin` |
 | `!heal` | `!heal` | Restore 100 health points | `@jRandmosSkills/root` |
 | `!setscore <CT> <TT>` | `!setscore 10 7` | Set the game score | `@jRandmosSkills/root` |
+| `!setstaticskill <playerName/steamID> <skill>` | `!setstaticskill Juzlus Aimbot` | Giving a player a permanent skill | `@jRandmosSkills/admin` |
+| `!setstaticskill <playerName/steamID> None` | `!setstaticskill Juzlus None` | Back to normal | `@jRandmosSkills/admin` |
 </details>
 
 ## 🔑 Permissions
@@ -217,31 +221,32 @@ All skills can be customized in the **`Config.cfg`** file located in the **`game
 
 ```json
 {
-    “Settings”: {
-        “LangCode”: “en”,               // Plugin language: en, pl, pt-br, zh
-        “GameMode”: 0,                  // Game mode: 
-                                        // 0 - Random skills for each player
+    "Settings": {
+        "LangCode": "en",               // Plugin language: en, pl, pt-br, zh
+        "GameMode": 3,                  // Game mode: 
+                                        // 0 - Random skills for each player (It can't be the same twice in a row)
                                         // 1 - Same skills for the whole team
                                         // 2 - Same skills for all players
-                                        // 3 - Debug: Skills are assigned in turn
-        “KillerSkillInfo”: true,        // Show killer's skill in chat
-        “TeamMateSkillInfo”: true,      // Show allies' skills in chat
-        “SummaryAfterTheRound”: true,   // Show summary of the last round
-        “DebugMode”: true,              // Write activity to the ‘Debug’ folder
+                                        // 3 - Random skills for each player (It can't be the same until the map changes)
+                                        // 4 - Debug: Skills are assigned in turn
+        "KillerSkillInfo": true,        // Show killer's skill in chat
+        "TeamMateSkillInfo": true,      // Show allies' skills in chat
+        "SummaryAfterTheRound": true,   // Show summary of the last round
+        "DebugMode": true,              // Write activity to the ‘Debug’ folder
         ...
     },
-    “SkillsInfo”: [
-    {
-    “NeedsTeammates”: false,            // Requires other players on the team
-    “OnlyTeam”: 0,                      // Skill availability:
+    "SkillsInfo": [
+        {
+            "NeedsTeammates": false,    // Requires other players on the team
+            "OnlyTeam": 0,              // Skill availability:
                                         // 0 - Everyone
                                         // 2 - Terrorist
                                         // 3 - CounterTerrorist
-    “Color”: “#ff0000”,                 // Skill color
-    “Active”: true,                     // Enabled on startup
-    “Name”: “Aimbot”                    // Skill name
-    },
-    ...
+            "Color": "#ff0000",         // Skill color
+            "Active": true,             // Enabled on startup
+            "Name": "Aimbot"            // Skill name
+        },
+        ...
     ]
 }
 ```
@@ -253,6 +258,47 @@ This plugin uses content from the following projects:
 - [ChaseMod](https://github.com/ipsvn/ChaseMod/blob/master/Utils/Memory/CCSMatch.cs) by [ipsvn](https://github.com/ipsvn) - round score management
 
 ## 📋 Changelog
+
+<details>
+<summary><b>v1.1.2</b></summary>
+  
+- #### General:
+    - ###### Skills disabled during warm-up.
+    - ###### Added general validation for undefined values.
+    - ###### Added command usage and map changes to debug log.
+    - ###### The `!setstaticskill` command has been added, which permanently assigns a specific skill to a player.
+    - ###### Commands can have custom permissions set in the config file.
+    - ###### New game mode: Skills can't be repeated until the map changes (Set as default).
+    - ###### Added a voting system for commands such as: `!start`, `!map`, `!swap`, `!shuffle`, `!pause`, `!setscore` (configurable)
+    - ###### Added the ability to search for players by steamID for the !setskill command.
+- #### Skill improvements:
+    - ##### Pawel Jumper:
+        - ###### Gives a random number of extra jumps instead of just one.
+        - ###### Added to config: minimum and maximum number of extra jumps.
+    - ##### Chicken:
+        - ###### The chicken is invisible to the player with skill.
+    - ##### Fortnite:
+        - ###### The barricade now has 115 HP instead of disappearing after one shot.
+        - ###### Added to config: hp barricade and barricade model.
+    - ##### Glaz:
+        - ###### Players observing you also cannot see smoke grenades.
+    - ##### Wallhack:
+        - ###### Players observing you can also see through walls.
+    - ##### Rubber Bullets:
+        - ###### Fixed an error with adding an existing key.
+    - ##### Ninja:
+        - ###### Weapon transmit has been disabled, so charms and name tags are not visible.
+    - ##### Ghost:
+        - ###### Weapon transmit has been disabled, so charms and name tags are not visible.
+    - ##### C4 Camouflage:
+        - ###### Weapon transmit has been disabled, so charms and name tags are not visible.
+- #### New skills:
+    - ##### Magnifier:
+        - ###### Forces the enemy's screen to zoom in, reducing their field of view.
+    - ##### Thorns:
+        - ###### Your opponent will receive a portion of the damage that they inflicted on you.
+
+</details>
 
 <details>
 <summary><b>v1.1.1</b></summary>
@@ -273,127 +319,127 @@ This plugin uses content from the following projects:
     - ###### Added weapon receiving for skills associated with them (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)).
     - ###### Introduced general fixes and resolved bugs.
 - #### New skills:
-    - ##### Anomaly
+    - ##### Anomaly:
         - ###### You rewind a few seconds back in time. Cooldown: 15 s.
-    - ##### Zone Reaper
+    - ##### Zone Reaper:
         - ###### You can choose a bomb site to deactivate.
-    - ##### Assassin
+    - ##### Assassin:
         - ###### You deal increased damage to enemies from behind.
-    - ##### Baseball Player
+    - ##### Baseball Player:
         - ###### Your decoy bounces off walls and instantly kills an enemy on impact.
-    - ##### Blademaster
+    - ##### Blademaster:
         - ###### While holding a knife, you have a high chance to deflect a shot.
-    - ##### C4 Camouflage
+    - ##### C4 Camouflage:
         - ###### You are invisible while holding the bomb.
-    - ##### Chillout
+    - ##### Chillout:
         - ###### Planting the bomb takes significantly longer.
-    - ##### Cutter
+    - ##### Cutter:
         - ###### Instant kill with a knife.
-    - ##### Darkness
+    - ##### Darkness:
         - ###### Applies a darkness effect to a chosen enemy.
-    - ##### Deactivator
+    - ##### Deactivator:
         - ###### Choose a player whose skill you want to disable.
-    - ##### Deaf
+    - ##### Deaf:
         - ###### Choose a player to mute all sounds for.
-    - ##### Rangefinder
+    - ##### Rangefinder:
         - ###### You can see the distance to the nearest enemy.
-    - ##### Duplicator
+    - ##### Duplicator:
         - ###### Choose a player to copy their skill.
-    - ##### Explosive Shot
+    - ##### Explosive Shot:
         - ###### Random chance to fire an explosive bullet while shooting. Chance: (15 - 30)%.
-    - ##### Falcon Eye
+    - ##### Falcon Eye:
         - ###### Click [css_useSkill] to activate a bird's-eye view camera.
-    - ##### Fastreload
+    - ##### Fastreload:
         - ###### Click [css_useSkill] to reload the weapon you are currently holding.
-    - ##### Fortnite
+    - ##### Fortnite:
         - ###### Click [css_useSkill] to create a destructible barricade. Cooldown: 2 s.
-    - ##### Fragile Bomb
+    - ##### Fragile Bomb:
         - ###### Shooting the bomb damages it.
-    - ##### Friendly Fire
+    - ##### Friendly Fire:
         - ###### Shooting teammates heals them.
-    - ##### Glaz
+    - ##### Glaz:
         - ###### You can see through smoke grenades.
-    - ##### Glitch (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Glitch (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Disables the radar for a chosen enemy.
-    - ##### Glue (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Glue (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Your grenades stick to walls.
-    - ##### Healing Smoke
+    - ##### Healing Smoke:
         - ###### Your smoke grenades heal.
-    - ##### Hermit (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Hermit (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Killing restores ammo and a portion of health.
-    - ##### Holy Hand Grenade
+    - ##### Holy Hand Grenade:
         - ###### Your HE grenades deal double damage and have double range.
-    - ##### Tracker
+    - ##### Tracker:
         - ###### Choose a player who will leave a trail behind them.
-    - ##### Jammer (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Jammer (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Choose a player to disable their crosshair.
-    - ##### Legless
+    - ##### Legless:
         - ###### Choose a player who cannot jump.
-    - ##### Jumping Jack
+    - ##### Jumping Jack:
         - ###### Jumping restores health.
-    - ##### Life Swap
+    - ##### Life Swap:
         - ###### Choose a player to swap health with.
-    - ##### Long Knife
+    - ##### Long Knife:
         - ###### A primary knife attack deals damage regardless of distance.
-    - ##### Long Zeus
+    - ##### Long Zeus:
         - ###### Zeus deals damage regardless of distance.
-    - ##### Taxman
+    - ##### Taxman:
         - ###### Choose a player to swap money with.
-    - ##### Ninja
+    - ##### Ninja:
         - ###### Standing still increases your invisibility by 33%, crouching by 33%, and holding a knife by 33%.
-    - ##### No-Nades
+    - ##### No-Nades:
         - ###### Grenades deal no damage to you.
-    - ##### Focus (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Focus (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### No recoil while shooting.
-    - ##### NoClip
+    - ##### NoClip:
         - ###### Click [css_useSkill] to enable noclip for a short time. Cooldown: 30 s.
-    - ##### Head Only
+    - ##### Head Only:
         - ###### You only take damage to the head.
-    - ##### Poison
+    - ##### Poison:
         - ###### Choose a player who will take damage every few seconds.
-    - ##### No Rifles
+    - ##### No Rifles:
         - ###### Choose a player who cannot use rifles.
-    - ##### Prosthesis
+    - ##### Prosthesis:
         - ###### Arms and legs are bulletproof.
-    - ##### Psychic Defusing
+    - ##### Psychic Defusing:
         - ###### When you are near the bomb, you start defusing it. Cooldown: 10 s.
-    - ##### Pusher
+    - ##### Pusher:
         - ###### You have a random chance to push an enemy back when hitting them. Chance: 100%.
-    - ##### Pyro
+    - ##### Pyro:
         - ###### Molotov restores health.
-    - ##### Reactive Armor
+    - ##### Reactive Armor:
         - ###### Armor absorbs the first damage taken. Cooldown: 15 s.
-    - ##### Regeneration
+    - ##### Regeneration:
         - ###### You restore health every few seconds.
-    - ##### Replicator
+    - ##### Replicator:
         - ###### Click [css_useSkill] to create a replica that deals damage on hit. Cooldown: 15 s.
-    - ##### Return to Sender
+    - ##### Return to Sender:
         - ###### The first hit on an enemy sends them back to their spawn.
-    - ##### Re-Zombie
+    - ##### Re-Zombie:
         - ###### After death, you respawn as a zombie with increased health and no weapons.
-    - ##### Robin Hood (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Robin Hood (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Dealing damage to an enemy steals their money.
-    - ##### Rubber Bullets (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Rubber Bullets (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Your bullets significantly slow down players.
-    - ##### Second Chance
+    - ##### Second Chance:
         - ###### After death, you respawn with the same amount of health.
-    - ##### Short Fuse (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Short Fuse (suggested by [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### The bomb explodes much faster.
-    - ##### Sniper Elite
+    - ##### Sniper Elite:
         - ###### Click [css_useSkill] to swap your current weapon for an AWP.
-    - ##### Soundmaker
+    - ##### Soundmaker:
         - ###### Click [css_useSkill] to trigger a sound for every enemy. Cooldown: 5 s.
-    - ##### Spectator
+    - ##### Spectator:
         - ###### Click [css_useSkill] to spectate a random enemy.
-    - ##### Thief
+    - ##### Thief:
         - ###### You can steal a skill from a chosen player.
-    - ##### Third Eye
+    - ##### Third Eye:
         - ###### Click [css_useSkill] to activate third-person view.
-    - ##### Toxic Smoke
+    - ##### Toxic Smoke:
         - ###### Your smoke grenades deal damage.
-    - ##### Wallhack
+    - ##### Wallhack:
         - ###### You can see enemies through walls.
-    - ##### Watchmaker
+    - ##### Watchmaker:
         - ###### Every grenade throw alters the round time.
 - #### Skill improvements:
     - ###### Improved skill descriptions.

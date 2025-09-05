@@ -37,7 +37,7 @@ Dołącz do serwera testowego 3v3 i wypróbuj plugin jRandomSkills:
 
 Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://pukawka.pl/pp,juzlus.html).
 
-## ✨ Aktualne Supermoce (102)
+## ✨ Aktualne Supermoce (104)
 <details>
 <summary>Poniższa tabela przedstawia wszystkie dostępne supermoce w grze, wraz z ich opisami.</summary>
 
@@ -95,6 +95,7 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 | Zamiana Żyć | Wybierasz gracza, z którym chcesz wymienić się zdrowiem | - |
 | Długi Nóż | Podstawowy atak nożem zadaje obrażenia niezależnie od odległości | - |
 | Długi Zeus | Zeus zadaje obrażenia niezależnie od odległości | - |
+| Lupa | Przybiżasz ekran wybranemu przeciwnikowi | - |
 | Medyk | Kliknij [css_useSkill], aby użyć ładunku leczniczego, który przywraca 50 punktów zdrowia | 1 s |
 | Skarbówka | Wybierasz gracza, z którym chcesz zamienić się pieniędzmi | - |
 | Muhammed | Po śmierci eksplodujesz i zabijasz graczy znajdujących się w zasięgu | - |
@@ -141,6 +142,7 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 | Teleporter | Zamieniasz się miejscami z trafionym przeciwnikiem | - |
 | Złodziej | Możesz ukraść supermoc wybranemu graczowi | - |
 | Trzecie Oko | Kliknij [css_useSkill], aby aktywować trzecią osobę | 0 s |
+| Ciernie | Twój przeciwnik otrzymuje część obrażeń, które zadał ci | - |
 | Toksyczny Dym | Twoje granaty dymne zadają obrażenia | - |
 | Wallhack | Widzisz wrogów przez ściany | - |
 | Zegarmistrz | Każdy rzut granatem zmienia czas rundy o -10 lub +10 sekund | - |
@@ -181,7 +183,7 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 
 | Komenda | Przykład | Opis | Uprawnienia |
 | - | - | - | - |
-| `!setskill <playerName> <skill>` | `!setskill Juzlus Aimbot` | Przypisanie supermocy do gracza | `@jRandmosSkills/admin` |
+| `!setskill <playerName/steamID> <skill>` | `!setskill Juzlus Aimbot` | Przypisanie supermocy do gracza | `@jRandmosSkills/admin` |
 | `!skills` | `!skills` | Lista supermocy | - |
 | `!map <mapName>` | `!map de_nuke` | Zmiana mapy | `@jRandmosSkills/admin` |
 | `!map <mapWorkshopId>` | `!map 3332005394` | Zmiana mapy z warsztatu | `@jRandmosSkills/admin` |
@@ -193,6 +195,8 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 | `!pause` | `!pause` | Wstrzymanie gry | `@jRandmosSkills/admin` |
 | `!heal` | `!heal` | Przywrócenie 100 punktów zdrowia | `@jRandmosSkills/root` |
 | `!setscore <CT> <TT>` | `!setscore 10 7` | Ustawienie wyniku gry | `@jRandmosSkills/root` |
+| `!setstaticskill <playerName/steamID> <skill>` | `!setstaticskill Juzlus Aimbot` | Przypisanie supermocy do gracza na stałe | `@jRandmosSkills/admin` |
+| `!setstaticskill <playerName/steamID> None` | `!setstaticskill Juzlus None` | Powrót do normalności | `@jRandmosSkills/admin` |
 
 _Większość poleceń wymaga uprawnień, które należy ustawić w pliku: `game/csgo/addons/counterstrikesharp/configs/admins.json`_
 </details>
@@ -219,11 +223,12 @@ Wszystkie sypermoce można dostosować w pliku **`Config.cfg`** znajdującym si�
 {
     "Settings": {
         "LangCode": "en",               // Język pluginu: en, pl, pt-br, zh
-        "GameMode": 0,                  // Tryb gry: 
-                                        // 0 - Losowa supermoc dla każdego gracza
+        "GameMode": 3,                  // Tryb gry: 
+                                        // 0 - Losowa supermoc dla każdego gracza (Brak powtórek z rzędu)
                                         // 1 - Ta sama supermoc dla całej drużyny
                                         // 2 - Ta sama supermoc dla wszystkich graczy
-                                        // 3 - Debug: Supormoce są przydzielane po kolei
+                                        // 3 - Losowa supermoc dla każdego gracza (Brak powtórek na mapie)
+                                        // 4 - Debug: Supormoce są przydzielane po kolei
         "KillerSkillInfo": true,        // Pokazuj supermoc zabójcy na czacie
         "TeamMateSkillInfo": true,      // Pokazuj supermoc sojuszników na czacie
         "SummaryAfterTheRound": true,   // Pokazuj podsumowanie z ostatniej rundy
@@ -231,17 +236,17 @@ Wszystkie sypermoce można dostosować w pliku **`Config.cfg`** znajdującym si�
         ...
     },
     "SkillsInfo": [
-    {
-    "NeedsTeammates": false,          // Wymaga innych graczy w drużynie
-    "OnlyTeam": 0,                    // Dostępność supermocy:
+        {
+            "NeedsTeammates": false,    // Wymaga innych graczy w drużynie
+            "OnlyTeam": 0,              // Dostępność supermocy:
                                         // 0 - Wszyscy
                                         // 2 - Terrorist
                                         // 3 - CounterTerrorist
-    "Color": "#ff0000",             // Kolor supermocy
-    "Active": true,                   // Włączona przy uruchamianiu
-    "Name": "Aimbot"                  // Nazwa supermocy
-    },
-    ...
+            "Color": "#ff0000",         // Kolor supermocy
+            "Active": true,             // Włączona przy uruchamianiu
+            "Name": "Aimbot"            // Nazwa supermocy
+        },
+        ...
     ]
 }
 ```
@@ -253,6 +258,47 @@ Plugin korzysta z zawartości następujących projektów:
 - [ChaseMod](https://github.com/ipsvn/ChaseMod/blob/master/Utils/Memory/CCSMatch.cs) autorstwa [ipsvn](https://github.com/ipsvn) - ustawianie wyniku rund
 
 ## 📋 Lista Zmian
+
+<details>
+<summary><b>v1.1.2</b></summary>
+  
+- #### Ogólne:
+    - ###### Umiejętności zostały wyłączone podczas rozgrzewki.
+    - ###### Dodano walidację dla wartości nieokreślonych.
+    - ###### Dodano użycie poleceń i zmiany mapy do debug.
+    - ###### Dodano polecenie `!setstaticskill`, które na stałe przypisuje graczowi określoną umiejętność.
+    - ###### Polecenia mogą mieć niestandardowe uprawnienia ustawione w pliku konfiguracyjnym.
+    - ###### Nowy tryb gry: Umiejętności nie mogą być powtarzane, dopóki mapa się nie zmieni (ustawione jako domyślne).
+    - ###### Dodano system głosowania dla poleceń takich jak: `!start`, `!map`, `!swap`, `!shuffle`, `!pause`, `!setscore` (konfigurowalne)
+    - ###### Dodano możliwość wyszukiwania graczy według identyfikatora SteamID dla polecenia !setskill.
+- #### Poprawki mocy:
+    - ##### Pawel Jumper:
+        - ###### Daje losową liczbę dodatkowych skoków zamiast tylko jednego.
+        - ###### Dodano do konfiguracji: minimalną i maksymalną liczbę dodatkowych skoków.
+    - ##### Kurczak:
+        - ###### Kurczak jest niewidoczny dla gracza posiadającego tę umiejętność.
+    - ##### Fortnite:
+        - ###### Barykada ma teraz 115 HP zamiast znikać po jednym strzale.
+        - ###### Dodano do konfiguracji: hp barykady i model barykady.
+    - ##### Glaz:
+        - ###### Gracze obserwujący cię również nie widzą granatów dymnych.
+    - ##### Wallhack:
+        - ###### Gracze obserwujący cię mogą również widzieć przez ściany.
+    - ##### Gumowe kule:
+        - ###### Naprawiono błąd związany z dodawaniem istniejącego klucza.
+    - ##### Ninja:
+        - ###### Transmisja broni została wyłączona, dzięki czemu charms i nametags nie są widoczne.
+    - ##### Duch:
+        - ###### Transmisja broni została wyłączona, dzięki czemu charms i nametags nie są widoczne.
+    - ##### C4 Kamuflaż:
+        - ###### Transmisja broni została wyłączona, dzięki czemu charms i nametags nie są widoczne.
+- #### Nowe moce:
+    - ##### Lupa:
+        - ###### Powoduje powiększenie ekranu przeciwnika, ograniczając jego pole widzenia.
+    - ##### Ciernie:
+        - ###### Twój przeciwnik otrzyma część obrażeń, które zadał tobie.
+
+</details>
 
 <details>
 <summary><b>v1.1.1</b></summary>
@@ -273,127 +319,127 @@ Plugin korzysta z zawartości następujących projektów:
     - ###### Dodano otrzymywanie broni dla klas z nimi związanymi (sugestia od [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)).
     - ###### Wprowadzono ogólne poprawki i naprawiono błedy.
 - #### Nowe moce:
-    - ##### Anomalia
+    - ##### Anomalia:
         - ###### Cofasz się o 5 sekund do tyłu. Cooldown: 15 s.
-    - ##### Niszczyciel Stref
+    - ##### Niszczyciel Stref:
         - ###### Możesz wybrać strefę detonacji, którą chcesz dezaktywować.
-    - ##### Skrytobójca
+    - ##### Skrytobójca:
         - ###### Zadajesz podwójne obrażenia przeciwnikowi od tyłu.
-    - ##### Bejsbolista
+    - ##### Bejsbolista:
         - ###### Twój wabik odbija się od ścian i natychmiastowo zabija wroga po trafieniu.
-    - ##### Mistrz Ostrza
+    - ##### Mistrz Ostrza:
         - ###### Trzymając nóż, masz duże szanse na odparcie strzału.
-    - ##### C4 Kamuflaż
+    - ##### C4 Kamuflaż:
         - ###### Kiedy trzymasz bombę, jesteś niewidzialny.
-    - ##### Wyluzowany
+    - ##### Wyluzowany:
         - ###### Podłożenie bomby zajmuje 10 sekund.
-    - ##### Scyzoryk
+    - ##### Scyzoryk:
         - ###### Natychmiastowe zabójstwo nożem.
-    - ##### Mrok
+    - ##### Mrok:
         - ###### Nadaje efekt ciemności wybranemu przeciwnikowi.
-    - ##### Deaktywator
+    - ##### Deaktywator:
         - ###### Wybierasz gracza, którego supermoc chcesz wyłączyć.
-    - ##### Głuchy
+    - ##### Głuchy:
         - ###### Wybierasz gracza, dla którego chcesz wyłączyć wszystkie dźwięki.
-    - ##### Odległościomierz
+    - ##### Odległościomierz:
         - ###### Możesz zobaczyć odległość do najbliższego przeciwnika.
-    - ##### Duplikator
+    - ##### Duplikator:
         - ###### Wybierasz gracza, od którego chcesz skopiować supermoc.
-    - ##### Strzał Wybuchowy
+    - ##### Strzał Wybuchowy:
         - ###### Losowa szansa wystrzelenia pocisku wybuchowego podczas strzelania. Szansa: (15 - 30)%.
-    - ##### Oko Sokoła
+    - ##### Oko Sokoła:
         - ###### Kliknij [css_useSkill], aby aktywować kamerę z lotu ptaka.
-    - ##### Szybkie Rączki
+    - ##### Szybkie Rączki:
         - ###### Kliknij [css_useSkill], aby przeładować broń, którą obecnie trzymasz.
-    - ##### Fortnite
+    - ##### Fortnite:
         - ###### Kliknij [css_useSkill], aby stworzyć barykadę, którą można zniszczyć. Cooldown: 2 s.
-    - ##### Krucha Bomba
+    - ##### Krucha Bomba:
         - ###### Strzelanie do bomby powoduje jej uszkodzenie.
-    - ##### Ogień Przyjacielski
+    - ##### Ogień Przyjacielski:
         - ###### Strzelanie do członków drużyny leczy ich.
-    - ##### Glaz
+    - ##### Glaz:
         - ###### Nie widzisz granatów dymnych.
-    - ##### Glitch (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Glitch (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Wyłączasz radar wybranemu przeciwnikowi.
-    - ##### Klej (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Klej (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Twoje granaty przyklejają się do ścian.
-    - ##### Leczący Dym
+    - ##### Leczący Dym:
         - ###### Twoje granaty dymne leczą.
-    - ##### Pustelnik (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Pustelnik (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Zabijanie przywraca amunicję i część zdrowia.
-    - ##### Święty Granat Ręczny
+    - ##### Święty Granat Ręczny:
         - ###### Twoje granaty uderzeniowe zadają podwójne obrażenia i mają podwójny zasięg.
-    - ##### Stópkarz
+    - ##### Stópkarz:
         - ###### Wybierasz gracza, który pozostawi za sobą ślad.
-    - ##### Zakłócacz (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Zakłócacz (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Wybierasz gracza, dla którego chcesz wyłączyć celownik.
-    - ##### Beznogi
+    - ##### Beznogi:
         - ###### Wybierasz gracza, który nie będzie mógł skakać.
-    - ##### Pajacyk
+    - ##### Pajacyk:
         - ###### Skakanie przywraca zdrowie.
-    - ##### Zamiana Żyć
+    - ##### Zamiana Żyć:
         - ###### Wybierasz gracza, z którym chcesz wymienić się zdrowiem.
-    - ##### Długi Nóż
+    - ##### Długi Nóż:
         - ###### Podstawowy atak nożem zadaje obrażenia niezależnie od odległości.
-    - ##### Długi Zeus
+    - ##### Długi Zeus:
         - ###### Zeus zadaje obrażenia niezależnie od odległości.
-    - ##### Skarbówka
+    - ##### Skarbówka:
         - ###### Wybierasz gracza, z którym chcesz zamienić się pieniędzmi.
-    - ##### Ninja
+    - ##### Ninja:
         - ###### Stojąc nieruchomo zwiększasz swoją niewidzialność o 33%, kucając o 33%, a trzymając nóż o 33%.
-    - ##### Pancernik
+    - ##### Pancernik:
         - ###### Granaty nie zadają Ci obrażeń.
-    - ##### Skupienie (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Skupienie (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Brak odrzutu podczas strzelania.
-    - ##### NoClip
+    - ##### NoClip:
         - ###### Kliknij [css_useSkill], aby włączyć noclip na krótki czas. Cooldown: 30 s.
-    - ##### Tylko Głowa
+    - ##### Tylko Głowa:
         - ###### Otrzymujesz obrażenia tylko w głowę.
-    - ##### Trutka
+    - ##### Trutka:
         - ###### Wybierasz gracza, który co kilka sekund będzie otrzymywał obrażenia.
-    - ##### Brak Karabinów
+    - ##### Brak Karabinów:
         - ###### Wybierasz gracza, który nie może używać karabinów.
-    - ##### Proteza
+    - ##### Proteza:
         - ###### Ramiona i nogi są kuloodporne.
-    - ##### Zdalne Rozbrajanie
+    - ##### Zdalne Rozbrajanie:
         - ###### Kiedy jesteś blisko bomby, zaczynasz ją rozbrajać. Cooldown: 10 s.
-    - ##### Odpychacz
+    - ##### Odpychacz:
         - ###### Masz losową szansę na odepchnięcie wroga po trafieniu go. Szansa: 100%.
-    - ##### Pyro
+    - ##### Pyro:
         - ###### Molotow przywraca zdrowie.
-    - ##### Pancerz Reaktywny
+    - ##### Pancerz Reaktywny:
         - ###### Pancerz pochłania pierwsze otrzymane obrażenia. Cooldown: 15 s.
-    - ##### Regeneracja
+    - ##### Regeneracja:
         - ###### Co kilka sekund odnawiasz zdrowie.
-    - ##### Replikator
+    - ##### Replikator:
         - ###### Kliknij [css_useSkill], aby stworzyć replikę, która zadaje obrażenia po trafieniu. Cooldown: 15 s.
-    - ##### Zwrot do Nadawcy
+    - ##### Zwrot do Nadawcy:
         - ###### Pierwsze trafienie wroga powoduje, że wraca on na swój resp.
-    - ##### Re-Zombie
+    - ##### Re-Zombie:
         - ###### Po śmierci odradzasz się jako zombie z większym zdrowiem i bez broni.
-    - ##### Robin Hood (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Robin Hood (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Zadanie obrażeń przeciwnikowi powoduje kradzież jego pieniędzy.
-    - ##### Gumowe Kule (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Gumowe Kule (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Twoje pociski znacznie spowalniają graczy.
-    - ##### Druga Szansa
+    - ##### Druga Szansa:
         - ###### Po śmierci odradzasz się z taką samą ilością zdrowia.
-    - ##### Krótka Bomba (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1))
+    - ##### Krótka Bomba (wymyślone przez [ToRRent1812](https://github.com/Juzlus/jRandomSkills/issues/1)):
         - ###### Bomba wybucha znacznie szybciej.
-    - ##### SzeliS
+    - ##### SzeliS:
         - ###### Kliknij [css_useSkill], aby zamienić aktualną broń na AWP.
-    - ##### Dźwiękowiec
+    - ##### Dźwiękowiec:
         - ###### Kliknij [css_useSkill], aby wywołać dźwięk u każdego przeciwnika. Cooldown: 5 s.
-    - ##### Obserwator
+    - ##### Obserwator:
         - ###### Kliknij [css_useSkill], aby obserwować losowego przeciwnika.
-    - ##### Złodziej
+    - ##### Złodziej:
         - ###### Możesz ukraść supermoc wybranemu graczowi.
-    - ##### Trzecie Oko
+    - ##### Trzecie Oko:
         - ###### Kliknij [css_useSkill], aby aktywować trzecią osobę.
-    - ##### Toksyczny Dym
+    - ##### Toksyczny Dym:
         - ###### Twoje granaty dymne zadają obrażenia.
-    - ##### Wallhack
+    - ##### Wallhack:
         - ###### Widzisz wrogów przez ściany.
-    - ##### Zegarmistrz
+    - ##### Zegarmistrz:
         - ###### Każdy rzut granatem zmienia czas rundy o -10 lub +10 sekund.
 - #### Poprawki mocy:
     - ###### Poprawiono opisy supermocy.
