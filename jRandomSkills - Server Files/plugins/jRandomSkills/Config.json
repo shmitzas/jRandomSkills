@@ -1,22 +1,95 @@
 {
   "Settings": {
     "LangCode": "en",
-    "GameMode": 0,
+    "GameMode": 3,
     "KillerSkillInfo": true,
     "TeamMateSkillInfo": true,
     "SummaryAfterTheRound": true,
     "DebugMode": true,
-    "SetSkillCommands": "ustawskill, setskill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能",
-    "SkillsListCommands": "supermoc, skille, listamocy, supermoce, skills, listaHabilidades, habilidades, 技能列表, 超能力列表",
-    "UseSkillCommands": "t, useSkill, usarHabilidade, 技能使用, 使用技能",
-    "ChangeMapCommands": "map, mapa, changemap, zmienmape, zmienmape, mudarMapa, trocarMapa, 更换地图, 更改地图",
-    "StartGameCommands": "start, go, começar, iniciar, 开始, 启动",
-    "ConsoleCommands": "console, sv, 控制台, 服务器",
-    "SwapCommands": "swap, zmiana, trocar, 交换, 切换",
-    "ShuffleCommands": "shuffle, embaralhar, 随机排序, 洗牌",
-    "PauseCommands": "pause, unpause, pausar, despausar, 暂停, 恢复",
-    "HealCommands": "heal, ulecz, curar, tratar, 治疗, 治愈",
-    "SetScoreCommands": "setscore, wynik, definirPontuacao, configurarPontos, 设置分数, 调整分数"
+    "SetSkillCommands": {
+      "Alias": "ustawskill, ustaw_skill, setskill, set_skill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能",
+      "Permissions": "@jRandmosSkills/admin"
+    },
+    "SkillsListCommands": {
+      "Alias": "supermoc, skille, listamocy, supermoce, skills, listaHabilidades, habilidades, 技能列表, 超能力列表",
+      "Permissions": "@jRandmosSkills/admin"
+    },
+    "UseSkillCommands": {
+      "Alias": "t, useSkill, usarHabilidade, 技能使用, 使用技能",
+      "Permissions": "@jRandmosSkills/admin"
+    },
+    "HealCommands": {
+      "Alias": "heal, ulecz, curar, tratar, 治疗, 治愈",
+      "Permissions": "@jRandmosSkills/admin"
+    },
+    "ConsoleCommands": {
+      "Alias": "console, sv, 控制台, 服务器",
+      "Permissions": "@jRandmosSkills/root"
+    },
+    "SetStaticSkillCommands": {
+      "Alias": "ustawstatycznyskill, ustaw_statyczny_skill, setstaticskill, set_static_skill",
+      "Permissions": "@jRandmosSkills/admin"
+    },
+    "StartGameCommands": {
+      "EnableVoting": true,
+      "TimeToVote": 15.0,
+      "PercentagesToSuccess": 60.0,
+      "TimeToNextVoting": 15.0,
+      "TimeToNextSameVoting": 500.0,
+      "MinimumPlayersToStartVoting": 2,
+      "Alias": "start, go, começar, iniciar, 开始, 启动",
+      "Permissions": "@jRandmosSkills/admin"
+    },
+    "ChangeMapCommands": {
+      "EnableVoting": true,
+      "TimeToVote": 25.0,
+      "PercentagesToSuccess": 90.0,
+      "TimeToNextVoting": 15.0,
+      "TimeToNextSameVoting": 500.0,
+      "MinimumPlayersToStartVoting": 2,
+      "Alias": "map, mapa, changemap, zmienmape, zmienmape, mudarMapa, trocarMapa, 更换地图, 更改地图",
+      "Permissions": "@jRandmosSkills/admin"
+    },
+    "SwapCommands": {
+      "EnableVoting": true,
+      "TimeToVote": 15.0,
+      "PercentagesToSuccess": 90.0,
+      "TimeToNextVoting": 15.0,
+      "TimeToNextSameVoting": 20.0,
+      "MinimumPlayersToStartVoting": 2,
+      "Alias": "swap, zmiana, trocar, 交换, 切换",
+      "Permissions": "@jRandmosSkills/admin"
+    },
+    "ShuffleCommands": {
+      "EnableVoting": true,
+      "TimeToVote": 15.0,
+      "PercentagesToSuccess": 90.0,
+      "TimeToNextVoting": 15.0,
+      "TimeToNextSameVoting": 20.0,
+      "MinimumPlayersToStartVoting": 2,
+      "Alias": "shuffle, embaralhar, 随机排序, 洗牌",
+      "Permissions": "@jRandmosSkills/admin"
+    },
+    "PauseCommands": {
+      "EnableVoting": true,
+      "TimeToVote": 15.0,
+      "PercentagesToSuccess": 60.0,
+      "TimeToNextVoting": 15.0,
+      "TimeToNextSameVoting": 2.0,
+      "MinimumPlayersToStartVoting": 2,
+      "Alias": "pause, unpause, pausar, despausar, 暂停, 恢复",
+      "Permissions": "@jRandmosSkills/admin"
+    },
+    "SetScoreCommands": {
+      "EnableVoting": true,
+      "TimeToVote": 15.0,
+      "PercentagesToSuccess": 90.0,
+      "TimeToNextVoting": 15.0,
+      "TimeToNextSameVoting": 90.0,
+      "MinimumPlayersToStartVoting": 2,
+      "Alias": "setscore, wynik, definirPontuacao, configurarPontos, 设置分数, 调整分数",
+      "Permissions": "@jRandmosSkills/root"
+    }
   },
   "SkillsInfo": [
     {

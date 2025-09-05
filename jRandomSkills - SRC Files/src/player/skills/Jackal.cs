@@ -73,8 +73,9 @@ namespace jRandomSkills
                 if (pawn == null || !pawn.IsValid || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) continue;
 
                 var beams = step.Value;
-                if (beams.Count == 0 || pawn.AbsOrigin == null) continue;
-                Vector lastBeamVector = beams.LastOrDefault()?.EndPos ?? pawn.AbsOrigin;
+                if (pawn.AbsOrigin == null) continue;
+                Vector lastBeamVector = beams.Count > 0
+                    ? beams.LastOrDefault()!.EndPos : pawn.AbsOrigin;
 
                 var newBeam = CreateBeamStep(step.Key.Team, lastBeamVector, pawn.AbsOrigin);
                 if (newBeam != null)

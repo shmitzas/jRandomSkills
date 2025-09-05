@@ -1,6 +1,7 @@
 using System.Drawing;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static CounterStrikeSharp.API.Core.Listeners;
@@ -11,14 +12,35 @@ namespace jRandomSkills
     public class Ninja : ISkill
     {
         private const Skills skillName = Skills.Ninja;
+        private static bool exists = false;
         private static readonly float idlePercentInvisibility = Config.GetValue<float>(skillName, "idlePercentInvisibility");
         private static readonly float duckPercentInvisibility = Config.GetValue<float>(skillName, "duckPercentInvisibility");
         private static readonly float knifePercentInvisibility = Config.GetValue<float>(skillName, "knifePercentInvisibility");
         private static readonly Dictionary<nint, float> invisibilityChanged = [];
+        private static readonly Dictionary<ulong, List<uint>> invisibleEntities = [];
 
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+
+            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+            {
+                Instance.AddTimer(0.1f, () =>
+                {
+                    foreach (var player in Utilities.GetPlayers())
+                    {
+                        DisableSkill(player);
+                        if (!Instance.IsPlayerValid(player)) continue;
+                        var playerPawn = player.PlayerPawn?.Value;
+
+                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                        if (playerInfo?.Skill != skillName) continue;
+                        EnableSkill(player);
+                    }
+                });
+
+                return HookResult.Continue;
+            });
 
             Instance.RegisterEventHandler<EventRoundStart>((@event, info) =>
             {
@@ -51,7 +73,44 @@ namespace jRandomSkills
                 return HookResult.Continue;
             });
 
+            Instance.RegisterEventHandler<EventItemEquip>((@event, info) =>
+            {
+                var player = @event.Userid;
+                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+
+                if (playerInfo?.Skill != skillName) return HookResult.Continue;
+                UpdateNinja(player);
+                return HookResult.Continue;
+            });
+
+            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
+            {
+                foreach (var player in Utilities.GetPlayers())
+                {
+                    if (!Instance.IsPlayerValid(player)) continue;
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    if (playerInfo?.Skill == skillName)
+                        DisableSkill(player);
+                }
+                Instance.RemoveListener<CheckTransmit>(CheckTransmit);
+                exists = false;
+                return HookResult.Continue;
+            });
+
             Instance.RegisterListener<OnTick>(OnTick);
+        }
+
+        public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
+        {
+            foreach (var (info, player) in infoList)
+            {
+                if (player == null) continue;
+                foreach ((var playerId, var itemList) in invisibleEntities)
+                    if (player.SteamID != playerId)
+                        foreach (var item in itemList)
+                            info.TransmitEntities.Remove(item);
+            }
         }
 
         private static void OnTick()
@@ -64,10 +123,18 @@ namespace jRandomSkills
             }
         }
 
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            if (!exists)
+                Instance.RegisterListener<CheckTransmit>(CheckTransmit);
+            exists = true;
+        }
+        
         public static void DisableSkill(CCSPlayerController player)
         {
             SetPlayerVisibility(player, 0);
             SetWeaponVisibility(player, 0);
+            invisibleEntities.Remove(player.SteamID);
         }
 
         private static void UpdateNinja(CCSPlayerController? player)
@@ -92,13 +159,13 @@ namespace jRandomSkills
             if (!buttons.HasFlag(PlayerButtons.Moveleft) && !buttons.HasFlag(PlayerButtons.Moveright) && !buttons.HasFlag(PlayerButtons.Forward) && !buttons.HasFlag(PlayerButtons.Back) && flags.HasFlag(PlayerFlags.FL_ONGROUND))
                 percentInvisibility += idlePercentInvisibility;
 
+            SetWeaponVisibility(player, percentInvisibility);
             if (invisibilityChanged.TryGetValue(player.Handle, out float oldInvisibility))
                 if (percentInvisibility == oldInvisibility)
                     return;
 
             invisibilityChanged[player.Handle] = percentInvisibility;
             SetPlayerVisibility(player, percentInvisibility);
-            SetWeaponVisibility(player, percentInvisibility);
         }
 
         private static void SetPlayerVisibility(CCSPlayerController player, float percentInvisibility)
@@ -115,17 +182,25 @@ namespace jRandomSkills
         private static void SetWeaponVisibility(CCSPlayerController player, float percentInvisibility)
         {
             if (!Instance.IsPlayerValid(player)) return;
-            var playerPawn = player.PlayerPawn.Value;
-            if (playerPawn == null || !playerPawn.IsValid || playerPawn.WeaponServices == null) return;
+            var playerPawn = player.PlayerPawn.Value!;
+            if (playerPawn.WeaponServices == null) return;
 
             var color = Color.FromArgb(Math.Max(255 - (int)(255 * percentInvisibility * 2), 0), 255, 255, 255);
+
+            invisibleEntities.Remove(player.SteamID);
+            if (color.A != 0) return;
 
             foreach (var weapon in playerPawn.WeaponServices.MyWeapons)
             {
                 if (weapon != null && weapon.IsValid && weapon.Value != null && weapon.Value.IsValid)
                 {
-                    weapon.Value.Render = color;
-                    Utilities.SetStateChanged(weapon.Value, "CBaseModelEntity", "m_clrRender");
+                    if (invisibleEntities.TryGetValue(player.SteamID, out var items))
+                    {
+                        if (!items.Contains(weapon.Index))
+                            items.Add(weapon.Index);
+                    }
+                    else
+                        invisibleEntities.Add(player.SteamID, [weapon.Index]);
                 }
             }
         }

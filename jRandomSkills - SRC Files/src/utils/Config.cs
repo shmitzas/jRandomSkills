@@ -140,52 +140,54 @@ namespace jRandomSkills
             public bool TeamMateSkillInfo { get; set; }
             public bool SummaryAfterTheRound { get; set; }
             public bool DebugMode { get; set; }
-            public string SetSkillCommands { get; set; }
-            public string SkillsListCommands { get; set; }
-            public string UseSkillCommands { get; set; }
-            public string ChangeMapCommands { get; set; }
-            public string StartGameCommands { get; set; }
-            public string ConsoleCommands { get; set; }
-            public string SwapCommands { get; set; }
-            public string ShuffleCommands { get; set; }
-            public string PauseCommands { get; set; }
-            public string HealCommands { get; set; }
-            public string SetScoreCommands { get; set; }
-            public VotingCommand[] VotingCommand { get; set; }
+            public NormalCommand SetSkillCommands { get; set; }
+            public NormalCommand SkillsListCommands { get; set; }
+            public NormalCommand UseSkillCommands { get; set; }
+            public NormalCommand HealCommands { get; set; }
+            public NormalCommand ConsoleCommands { get; set; }
+            public NormalCommand SetStaticSkillCommands { get; set; }
+            public VotingCommand StartGameCommands { get; set; }
+            public VotingCommand ChangeMapCommands { get; set; }
+            public VotingCommand SwapCommands { get; set; }
+            public VotingCommand ShuffleCommands { get; set; }
+            public VotingCommand PauseCommands { get; set; }
+            public VotingCommand SetScoreCommands { get; set; }
 
             public Settings()
             {
                 LangCode = "en";
-                GameMode = (int)GameModes.Normal;
+                GameMode = (int)GameModes.NoRepeat;
                 KillerSkillInfo = true;
                 TeamMateSkillInfo = true;
                 SummaryAfterTheRound = true;
                 DebugMode = true;
 
-                SetSkillCommands = "ustawskill, setskill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能";
-                SkillsListCommands = "supermoc, skille, listamocy, supermoce, skills, listaHabilidades, habilidades, 技能列表, 超能力列表";
-                UseSkillCommands = "t, useSkill, usarHabilidade, 技能使用, 使用技能";
-                HealCommands = "heal, ulecz, curar, tratar, 治疗, 治愈";
-                ConsoleCommands = "console, sv, 控制台, 服务器";
+                SetSkillCommands = new NormalCommand("ustawskill, ustaw_skill, setskill, set_skill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能", "@jRandmosSkills/admin");
+                SkillsListCommands = new NormalCommand("supermoc, skille, listamocy, supermoce, skills, listaHabilidades, habilidades, 技能列表, 超能力列表", "@jRandmosSkills/admin");
+                UseSkillCommands = new NormalCommand("t, useSkill, usarHabilidade, 技能使用, 使用技能", "@jRandmosSkills/admin");
+                HealCommands = new NormalCommand("heal, ulecz, curar, tratar, 治疗, 治愈", "@jRandmosSkills/admin");
+                ConsoleCommands = new NormalCommand("console, sv, 控制台, 服务器", "@jRandmosSkills/root");
+                SetStaticSkillCommands = new NormalCommand("ustawstatycznyskill, ustaw_statyczny_skill, setstaticskill, set_static_skill", "@jRandmosSkills/admin");
 
-                VotingCommand = [
-                    new VotingCommand("StartGameCommands", true, "start, go, começar, iniciar, 开始, 启动", "@jRandmosSkills/admin", 15, 60, 15, 500, 2),
-                    new VotingCommand("ChangeMapCommands", true, "map, mapa, changemap, zmienmape, zmienmape, mudarMapa, trocarMapa, 更换地图, 更改地图", "@jRandmosSkills/admin", 25, 90, 15, 500, 2),
-                    new VotingCommand("SwapCommands", true, "swap, zmiana, trocar, 交换, 切换", "@jRandmosSkills/admin", 15, 90, 15, 20, 2),
-                    new VotingCommand("ShuffleCommands", true, "shuffle, embaralhar, 随机排序, 洗牌", "@jRandmosSkills/admin", 15, 90, 15, 90, 2),
-                    new VotingCommand("PauseCommands", true, "pause, unpause, pausar, despausar, 暂停, 恢复", "@jRandmosSkills/admin", 15, 60, 15, 90, 2),
-                    new VotingCommand("SetScoreCommands", true, "setscore, wynik, definirPontuacao, configurarPontos, 设置分数, 调整分数", "@jRandmosSkills/root", 15, 90, 15, 90, 2),
-                ];
+                StartGameCommands = new VotingCommand(true, "start, go, começar, iniciar, 开始, 启动", "@jRandmosSkills/admin", 15, 60, 15, 500, 2);
+                ChangeMapCommands = new VotingCommand( true, "map, mapa, changemap, zmienmape, zmienmape, mudarMapa, trocarMapa, 更换地图, 更改地图", "@jRandmosSkills/admin", 25, 90, 15, 500, 2);
+                SwapCommands = new VotingCommand(true, "swap, zmiana, trocar, 交换, 切换", "@jRandmosSkills/admin", 15, 90, 15, 20, 2);
+                ShuffleCommands = new VotingCommand(true, "shuffle, embaralhar, 随机排序, 洗牌", "@jRandmosSkills/admin", 15, 90, 15, 20, 2);
+                PauseCommands = new VotingCommand(true, "pause, unpause, pausar, despausar, 暂停, 恢复", "@jRandmosSkills/admin", 15, 60, 15, 2, 2);
+                SetScoreCommands = new VotingCommand(true, "setscore, wynik, definirPontuacao, configurarPontos, 设置分数, 调整分数", "@jRandmosSkills/root", 15, 90, 15, 90, 2);
             }
 
         }
 
-        public class VotingCommand(string name, bool enableVoting, string alias, string permissions, float timeToVote, float percentagesToSuccess, float timeToNextVoting, float timeToNextSameVoting, int minimumPlayersToStartVoting)
+        public class NormalCommand(string alias, string permissions)
         {
-            public string Name { get; set; } = name;
-            public bool EnableVoting { get; set; } = enableVoting;
             public string Alias { get; set; } = alias;
             public string Permissions { get; set; } = permissions;
+        }
+
+        public class VotingCommand(bool enableVoting, string alias, string permissions, float timeToVote, float percentagesToSuccess, float timeToNextVoting, float timeToNextSameVoting, int minimumPlayersToStartVoting) : NormalCommand(alias, permissions)
+        {
+            public bool EnableVoting { get; set; } = enableVoting;
             public float TimeToVote { get; set; } = timeToVote;
             public float PercentagesToSuccess { get; set; } = percentagesToSuccess;
             public float TimeToNextVoting { get; set; } = timeToNextVoting;
@@ -207,7 +209,8 @@ namespace jRandomSkills
             Normal = 0,
             TeamSkills = 1,
             SameSkills = 2,
-            Debug = 3,
+            NoRepeat = 3,
+            Debug = 4
         }
     }
 }

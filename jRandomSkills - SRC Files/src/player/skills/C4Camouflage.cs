@@ -1,8 +1,10 @@
 using System.Drawing;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
+using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -10,6 +12,8 @@ namespace jRandomSkills
     public class C4Camouflage : ISkill
     {
         private const Skills skillName = Skills.C4Camouflage;
+        private static bool exists = false;
+        private static readonly Dictionary<ulong, List<uint>> invisibleEntities = [];
 
         public static void LoadSkill()
         {
@@ -77,10 +81,40 @@ namespace jRandomSkills
                 }
                 return HookResult.Continue;
             });
+
+            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
+            {
+                foreach (var player in Utilities.GetPlayers())
+                {
+                    if (!Instance.IsPlayerValid(player)) continue;
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    if (playerInfo?.Skill == skillName)
+                        DisableSkill(player);
+                }
+                Instance.RemoveListener<CheckTransmit>(CheckTransmit);
+                exists = false;
+                return HookResult.Continue;
+            });
+        }
+
+        public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
+        {
+            foreach (var (info, player) in infoList)
+            {
+                if (player == null) continue;
+                foreach ((var playerId, var itemList) in invisibleEntities)
+                    if (player.SteamID != playerId)
+                        foreach (var item in itemList)
+                            info.TransmitEntities.Remove(item);
+            }
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
+            if (!exists)
+                Instance.RegisterListener<CheckTransmit>(CheckTransmit);
+            exists = true;
+
             if (player == null || !player.IsValid) return;
             var playerPawn = player.PlayerPawn.Value;
 
@@ -100,6 +134,7 @@ namespace jRandomSkills
         {
             SetPlayerVisibility(player, true);
             SetWeaponVisibility(player, true);
+            invisibleEntities.Remove(player.SteamID);
         }
 
         private static void SetPlayerVisibility(CCSPlayerController player, bool enabled)
@@ -113,23 +148,32 @@ namespace jRandomSkills
             }
         }
 
-        private static void SetWeaponVisibility(CCSPlayerController player, bool enabled)
+        private static void SetWeaponVisibility(CCSPlayerController player, bool visible)
         {
             if (!Instance.IsPlayerValid(player)) return;
-            var playerPawn = player.PlayerPawn.Value;
-            if (playerPawn == null || !playerPawn.IsValid) return;
-            var weaponServices = playerPawn.WeaponServices;
-            if (weaponServices == null) return;
+            var playerPawn = player.PlayerPawn.Value!;
+            if (playerPawn.WeaponServices == null) return;
 
-            var color = Color.FromArgb(enabled ? 255 : 0, 255, 255, 255);
-            foreach (var weapon in weaponServices.MyWeapons)
+            invisibleEntities.Remove(player.SteamID);
+            foreach (var weapon in playerPawn.WeaponServices.MyWeapons)
             {
                 if (weapon != null && weapon.IsValid && weapon.Value != null && weapon.Value.IsValid)
                 {
-                    weapon.Value.Render = color;
-                    Utilities.SetStateChanged(weapon.Value, "CBaseModelEntity", "m_clrRender");
+                    if (!visible)
+                    {
+                        if (invisibleEntities.TryGetValue(player.SteamID, out var items))
+                        {
+                            if (!items.Contains(weapon.Index))
+                                items.Add(weapon.Index);
+                        }
+                        else
+                            invisibleEntities.Add(player.SteamID, [weapon.Index]);
+                    }
                 }
             }
+
+            if (visible)
+                invisibleEntities.Remove(player.SteamID);
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#00911f", CsTeam onlyTeam = CsTeam.Terrorist, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)

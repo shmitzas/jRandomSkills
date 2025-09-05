@@ -11,7 +11,7 @@ namespace jRandomSkills
     public class Aimbot : ISkill
     {
         private const Skills skillName = Skills.Aimbot;
-        private static Dictionary<nint, int> hitGroups = new Dictionary<nint, int>();
+        private static readonly Dictionary<nint, int> hitGroups = [];
 
         public static void LoadSkill()
         {
@@ -27,8 +27,8 @@ namespace jRandomSkills
             if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
                 return HookResult.Continue;
 
-            CCSPlayerPawn attackerPawn = new CCSPlayerPawn(param2.Attacker.Value.Handle);
-            CCSPlayerPawn victimPawn = new CCSPlayerPawn(param.Handle);
+            CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
+            CCSPlayerPawn victimPawn = new(param.Handle);
 
             if (attackerPawn.DesignerName != "player" || victimPawn.DesignerName != "player")
                 return HookResult.Continue;
@@ -64,11 +64,8 @@ namespace jRandomSkills
             return HookResult.Continue;
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff0000", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff0000", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

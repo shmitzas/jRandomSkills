@@ -20,7 +20,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
             
             Instance.RegisterListener<OnTick>(() =>
             {

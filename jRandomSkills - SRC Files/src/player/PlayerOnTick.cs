@@ -25,6 +25,7 @@ namespace jRandomSkills
         private static void OnMapStart(string mapName)
         {
             Instance.GameRules = null;
+            Event.staticSkills.Clear();
         }
 
         private static void InitializeGameRules()

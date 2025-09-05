@@ -5,16 +5,22 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using System.Text.RegularExpressions;
+using static jRandomSkills.Config;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
     public static partial class Event
     {
-        private static jSkill_SkillInfo ctSkill = new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
-        private static jSkill_SkillInfo tSkill = new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
-        private static jSkill_SkillInfo allSkill = new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
+        private static readonly jSkill_SkillInfo noneSkill = new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
+
+        private static jSkill_SkillInfo ctSkill = noneSkill;
+        private static jSkill_SkillInfo tSkill = noneSkill;
+        private static jSkill_SkillInfo allSkill = noneSkill;
         private static List<jSkill_SkillInfo> debugSkills = new(SkillData.Skills);
+
+        private static readonly Dictionary<ulong, List<jSkill_SkillInfo>> playersSkills = [];
+        public static readonly Dictionary<ulong, jSkill_SkillInfo> staticSkills = [];
 
         public static void Load()
         {
@@ -155,7 +161,10 @@ namespace jRandomSkills
 
                         if (Instance?.GameRules != null && Instance?.GameRules.WarmupPeriod == false)
                         {
-                            if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.Normal)
+                            Config.GameModes gameMode = (Config.GameModes)Config.LoadedConfig.Settings.GameMode;
+                            if (staticSkills.TryGetValue(player.SteamID, out var staticSkill))
+                                randomSkill = staticSkill;
+                            else if (gameMode == Config.GameModes.Normal || gameMode == Config.GameModes.NoRepeat)
                             {
                                 List<jSkill_SkillInfo> skillList = new(SkillData.Skills);
                                 skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
@@ -171,13 +180,26 @@ namespace jRandomSkills
                                 else
                                     skillList.RemoveAll(s => terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
 
-                                randomSkill = skillList.Count == 0 ? new jSkill_SkillInfo(Skills.None, Config.GetValue<string>(Skills.None, "color"), false) : skillList[Instance.Random.Next(skillList.Count)];
+                                if (gameMode == Config.GameModes.NoRepeat && playersSkills.TryGetValue(player.SteamID, out List<jSkill_SkillInfo>? skills))
+                                {
+                                    skillList.RemoveAll(s => skills.Any(s2 => s2.Skill == s.Skill));
+                                    if (skillList.Count == 0) skills.Clear();
+                                }
+
+                                randomSkill = skillList.Count == 0 ? noneSkill : skillList[Instance.Random.Next(skillList.Count)];
+                                if (gameMode == Config.GameModes.NoRepeat)
+                                {
+                                    if (playersSkills.TryGetValue(player.SteamID, out List<jSkill_SkillInfo>? value))
+                                        value.Add(randomSkill);
+                                    else
+                                        playersSkills.Add(player.SteamID, [randomSkill]);
+                                }
                             }
-                            else if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.TeamSkills)
+                            else if (gameMode == Config.GameModes.TeamSkills)
                                 randomSkill = player.Team == CsTeam.Terrorist ? tSkill : ctSkill;
-                            else if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.SameSkills)
+                            else if (gameMode == Config.GameModes.SameSkills)
                                 randomSkill = allSkill;
-                            else if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.Debug)
+                            else if (gameMode == Config.GameModes.Debug)
                             {
                                 if (debugSkills.Count == 0)
                                     debugSkills = new List<jSkill_SkillInfo>(SkillData.Skills);

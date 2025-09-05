@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
+using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -78,6 +79,11 @@ namespace jRandomSkills
             {
                 Debug.WriteToDebug($"Bomb defused.");
                 return HookResult.Continue;
+            });
+
+            Instance.RegisterListener<OnMapStart>((string mapName) =>
+            {
+                Debug.WriteToDebug($"Map changed: {mapName}.");
             });
 
             Instance.RegisterEventHandler<EventPlayerShoot>((@event, info) =>

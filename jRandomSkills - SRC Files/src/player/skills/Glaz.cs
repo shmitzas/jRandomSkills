@@ -12,7 +12,7 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.Glaz;
         private static bool exists = false;
-        private static List<int> smokes = new List<int>();
+        private readonly static List<int> smokes = [];
 
         public static void LoadSkill()
         {
@@ -80,11 +80,8 @@ namespace jRandomSkills
             SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#5d00ff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#5d00ff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-            }
         }
     }
 }

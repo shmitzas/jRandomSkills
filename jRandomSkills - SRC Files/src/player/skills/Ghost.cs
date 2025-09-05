@@ -15,6 +15,7 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.Ghost;
         private static bool roundEnd = false;
+        private static bool exists = false;
         private static readonly string[] disabledWeapons =
         [
             "weapon_deagle", "weapon_revolver", "weapon_glock", "weapon_usp_silencer",
@@ -27,7 +28,7 @@ namespace jRandomSkills
             "weapon_g3sg1", "weapon_nova", "weapon_xm1014", "weapon_mag7",
             "weapon_sawedoff", "weapon_m249", "weapon_negev"
         ];
-        private static readonly HashSet<uint> invisibleEntities = [];
+        private static readonly Dictionary<ulong, List<uint>> invisibleEntities = [];
 
         public static void LoadSkill()
         {
@@ -63,6 +64,8 @@ namespace jRandomSkills
                         DisableSkill(player);
                 }
                 roundEnd = true;
+                Instance.RemoveListener<CheckTransmit>(CheckTransmit);
+                exists = false;
                 return HookResult.Continue;
             });
 
@@ -86,7 +89,18 @@ namespace jRandomSkills
 
                 if (playerInfo?.Skill != skillName) return HookResult.Continue;
                 SetWeaponVisibility(player!, false);
-                SetWearablesVisibility(player!, false);
+                SetWeaponAttack(player!, true);
+                return HookResult.Continue;
+            });
+
+            Instance.RegisterEventHandler<EventItemEquip>((@event, info) =>
+            {
+                var player = @event.Userid;
+                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+
+                if (playerInfo?.Skill != skillName) return HookResult.Continue;
+                SetWeaponVisibility(player!, false);
                 SetWeaponAttack(player!, true);
                 return HookResult.Continue;
             });
@@ -99,7 +113,6 @@ namespace jRandomSkills
             });
 
             Instance.RegisterListener<OnTick>(OnTick);
-            Instance.RegisterListener<CheckTransmit>(CheckTransmit);
         }
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
@@ -107,16 +120,21 @@ namespace jRandomSkills
             foreach (var (info, player) in infoList)
             {
                 if (player == null) continue;
-                foreach (var entity in invisibleEntities)
-                    info.TransmitEntities.Remove((int)entity);
+                foreach ((var playerId, var itemList) in invisibleEntities)
+                    if (player.SteamID !=  playerId)
+                        foreach (var item in itemList)
+                            info.TransmitEntities.Remove(item);
             }
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
+            if (!exists)
+                Instance.RegisterListener<CheckTransmit>(CheckTransmit);
+            exists = true;
+
             SetPlayerVisibility(player, false);
             SetWeaponVisibility(player, false);
-            SetWearablesVisibility(player, false);
             SetWeaponAttack(player, true);
         }
 
@@ -124,8 +142,8 @@ namespace jRandomSkills
         {
             SetPlayerVisibility(player, true);
             SetWeaponVisibility(player, true);
-            SetWearablesVisibility(player, true);
             SetWeaponAttack(player, false);
+            invisibleEntities.Remove(player.SteamID);
         }
 
         private static void OnTick()
@@ -152,44 +170,39 @@ namespace jRandomSkills
             }
         }
 
-        private static void SetWearablesVisibility(CCSPlayerController player, bool visible)
-        {
-            if (!Instance.IsPlayerValid(player)) return;
-            var playerPawn = player.PlayerPawn.Value!;
-
-            var color = visible ? Color.FromArgb(255, 255, 255, 255) : Color.FromArgb(0, 255, 255, 255);
-            var shadowStrength = visible ? 1.0f : 0.0f;
-
-            foreach (var item in playerPawn.MyWearables)
-            {
-                if (item != null && item.IsValid && item.Value != null && item.Value.IsValid)
-                {
-                    Server.PrintToChatAll($"NAME: {item.Value.DesignerName}");
-                    item.Value.Render = color;
-                    item.Value.ShadowStrength = shadowStrength;
-                    Utilities.SetStateChanged(item.Value, "CBaseModelEntity", "m_clrRender");
-                }
-            }
-        }
-
         private static void SetWeaponVisibility(CCSPlayerController player, bool visible)
         {
             if (!Instance.IsPlayerValid(player)) return;
             var playerPawn = player.PlayerPawn.Value!;
             if (playerPawn.WeaponServices == null) return;
 
-            var color = visible ? Color.FromArgb(255, 255, 255, 255) : Color.FromArgb(0, 255, 255, 255);
-            var shadowStrength = visible ? 1.0f : 0.0f;
+            // var color = visible ? Color.FromArgb(255, 255, 255, 255) : Color.FromArgb(0, 255, 255, 255);
+            // var shadowStrength = visible ? 1.0f : 0.0f;
 
+            invisibleEntities.Remove(player.SteamID);
             foreach (var weapon in playerPawn.WeaponServices.MyWeapons)
             {
                 if (weapon != null && weapon.IsValid && weapon.Value != null && weapon.Value.IsValid)
                 {
+                    if (!visible)
+                    {
+                        if (invisibleEntities.TryGetValue(player.SteamID, out var items))
+                        {
+                            if (!items.Contains(weapon.Index))
+                                items.Add(weapon.Index);
+                        }
+                        else
+                            invisibleEntities.Add(player.SteamID, [weapon.Index]);
+                    }
+                    /*
                     weapon.Value.Render = color;
                     weapon.Value.ShadowStrength = shadowStrength;
-                    Utilities.SetStateChanged(weapon.Value, "CBaseModelEntity", "m_clrRender");
+                    Utilities.SetStateChanged(weapon.Value, "CBaseModelEntity", "m_clrRender");*/
                 }
             }
+
+            if (visible)
+                invisibleEntities.Remove(player.SteamID);
         }
 
         private static void SetWeaponAttack(CCSPlayerController player, bool disableWeapon)

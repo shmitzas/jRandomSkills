@@ -6,6 +6,7 @@ using jRandomSkills.src.player;
 using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 using jRandomSkills.src.utils;
+using CounterStrikeSharp.API.Core.Attributes;
 
 namespace jRandomSkills
 {
@@ -13,6 +14,7 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.Chicken;
         private static bool roundEnd = false;
+        private static bool exists = false;
         private static readonly string[] disabledWeapons =
         [
             "weapon_ak47", "weapon_m4a4", "weapon_m4a1", "weapon_m4a1_silencer",
@@ -57,6 +59,8 @@ namespace jRandomSkills
                     DisableSkill(player);
                 }
                 roundEnd = true;
+                Instance.RemoveListener<CheckTransmit>(CheckTransmit);
+                exists = false;
                 return HookResult.Continue;
             });
 
@@ -92,11 +96,26 @@ namespace jRandomSkills
             Instance.RegisterListener<OnTick>(OnTick);
         }
 
+        public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
+        {
+            foreach (var (info, player) in infoList)
+            {
+                if (player == null) continue;
+                if (chickens.TryGetValue(player, out var chicken))
+                    if (chicken != null && chicken.IsValid)
+                        info.TransmitEntities.Remove(chicken.Index);
+            }
+        }
+
         public static void EnableSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && playerPawn.IsValid)
             {
+                if (!exists)
+                    Instance.RegisterListener<CheckTransmit>(CheckTransmit);
+                exists = true;
+
                 playerPawn.VelocityModifier = 1.1f;
 
                 playerPawn.Health = 50;
@@ -136,11 +155,11 @@ namespace jRandomSkills
                 SetWeaponAttack(player, false);
             }
 
-            foreach (var chicken in chickens)
+            if (chickens.TryGetValue(player, out var chicken))
             {
-                if (chicken.Value != null && chicken.Value.IsValid)
-                    chicken.Value.Remove();
-                chickens.Remove(chicken.Key);
+                if (chicken != null && chicken.IsValid)
+                    chicken.Remove();
+                chickens.Remove(player);
             }
         }
 

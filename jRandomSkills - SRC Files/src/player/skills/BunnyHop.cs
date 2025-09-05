@@ -10,9 +10,9 @@ namespace jRandomSkills
     public class BunnyHop : ISkill
     {
         private const Skills skillName = Skills.BunnyHop;
-        private static float maxSpeed = Config.GetValue<float>(skillName, "maxSpeed");
-        private static float bunnyHopVelocity = Config.GetValue<float>(skillName, "jumpVelocity");
-        private static float jumpBoost = Config.GetValue<float>(skillName, "jumpBoost");
+        private static readonly float maxSpeed = Config.GetValue<float>(skillName, "maxSpeed");
+        private static readonly float bunnyHopVelocity = Config.GetValue<float>(skillName, "jumpVelocity");
+        private static readonly float jumpBoost = Config.GetValue<float>(skillName, "jumpBoost");
 
         public static void LoadSkill()
         {
@@ -60,17 +60,11 @@ namespace jRandomSkills
             }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#d1430a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float maxSpeed = 500f, float jumpVelocity = 300f, float jumpBoost = 2f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public float MaxSpeed { get; set; }
-            public float JumpVelocity { get; set; }
-            public float JumpBoost { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#d1430a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float maxSpeed = 500f, float jumpVelocity = 300f, float jumpBoost = 2f) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                MaxSpeed = maxSpeed;
-                JumpVelocity = jumpVelocity;
-                JumpBoost = jumpBoost;
-            }
+            public float MaxSpeed { get; set; } = maxSpeed;
+            public float JumpVelocity { get; set; } = jumpVelocity;
+            public float JumpBoost { get; set; } = jumpBoost;
         }
     }
 }

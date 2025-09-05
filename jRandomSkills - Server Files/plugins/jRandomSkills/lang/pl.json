@@ -414,6 +414,14 @@
   "healed": "Zostałeś uleczony.",
   "game_start": "Gra rozpoczęta!",
 
+  "vote_started": "Głosowanie rozpoczęte: '{0}'",
+  "vote_timeout": "Głosowanie '{0}' przekroczyło limit czasu!",
+  "vote_wait": "Musisz poczekać, zanim rozpoczniesz kolejne głosowanie!",
+  "vote_same_wait": "Musisz poczekać, zanim ponownie rozpoczniesz to samo głosowanie!",
+  "vote_not_enough_players": "Za mało graczy, aby rozpocząć głosowanie!",
+  "vote_alredy_voted": "Już zagłosowałeś!",
+  "vote_vote": "Głosowanie",
+
   "teammate_skills": "Supermoce twoich sojuszników",
   "summary_start": "======PODSUMOWANIE=Z=OSTATNIEJ=RUNDY======",
   "summary_end": "============================================"

@@ -31,6 +31,7 @@ namespace jRandomSkills
             {
                 if (!votes.Contains(vote) || !vote.GetActive()) return;
                 vote.SetActive(false);
+                vote.TimeToNextSameVoting = vote.TimeToNextVoting;
                 Server.PrintToChatAll($" {ChatColors.Red}{Localization.GetTranslation("vote_timeout", commandName)}");
             });
 
