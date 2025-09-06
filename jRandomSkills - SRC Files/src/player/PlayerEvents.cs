@@ -169,7 +169,7 @@ namespace jRandomSkills
                                 List<jSkill_SkillInfo> skillList = new(SkillData.Skills);
                                 skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
 
-                                if (Utilities.GetPlayers().FindAll(p => p.Team == player.Team && p.IsValid && !p.IsBot).Count == 1)
+                                if (Utilities.GetPlayers().FindAll(p => p.Team == player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).Count == 1)
                                 {
                                     Config.DefaultSkillInfo[] skillsNeedsTeammates = Config.LoadedConfig.SkillsInfo.Where(s => s.NeedsTeammates).ToArray();
                                     skillList.RemoveAll(s => skillsNeedsTeammates.Any(s2 => s2.Name == s.Skill.ToString()));
@@ -269,6 +269,28 @@ namespace jRandomSkills
                 }
 
                 return HookResult.Continue;
+            });
+
+            Instance.RegisterListener<Listeners.OnPlayerButtonsChanged>((CCSPlayerController player, PlayerButtons pressed, PlayerButtons released) =>
+            {
+                string? button = Config.LoadedConfig.Settings.AlternativeSkillButton;
+                if (string.IsNullOrEmpty(button)) return;
+
+                if (Enum.TryParse<PlayerButtons>(button, out var skillButton))
+                {
+                    if (pressed != skillButton) return;
+                } else return;
+
+                if (player == null) return;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo == null) return;
+
+                var playerPawn = player.PlayerPawn.Value;
+                if (playerPawn?.CBodyComponent == null) return;
+                if (!player.IsValid || !player.PawnIsAlive) return;
+
+                Debug.WriteToDebug($"Player {player.PlayerName} used the skill: {playerInfo.Skill} by PlayerButtons: {pressed}");
+                Instance.SkillAction(playerInfo.Skill.ToString(), "UseSkill", [player]);
             });
         }
 

@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
+using System.Collections.Generic;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -11,7 +12,7 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.Darkness;
         private static readonly float brightness = Config.GetValue<float>(skillName, "brightness");
-        private static readonly Dictionary<CCSPlayerController, CPostProcessingVolume> deafultPostProcessing = [];
+        private static readonly Dictionary<CCSPlayerController, List<CPostProcessingVolume>> defaultPostProcessings = [];
         private static readonly List<CPostProcessingVolume> newPostProcessing = [];
 
         public static void LoadSkill()
@@ -36,7 +37,7 @@ namespace jRandomSkills
 
             Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
             {
-                foreach (var player in deafultPostProcessing.Keys)
+                foreach (var player in defaultPostProcessings.Keys)
                     DisableSkill(player);
                 foreach (var postProcessing in newPostProcessing)
                     postProcessing.Remove();
@@ -89,7 +90,7 @@ namespace jRandomSkills
             SkillUtils.PrintToChat(player, Localization.GetTranslation("darkness") + ":", false);
 
             player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("darkness_select_info")}");
-            var enemies = Utilities.GetPlayers().Where(p => p.Team != player.Team && p.IsValid && !p.IsBot).ToArray();
+            var enemies = Utilities.GetPlayers().Where(p => p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).ToArray();
             if (enemies.Length > 0)
             {
                 foreach (var enemy in enemies)
@@ -111,29 +112,40 @@ namespace jRandomSkills
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid || pawn.CameraServices == null) return;
 
-            var postProcessingVolumes = pawn.CameraServices.PostProcessingVolumes.FirstOrDefault();
-            if (postProcessingVolumes == null || postProcessingVolumes.Value == null) return;
+            if (!defaultPostProcessings.TryGetValue(player, out _))
+                defaultPostProcessings[player] = [];
 
-            if (deafultPostProcessing.TryGetValue(player, out var oldPostProcessing))
+            int i = 0;
+            foreach (var postProcessingVolume in pawn.CameraServices.PostProcessingVolumes)
             {
-                postProcessingVolumes.Raw = oldPostProcessing.EntityHandle.Raw;
-                deafultPostProcessing.Remove(player);
-                Utilities.SetStateChanged(pawn, "CBasePlayerPawn", "m_pCameraServices");
-                return;
+                if (postProcessingVolume == null || postProcessingVolume.Value == null)
+                    return;
+
+                if (dontCreateNew)
+                {
+                    if (i < defaultPostProcessings[player].Count)
+                        postProcessingVolume.Raw = defaultPostProcessings[player][i].EntityHandle.Raw;
+                }
+                else
+                {
+                    defaultPostProcessings[player].Add(postProcessingVolume.Value);
+
+                    var postProcessing = Utilities.CreateEntityByName<CPostProcessingVolume>("post_processing_volume");
+                    if (postProcessing == null) return;
+
+                    postProcessing.ExposureControl = true;
+                    postProcessing.MaxExposure = brightness;
+                    postProcessing.MinExposure = brightness;
+
+                    newPostProcessing.Add(postProcessing);
+                    postProcessingVolume.Raw = postProcessing.EntityHandle.Raw;
+                }
+                i++;
             }
 
-            if (dontCreateNew)
-                return;
-
-            var postProcessing = Utilities.CreateEntityByName<CPostProcessingVolume>("post_processing_volume");
-            if (postProcessing == null) return;
-
-            postProcessing.ExposureControl = true;
-            postProcessing.MaxExposure = brightness;
-            postProcessing.MinExposure = brightness;
-            deafultPostProcessing.TryAdd(player, postProcessingVolumes.Value);
-            postProcessingVolumes.Raw = postProcessing.EntityHandle.Raw;
             Utilities.SetStateChanged(pawn, "CBasePlayerPawn", "m_pCameraServices");
+            if (dontCreateNew)
+                defaultPostProcessings.Remove(player);
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#383838", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float brightness = .01f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)

@@ -49,7 +49,12 @@ namespace jRandomSkills.src.utils
                 if (args.Length != 0 && args[0].ToString() == "welcome")
                     return translation;
                 else
-                    return string.Format(translation, args).Replace("CHATCOLORS.RED", ChatColors.Red.ToString());
+                {
+                    string output = string.Format(translation, args).Replace("CHATCOLORS.RED", ChatColors.Red.ToString());
+                    if (Config.LoadedConfig.Settings.AlternativeSkillButton != null)
+                        output = output.Replace("css_useSkill", $"css_useSkill/{Config.LoadedConfig.Settings.AlternativeSkillButton}");
+                    return output;
+                }
 
             return key;
         }

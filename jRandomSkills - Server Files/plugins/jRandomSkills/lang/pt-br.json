@@ -165,9 +165,7 @@
   "infiniteammo_desc": "Você recebe munição infinita para todas as suas armas",
 
   "jackal": "Rastreador",
-  "jackal_desc": "Escolha um jogador que deixará um rastro atrás dele",
-  "jackal_player_info": "O jogador '{0}' começará a deixar um rastro.",
-  "jackal_select_info": "Escolha o jogador que deixará um rastro:",
+  "jackal_desc": "Cada adversário deixa um rastro atrás de si",
 
   "jammer": "Jammer",
   "jammer_desc": "Escolha um jogador para desativar sua mira",

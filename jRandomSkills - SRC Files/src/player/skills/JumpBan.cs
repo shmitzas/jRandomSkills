@@ -97,7 +97,7 @@ namespace jRandomSkills
             SkillUtils.PrintToChat(player, Localization.GetTranslation("jumpban") + ":", false);
 
             player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("jumpban_select_info")}");
-            var enemies = Utilities.GetPlayers().Where(p => p.Team != player.Team && p.IsValid && !p.IsBot).ToArray();
+            var enemies = Utilities.GetPlayers().Where(p => p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).ToArray();
             if (enemies.Length > 0)
             {
                 foreach (var enemy in enemies)

@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
 using System.Drawing;
 using static jRandomSkills.jRandomSkills;
 
@@ -14,13 +13,11 @@ namespace jRandomSkills
         private const Skills skillName = Skills.Jackal;
         private static readonly int maxStepBeam = Config.GetValue<int>(skillName, "maxStepBeam");
         private static bool exists = false;
-
-        private static readonly Dictionary<uint, uint> authorBeams = [];
         private static readonly Dictionary<CCSPlayerController, List<CBeam>> stepBeams = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
@@ -44,11 +41,7 @@ namespace jRandomSkills
                     foreach (var beam in beams)
                         if (beam != null && beam.IsValid)
                             beam.Remove();
-                foreach (var player in stepBeams.Keys)
-                    DisableSkill(player);
-                authorBeams.Clear();
                 stepBeams.Clear();
-
                 Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
                 exists = false;
                 return HookResult.Continue;
@@ -100,12 +93,13 @@ namespace jRandomSkills
                     var beams = step.Value;
 
                     var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
-
-                    bool playerHasBeam = authorBeams.TryGetValue(player.Index, out uint pIndex) && pIndex == enemy.Index;
-                    bool observerHasBeam = observedPlayer != null && authorBeams.TryGetValue(observedPlayer.Index, out uint oIndex) && oIndex == enemy.Index;
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var observerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
 
                     foreach (var beam in beams)
-                        if (!playerHasBeam && !observerHasBeam)
+                        if (playerInfo?.Skill != skillName && observerInfo?.Skill != skillName)
+                            info.TransmitEntities.Remove(beam);
+                        else if (enemy.Team == player.Team)
                             info.TransmitEntities.Remove(beam);
                 }
             }
@@ -130,60 +124,16 @@ namespace jRandomSkills
             return beam;
         }
 
-        public static void TypeSkill(CCSPlayerController player, string[] commands)
-        {
-            if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo?.Skill != skillName) return;
-
-            if (playerInfo.SkillChance == 1)
-            {
-                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("areareaper_used_info")}");
-                return;
-            }
-
-            string enemyId = commands[0];
-            var enemy = Utilities.GetPlayers().FirstOrDefault(p => p.Team != player.Team && p.Index.ToString() == enemyId);
-
-            if (enemy == null)
-            {
-                player.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("selectplayerskill_incorrect_enemy_index"));
-                return;
-            }
-
-            authorBeams.Add(player.Index, enemy.Index);
-            stepBeams.Add(enemy, []);
-            playerInfo.SkillChance = 1;
-            player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("jackal_player_info", enemy.PlayerName));
-        }
-
         public static void EnableSkill(CCSPlayerController player)
         {
             if (!exists)
-                Instance.RegisterListener<Listeners.CheckTransmit>(CheckTransmit);
-            exists = true;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo == null) return;
-            playerInfo.SkillChance = 0;
-
-            SkillUtils.PrintToChat(player, Localization.GetTranslation("jackal") + ":", false);
-
-            player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("jackal_select_info")}");
-            var enemies = Utilities.GetPlayers().Where(p => p.Team != player.Team && p.IsValid && !p.IsBot).ToArray();
-            if (enemies.Length > 0)
             {
-                foreach (var enemy in enemies)
-                    player.PrintToChat($" {ChatColors.Green}⠀⠀⠀[{ChatColors.Red}{enemy.Index}{ChatColors.Green}] {enemy.PlayerName}");
-            }
-            else
-                player.PrintToChat($" {ChatColors.Red}⠀⠀⠀{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
-            player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("selectplayerskill_command")} {ChatColors.Red}index");
-        }
+                Instance.RegisterListener<Listeners.CheckTransmit>(CheckTransmit);
 
-        public static void DisableSkill(CCSPlayerController player)
-        {
-            authorBeams.Remove(player.Index);
-            stepBeams.Remove(player);
+                foreach (var _player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator))
+                    stepBeams.Add(_player, []);
+            }
+            exists = true;
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#f542ef", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int maxStepBeam = 50) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)

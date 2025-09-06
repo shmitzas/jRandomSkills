@@ -140,6 +140,7 @@ namespace jRandomSkills
             public bool TeamMateSkillInfo { get; set; }
             public bool SummaryAfterTheRound { get; set; }
             public bool DebugMode { get; set; }
+            public string? AlternativeSkillButton { get; set; }
             public NormalCommand SetSkillCommands { get; set; }
             public NormalCommand SkillsListCommands { get; set; }
             public NormalCommand UseSkillCommands { get; set; }
@@ -161,6 +162,7 @@ namespace jRandomSkills
                 TeamMateSkillInfo = true;
                 SummaryAfterTheRound = true;
                 DebugMode = true;
+                AlternativeSkillButton = null;
 
                 SetSkillCommands = new NormalCommand("ustawskill, ustaw_skill, setskill, set_skill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能", "@jRandmosSkills/admin");
                 SkillsListCommands = new NormalCommand("supermoc, skille, listamocy, supermoce, skills, listaHabilidades, habilidades, 技能列表, 超能力列表", "@jRandmosSkills/admin");

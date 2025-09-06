@@ -165,9 +165,7 @@
   "infiniteammo_desc": "Otrzymujesz nieskończoną ilość amunicji do wszystkich broni",
 
   "jackal": "Stópkarz",
-  "jackal_desc": "Wybierasz gracza, który pozostawi za sobą ślad",
-  "jackal_player_info": "Gracz '{0}' zacznie zostawiać za sobą ślad.",
-  "jackal_select_info": "Wybierz gracza, który pozostawi za sobą ślad:",
+  "jackal_desc": "Każdy przeciwnik pozostawia za sobą ślad",
 
   "jammer": "Zakłócacz",
   "jammer_desc": "Wybierasz gracza, dla którego chcesz wyłączyć celownik",

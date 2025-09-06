@@ -165,9 +165,7 @@
   "infiniteammo_desc": "你为所有武器获得无限弹药",
 
   "jackal": "追踪者",
-  "jackal_desc": "选择一个玩家，其身后会留下痕迹",
-  "jackal_player_info": "玩家 '{0}' 将开始留下痕迹。",
-  "jackal_select_info": "选择将留下痕迹的玩家：",
+  "jackal_desc": "每个对手都会留下痕迹",
 
   "jammer": "干扰器",
   "jammer_desc": "选择一个玩家以禁用其准星",

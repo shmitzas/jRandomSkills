@@ -6,6 +6,7 @@
     "TeamMateSkillInfo": true,
     "SummaryAfterTheRound": true,
     "DebugMode": true,
+    "AlternativeSkillButton": null,
     "SetSkillCommands": {
       "Alias": "ustawskill, ustaw_skill, setskill, set_skill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能",
       "Permissions": "@jRandmosSkills/admin"

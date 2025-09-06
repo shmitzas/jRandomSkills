@@ -233,6 +233,13 @@ All skills can be customized in the **`Config.cfg`** file located in the **`game
         "TeamMateSkillInfo": true,      // Show allies' skills in chat
         "SummaryAfterTheRound": true,   // Show summary of the last round
         "DebugMode": true,              // Write activity to the ‘Debug’ folder
+        "AlternativeSkillButton": null, // Possible buttons:
+                                        // "Attack", "Jump", "Duck", "Forward", "Back",
+                                        // "Use", "Cancel", "Left", "Right", "Moveleft",
+                                        // "Moveright", "Attack2", "Run", "Reload", "Alt1",
+                                        // "Alt2", "Speed", "Walk", "Zoom", "Weapon1",
+                                        // "Weapon2", "Bullrush", "Grenade1", "Grenade2",
+                                        // "Attack3", "Scoreboard", "Inspect"
         ...
     },
     "SkillsInfo": [
@@ -258,6 +265,19 @@ This plugin uses content from the following projects:
 - [ChaseMod](https://github.com/ipsvn/ChaseMod/blob/master/Utils/Memory/CCSMatch.cs) by [ipsvn](https://github.com/ipsvn) - round score management
 
 ## 📋 Changelog
+
+<details>
+<summary><b>v1.1.3</b></summary>
+  
+- #### General:
+    - ###### Added `AlternativeSkillButton` options to the config file so that the player button can be used to activate skills.
+    - ###### Spectators are no longer selected when choosing a specific player when using a skill.
+- #### Skill improvements:
+    - ##### Jackal:
+        - ###### Now, all opponents are leaving a trail, not just the selected ones.
+    - ##### Darkness:
+        - ###### All postprocessing volumes are replaced instead of just the first one.
+</details>
 
 <details>
 <summary><b>v1.1.2</b></summary>

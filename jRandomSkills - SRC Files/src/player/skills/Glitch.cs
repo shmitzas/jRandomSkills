@@ -77,7 +77,7 @@ namespace jRandomSkills
             SkillUtils.PrintToChat(player, Localization.GetTranslation("glitch") + ":", false);
 
             player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("glitch_select_info")}");
-            var enemies = Utilities.GetPlayers().Where(p => p.Team != player.Team && p.IsValid && !p.IsBot).ToArray();
+            var enemies = Utilities.GetPlayers().Where(p => p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).ToArray();
             if (enemies.Length > 0)
             {
                 foreach (var enemy in enemies)

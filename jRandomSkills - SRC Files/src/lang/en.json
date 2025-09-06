@@ -165,9 +165,7 @@
   "infiniteammo_desc": "You receive infinite ammo for all your weapons",
 
   "jackal": "Tracker",
-  "jackal_desc": "Choose a player who will leave a trail behind them",
-  "jackal_player_info": "Player '{0}' will start leaving a trail.",
-  "jackal_select_info": "Choose the player who will leave a trail:",
+  "jackal_desc": "Every opponent leaves a trail behind them",
 
   "jammer": "Jammer",
   "jammer_desc": "Choose a player to disable their crosshair",

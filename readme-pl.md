@@ -233,6 +233,13 @@ Wszystkie sypermoce można dostosować w pliku **`Config.cfg`** znajdującym si�
         "TeamMateSkillInfo": true,      // Pokazuj supermoc sojuszników na czacie
         "SummaryAfterTheRound": true,   // Pokazuj podsumowanie z ostatniej rundy
         "DebugMode": true,              // Zapisuj aktywność do folderu 'Debug'
+        "AlternativeSkillButton": null, // Możliwe przyciski:
+                                        // "Attack", "Jump", "Duck", "Forward", "Back",
+                                        // "Use", "Cancel", "Left", "Right", "Moveleft",
+                                        // "Moveright", "Attack2", "Run", "Reload", "Alt1",
+                                        // "Alt2", "Speed", "Walk", "Zoom", "Weapon1",
+                                        // "Weapon2", "Bullrush", "Grenade1", "Grenade2",
+                                        // "Attack3", "Scoreboard", "Inspect"
         ...
     },
     "SkillsInfo": [
@@ -258,6 +265,19 @@ Plugin korzysta z zawartości następujących projektów:
 - [ChaseMod](https://github.com/ipsvn/ChaseMod/blob/master/Utils/Memory/CCSMatch.cs) autorstwa [ipsvn](https://github.com/ipsvn) - ustawianie wyniku rund
 
 ## 📋 Lista Zmian
+
+<details>
+<summary><b>v1.1.3</b></summary>
+  
+- #### Ogólne:
+    - ###### Dodano opcje `AlternativeSkillButton` do pliku konfiguracyjnego, aby przycisk gracza mógł być używany do aktywowania umiejętności.
+    - ###### Obserwatorzy nie są już uwzględniani przy wyborze konkretnego gracza podczas używania umiejętności.
+- #### Poprawki mocy:
+    - ##### Stópkarz:
+        - ###### Teraz wszyscy przeciwnicy pozostawiają ślad, a nie tylko wybrany.
+    - ##### Mrok:
+        - ###### Wszystkie woluminy postprocessingu są zastępowane, a nie tylko pierwszy z nich.
+</details>
 
 <details>
 <summary><b>v1.1.2</b></summary>
