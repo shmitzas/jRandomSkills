@@ -25,7 +25,7 @@ namespace jRandomSkills
         public override string ModuleName => "[CS2] [ jRandomSkills ]";
         public override string ModuleAuthor => "D3X, Juzlus";
         public override string ModuleDescription => "Plugin adds random skills every round for CS2 by D3X. Modified by Juzlus.";
-        public override string ModuleVersion => "1.1.3";
+        public override string ModuleVersion => "1.1.4";
 
         public override void Load(bool hotReload)
         {
