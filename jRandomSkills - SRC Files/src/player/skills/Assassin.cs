@@ -15,26 +15,24 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
-            {
-                var damage = @event.DmgHealth;
-                var victim = @event.Userid;
-                var attacker = @event.Attacker;
-                var weapon = @event.Weapon;
-                HitGroup_t hitgroup = (HitGroup_t)@event.Hitgroup;
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var damage = @event.DmgHealth;
+            var victim = @event.Userid;
+            var attacker = @event.Attacker;
+            var weapon = @event.Weapon;
+            HitGroup_t hitgroup = (HitGroup_t)@event.Hitgroup;
 
-                if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
-                if (nades.Contains(weapon)) return HookResult.Continue;
+            if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return;
+            if (nades.Contains(weapon)) return;
 
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
-                if (playerInfo?.Skill != skillName) return HookResult.Continue;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            if (playerInfo?.Skill != skillName) return;
 
-                if (IsBehind(attacker!, victim!))
-                    SkillUtils.TakeHealth(victim!.PlayerPawn.Value, (int)(damage * (damageMultiplier - 1f)));
-                
-                return HookResult.Continue;
-            });
+            if (IsBehind(attacker!, victim!))
+                SkillUtils.TakeHealth(victim!.PlayerPawn.Value, (int)(damage * (damageMultiplier - 1f)));
         }
 
         private static bool IsBehind(CCSPlayerController attacker, CCSPlayerController victim)

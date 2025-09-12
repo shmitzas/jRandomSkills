@@ -16,25 +16,6 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () => 
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill == skillName)
-                        {
-                            string model = GetEnemyModel(player);
-                            SetPlayerModel(player, model);
-                        }
-                    }
-                });
-
-                return HookResult.Continue;
-            });
         }
 
         public static void EnableSkill(CCSPlayerController player)

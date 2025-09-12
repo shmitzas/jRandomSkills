@@ -1,5 +1,4 @@
 ﻿using CounterStrikeSharp.API;
-using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
@@ -15,10 +14,9 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-            Instance.RegisterListener<Listeners.OnTick>(OnTick);
         }
 
-        private static void OnTick()
+        public static void OnTick()
         {
             if (Server.TickCount % (int)(64 * cooldown) != 0) return;
             foreach (var player in Utilities.GetPlayers())

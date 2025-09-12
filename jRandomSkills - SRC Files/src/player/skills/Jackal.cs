@@ -18,39 +18,20 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                foreach (var beams in stepBeams.Values)
-                    foreach (var beam in beams)
-                        if (beam != null && beam.IsValid)
-                            beam.Remove();
-                stepBeams.Clear();
-                Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
-                exists = false;
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<Listeners.OnTick>(OnTick);
         }
 
-        private static void OnTick()
+        public static void NewRound()
+        {
+            foreach (var beams in stepBeams.Values)
+                foreach (var beam in beams)
+                    if (beam != null && beam.IsValid)
+                        beam.Remove();
+            stepBeams.Clear();
+            Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
+            exists = false;
+        }
+
+        public static void OnTick()
         {
             if (Server.TickCount % 8 != 0) return;
             foreach (var step in stepBeams.ToList())

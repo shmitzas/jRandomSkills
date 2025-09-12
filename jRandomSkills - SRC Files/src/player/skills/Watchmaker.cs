@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -17,46 +16,43 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-
-            Instance.RegisterEventHandler<EventRoundStart>((@event, info) =>
-            {
-                bombPlanted = false;
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventBombPlanted>((@event, info) =>
-            {
-                bombPlanted = true;
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<OnEntitySpawned>(@event =>
-            {
-                var name = @event.DesignerName;
-                if (!name.EndsWith("_projectile"))
-                    return;
-
-                var grenade = @event.As<CBaseCSGrenadeProjectile>();
-                if (grenade.OwnerEntity.Value == null || !grenade.OwnerEntity.Value.IsValid) return;
-
-                var pawn = grenade.OwnerEntity.Value.As<CCSPlayerPawn>();
-                if (pawn == null || !pawn.IsValid || pawn.Controller == null || !pawn.Controller.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
-                var player = pawn.Controller.Value.As<CCSPlayerController>();
-
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill != skillName || Instance.GameRules == null) return;
-
-                Instance.GameRules.RoundTime += player.Team == CsTeam.Terrorist ? roundTime : -roundTime;
-                if (player.Team == CsTeam.Terrorist)
-                    Server.PrintToChatAll($" {ChatColors.Orange}{Localization.GetTranslation("watchmaker_tt", roundTime)}");
-                else
-                    Server.PrintToChatAll($" {ChatColors.LightBlue}{Localization.GetTranslation("watchmaker_ct", roundTime)}");
-            });
-
-            Instance.RegisterListener<OnTick>(OnTick);
         }
 
-        private static void OnTick()
+        public static void NewRound()
+        {
+            bombPlanted = false;
+        }
+
+        public static void BombPlanted(EventBombPlanted _)
+        {
+            bombPlanted = true;
+        }
+
+        public static void OnEntitySpawned(CEntityInstance entity)
+        {
+            if (bombPlanted) return;
+            var name = entity.DesignerName;
+            if (!name.EndsWith("_projectile"))
+                return;
+
+            var grenade = entity.As<CBaseCSGrenadeProjectile>();
+            if (grenade.OwnerEntity.Value == null || !grenade.OwnerEntity.Value.IsValid) return;
+
+            var pawn = grenade.OwnerEntity.Value.As<CCSPlayerPawn>();
+            if (pawn == null || !pawn.IsValid || pawn.Controller == null || !pawn.Controller.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
+            var player = pawn.Controller.Value.As<CCSPlayerController>();
+
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo?.Skill != skillName || Instance.GameRules == null) return;
+
+            Instance.GameRules.RoundTime += player.Team == CsTeam.Terrorist ? roundTime : -roundTime;
+            if (player.Team == CsTeam.Terrorist)
+                Server.PrintToChatAll($" {ChatColors.Orange}{Localization.GetTranslation("watchmaker_tt", roundTime)}");
+            else
+                Server.PrintToChatAll($" {ChatColors.LightBlue}{Localization.GetTranslation("watchmaker_ct", roundTime)}");
+        }
+
+        public static void OnTick()
         {
             if (bombPlanted) return;
             foreach (var player in Utilities.GetPlayers())

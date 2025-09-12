@@ -37,7 +37,7 @@ Dołącz do serwera testowego 3v3 i wypróbuj plugin jRandomSkills:
 
 Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://pukawka.pl/pp,juzlus.html).
 
-## ✨ Aktualne Supermoce (104)
+## ✨ Aktualne Supermoce (106)
 <details>
 <summary>Poniższa tabela przedstawia wszystkie dostępne supermoce w grze, wraz z ich opisami.</summary>
 
@@ -77,6 +77,7 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 | Krucha Bomba | Strzelanie do bomby powoduje jej uszkodzenie | - |
 | Ogień Przyjacielski | Strzelanie do członków drużyny leczy ich | - |
 | Zamrażający Wabik | Twój decoy zamraża wszystkich graczy w pobliżu | - |
+| Hazardzista | Wybierz umiejętność z podanej listy | - |
 | Duszek | Jesteś całkowicie niewidzialny | - |
 | Glaz | Nie widzisz granatów dymnych | - |
 | Glitch | Wyłączasz radar wybranemu przeciwnikowi | - |
@@ -89,6 +90,7 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 | Nieskończone Ammo | Otrzymujesz nieskończoną ilość amunicji do wszystkich broni | - |
 | Stópkarz | Wybierasz gracza, który pozostawi za sobą ślad | - |
 | Zakłócacz | Wybierasz gracza, dla którego chcesz wyłączyć celownik | - |
+| Błazen | W trybie błazna nie możesz zadawać ani otrzymywać obrażeń. Tryb zmienia się co kilka sekund | (10 - 25) s |
 | Beznogi | Wybierasz gracza, który nie będzie mógł skakać | - |
 | Pajacyk | Skakanie przywraca zdrowie | - |
 | Zabójczy Flash | Każdy całkowicie oślepiony twoim granatem umiera (również ty) | - |
@@ -240,6 +242,8 @@ Wszystkie sypermoce można dostosować w pliku **`Config.cfg`** znajdującym si�
                                         // "Alt2", "Speed", "Walk", "Zoom", "Weapon1",
                                         // "Weapon2", "Bullrush", "Grenade1", "Grenade2",
                                         // "Attack3", "Scoreboard", "Inspect"
+        "SkillTimeBeforeStart": 7.0,    // Ile sekund przed końcem freeze time należy zakończyć 
+                                        // losowanie umiejętności? (freezetime - SkillTimeBeforeStart)
         ...
     },
     "SkillsInfo": [
@@ -260,11 +264,33 @@ Wszystkie sypermoce można dostosować w pliku **`Config.cfg`** znajdującym si�
 
 ## 🔗 Uwzględniona Zależność
 Plugin korzysta z zawartości następujących projektów:
+- [dRandomSkills](https://github.com/jakubbartosik/dRandomSkills) by [Jakub Bartosik (D3X)](https://github.com/jakubbartosik) - system losowych umiejętności
 - [CS2TraceRay](https://github.com/schwarper/CS2TraceRay) autorstwa [schwarper](https://github.com/schwarper) - system śledzenia promieni (Trace Ray)
 - [CS2FlashingHtmlHudFix](https://github.com/girlglock/CS2FlashingHtmlHudFix) autorstwa [girlglock](https://github.com/girlglock) - poprawka migotania okienka z supermocą
 - [ChaseMod](https://github.com/ipsvn/ChaseMod/blob/master/Utils/Memory/CCSMatch.cs) autorstwa [ipsvn](https://github.com/ipsvn) - ustawianie wyniku rund
+- [WASDMenuAPI](https://github.com/Interesting-exe/WASDMenuAPI) by [Interesting-exe](https://github.com/Interesting-exe) - API do łatwego tworzenia menu za pomocą klawiszy WASD
 
 ## 📋 Lista Zmian
+
+<details>
+<summary><b>v1.1.4</b></summary>
+  
+- #### Ogólne:
+    - ###### Do pliku konfiguracyjnego dodano opcję `SkillTimeBeforeStart`, która określa, na ile sekund przed końcem freezetime powinno się zakończyć losowanie umiejętności.
+    - ###### Umiejętności nie są już wyłączane pod koniec rundy.
+    - ###### Zmieniono logikę przyznawania umiejętności.
+    - ###### Zbyt długie pseudonimy są skracane podczas oglądania graczy.
+    - ###### Wybór gracza został zmieniony z Chat Menu na WSAD Menu.
+    - ###### Opisy umiejętności z wyborem gracza zostały skrócone.
+- #### Poprawki mocy:
+    - ##### Beznogi
+        - ###### Umiejętność Beznogi całkowicie wyłącza umiejętność Królik.
+- #### Nowe moce:
+    - ##### Błazen:
+        - ###### W trybie błazna nie możesz zadawać ani otrzymywać obrażeń. Tryb zmienia się co kilka sekund.
+    - ##### Hazardzista:
+        - ###### Wybierz umiejętność z podanej listy.
+</details>
 
 <details>
 <summary><b>v1.1.3</b></summary>

@@ -16,44 +16,28 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+        public static void OnEntitySpawned(CEntityInstance @event)
+        {
+            var name = @event.DesignerName;
+            if (!name.EndsWith("hegrenade_projectile"))
+                return;
+
+            Server.NextFrame(() =>
             {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
+                var hegrenade = @event.As<CHEGrenadeProjectile>();
+                if (hegrenade == null || !hegrenade.IsValid) return;
 
-                return HookResult.Continue;
-            });
+                var playerPawn = hegrenade.Thrower.Value;
+                if (playerPawn == null || !playerPawn.IsValid) return;
 
-            Instance.RegisterListener<Listeners.OnEntitySpawned>(@event =>
-            {
-                var name = @event.DesignerName;
-                if (!name.EndsWith("hegrenade_projectile"))
-                    return;
+                var player = Utilities.GetPlayers().FirstOrDefault(p => p.PlayerPawn.Index == playerPawn.Index);
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+                if (playerInfo?.Skill != skillName) return;
 
-                Server.NextFrame(() =>
-                {
-                    var hegrenade = @event.As<CHEGrenadeProjectile>();
-                    if (hegrenade == null || !hegrenade.IsValid) return;
-
-                    var playerPawn = hegrenade.Thrower.Value;
-                    if (playerPawn == null || !playerPawn.IsValid) return;
-
-                    var player = Utilities.GetPlayers().FirstOrDefault(p => p.PlayerPawn.Index == playerPawn.Index);
-                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
-                    if (playerInfo?.Skill != skillName) return;
-
-                    hegrenade.Damage *= damageMultiplier;
-                    hegrenade.DmgRadius *= damageRadiusMultiplier;
-                });
+                hegrenade.Damage *= damageMultiplier;
+                hegrenade.DmgRadius *= damageRadiusMultiplier;
             });
         }
 

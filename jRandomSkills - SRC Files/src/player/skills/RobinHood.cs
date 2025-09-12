@@ -14,22 +14,20 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-            
-            Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
-            {
-                var victim = @event.Userid;
-                var attacker = @event.Attacker;
-                var damage = @event.DmgHealth;
-                if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
+        }
 
-                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
-                if (attackerInfo?.Skill != skillName) return HookResult.Continue;
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var victim = @event.Userid;
+            var attacker = @event.Attacker;
+            var damage = @event.DmgHealth;
+            if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return;
 
-                int moneyToSteal = damage * moneyMultiplier;
-                StealMoney(victim!, attacker!, moneyToSteal);
+            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            if (attackerInfo?.Skill != skillName) return;
 
-                return HookResult.Continue;
-            });
+            int moneyToSteal = damage * moneyMultiplier;
+            StealMoney(victim!, attacker!, moneyToSteal);
         }
 
         private static void StealMoney(CCSPlayerController victim, CCSPlayerController attacker, int money)

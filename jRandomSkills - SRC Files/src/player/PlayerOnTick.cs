@@ -84,14 +84,17 @@ namespace jRandomSkills
 
                     var observeredPlayerSkill = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer.SteamID);
                     if (observeredPlayerSkill == null) return;
-                    
+
                     var observeredPlayerSkillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == observeredPlayerSkill.Skill);
                     if (observeredPlayerSkillInfo == null) return;
 
                     var observeredPlayerSpecialSkillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == observeredPlayerSkill.SpecialSkill);
                     if (observeredPlayerSpecialSkillInfo == null) return;
 
-                    infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("observer_skill")} {observeredPlayerSkill.PlayerName}:</font> <br>";
+                    string pName = observeredPlayerSkill.PlayerName;
+                    if (pName.Length > 18)
+                        pName = $"{pName.Substring(0, 17)}...";
+                    infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("observer_skill")} {pName}:</font> <br>";
                     skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{observeredPlayerSkillInfo.Color}'>{(observeredPlayerSkill.SpecialSkill == Skills.None ? observeredPlayerSkillInfo.Name : $"{observeredPlayerSpecialSkillInfo.Name}({observeredPlayerSkillInfo.Name})")}</font> <br>";
                 }
             }

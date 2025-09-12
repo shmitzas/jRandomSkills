@@ -3,47 +3,31 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Drawing;
-using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
     public class ThirdEye : ISkill
     {
         private const Skills skillName = Skills.ThirdEye;
-        private static bool blocked = false;
         private static readonly float distance = Config.GetValue<float>(skillName, "distance");
         private static readonly Dictionary<ulong, (uint, CDynamicProp)> cameras = [];
 
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                blocked = true;
-                foreach (var player in Utilities.GetPlayers())
-                    if (cameras.TryGetValue(player.SteamID, out _))
-                        DisableSkill(player);
-
-                foreach (var camera in cameras)
-                    camera.Value.Item2.Remove();
-                cameras.Clear();
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                blocked = false;
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<Listeners.OnTick>(OnTick);
+        public static void NewRound()
+        {
+            foreach (var camera in cameras)
+                camera.Value.Item2.Remove();
+            cameras.Clear();
         }
 
         public static void UseSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
-            if (playerPawn?.CBodyComponent == null || blocked) return;
+            if (playerPawn?.CBodyComponent == null) return;
             ChangeCamera(player);
         }
 
@@ -52,7 +36,7 @@ namespace jRandomSkills
             ChangeCamera(player, true);
         }
 
-        private static void OnTick()
+        public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
                 if (cameras.TryGetValue(player.SteamID, out var cameraInfo) && cameraInfo.Item2.IsValid)

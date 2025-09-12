@@ -1,4 +1,3 @@
-using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
@@ -14,42 +13,23 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+        public static void PlayerDeath(EventPlayerDeath @event)
+        {
+            var player = @event.Userid;
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
+
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo?.Skill == skillName)
             {
-                Instance.AddTimer(0.1f, () =>
+                if (Instance.Random.NextDouble() <= playerInfo.SkillChance)
                 {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!IsDeadPlayerValid(player)) continue;
-
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return HookResult.Continue;
-
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                {
-                    if (Instance.Random.NextDouble() <= playerInfo.SkillChance)
-                    {
-                        player.Respawn();
-                        Instance.AddTimer(.2f, () => player.Respawn());
-                        SkillUtils.PrintToChat(player, Localization.GetTranslation("phoenix_respawn"), false); ;
-                    }
+                    player.Respawn();
+                    Instance.AddTimer(.2f, () => player.Respawn());
+                    SkillUtils.PrintToChat(player, Localization.GetTranslation("phoenix_respawn"), false); ;
                 }
-
-                return HookResult.Continue;
-            });
+            }
         }
 
         public static void EnableSkill(CCSPlayerController player)

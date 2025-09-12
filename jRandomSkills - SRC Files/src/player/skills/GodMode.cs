@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -18,51 +17,11 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill == skillName)
-                        {
-                            EnableSkill(player);
-                        }
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                SkillPlayerInfo.Clear();
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid) return HookResult.Continue;
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    SkillPlayerInfo.Remove(player.SteamID);
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<OnTick>(() =>
-            {
-                foreach (var player in Utilities.GetPlayers())
-                {
-                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    if (playerInfo?.Skill == skillName)
-                        if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-                            UpdateHUD(player, skillInfo);
-                }
-            });
+        public static void NewRound()
+        {
+            SkillPlayerInfo.Clear();
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -73,6 +32,17 @@ namespace jRandomSkills
                 CanUse = true,
                 Cooldown = DateTime.MinValue,
             };
+        }
+
+        public static void OnTick()
+        {
+            foreach (var player in Utilities.GetPlayers())
+            {
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill == skillName)
+                    if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
+                        UpdateHUD(player, skillInfo);
+            }
         }
 
         public static void DisableSkill(CCSPlayerController player)

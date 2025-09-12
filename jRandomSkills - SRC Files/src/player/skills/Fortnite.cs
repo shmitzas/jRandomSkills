@@ -1,6 +1,5 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
@@ -23,57 +22,24 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            Instance.RegisterListener<OnServerPrecacheResources>((ResourceManifest manifest) => manifest.AddResource(propModel));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+        public static void NewRound()
+        {
+            SkillPlayerInfo.Clear();
+            barricades.Clear();
+        }
+
+        public static void OnTick()
+        {
+            foreach (var player in Utilities.GetPlayers())
             {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) return;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill == skillName)
-                            EnableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                SkillPlayerInfo.Clear();
-                barricades.Clear();
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid) return HookResult.Continue;
                 var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                      SkillPlayerInfo.Remove(player.SteamID);
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<OnTick>(() =>
-            {
-                foreach (var player in Utilities.GetPlayers())
-                {
-                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    if (playerInfo?.Skill == skillName)
-                        if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-                            UpdateHUD(player, skillInfo);
-                }
-            });
-
-            Instance.RegisterListener<OnServerPrecacheResources>((ResourceManifest manifest) =>
-            {
-                manifest.AddResource(propModel);
-            });
-
-            VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamage, HookMode.Pre);
+                    if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
+                        UpdateHUD(player, skillInfo);
+            }
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -153,19 +119,19 @@ namespace jRandomSkills
             });
         }
 
-        private static HookResult OnTakeDamage(DynamicHook h)
+        public static void OnTakeDamage(DynamicHook h)
         {
             CEntityInstance param = h.GetParam<CEntityInstance>(0);
             CTakeDamageInfo param2 = h.GetParam<CTakeDamageInfo>(1);
 
             if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
-                return HookResult.Continue;
+                return;
 
-            if (string.IsNullOrEmpty(param.Entity.Name)) return HookResult.Continue;
-            if (!param.Entity.Name.StartsWith("FortniteWall")) return HookResult.Continue;
+            if (string.IsNullOrEmpty(param.Entity.Name)) return;
+            if (!param.Entity.Name.StartsWith("FortniteWall")) return;
 
             var box = param.As<CDynamicProp>();
-            if (box == null || !box.IsValid) return HookResult.Continue;
+            if (box == null || !box.IsValid) return;
             box.EmitSound("Wood_Plank.BulletImpact", volume: 1f);
 
             if (barricades.TryGetValue(box.Index, out int health))
@@ -175,7 +141,6 @@ namespace jRandomSkills
                 if (health <= 0) box.Remove();
             }
             else box.Remove();
-            return HookResult.Continue;
         }
 
         public class PlayerSkillInfo

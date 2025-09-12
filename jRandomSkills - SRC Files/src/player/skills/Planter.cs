@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -16,33 +15,19 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundStart>((@event, @info) =>
-            {
-                foreach (var player in Utilities.GetPlayers())
-                {
-                    if (!Instance.IsPlayerValid(player)) continue;
-                    Schema.SetSchemaValue<bool>(player!.PlayerPawn!.Value!.Handle, "CCSPlayerPawn", "m_bInBombZone", false);
-                }
-                return HookResult.Continue;
-            });
+        public static void BombPlanted(EventBombPlanted @event)
+        {
+            var player = @event.Userid;
+            if (!Instance.IsPlayerValid(player)) return;
 
-            Instance.RegisterEventHandler<EventBombPlanted>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            if (playerInfo?.Skill != skillName) return;
 
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
-                if (playerInfo?.Skill != skillName) return HookResult.Continue;
-
-                var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
-                if (plantedBomb != null)
-                    Server.NextFrame(() => plantedBomb.C4Blow = (float)Server.EngineTime + extraC4BlowTime);
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<OnTick>(OnTick);
+            var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
+            if (plantedBomb != null)
+                Server.NextFrame(() => plantedBomb.C4Blow = (float)Server.EngineTime + extraC4BlowTime);
         }
 
         public static void DisableSkill(CCSPlayerController player)
@@ -51,7 +36,7 @@ namespace jRandomSkills
             Schema.SetSchemaValue<bool>(player!.PlayerPawn.Value!.Handle, "CCSPlayerPawn", "m_bInBombZone", false);
         }
 
-        private static void OnTick()
+        public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
             {

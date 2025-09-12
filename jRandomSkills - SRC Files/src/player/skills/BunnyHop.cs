@@ -2,7 +2,6 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -17,10 +16,9 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-            Instance.RegisterListener<OnTick>(OnTick);
         }
 
-        private static void OnTick()
+        public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
             {
@@ -34,6 +32,7 @@ namespace jRandomSkills
         {
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;
+            if (JumpBan.bannedPlayers.ContainsKey(playerPawn)) return;
 
             var flags = (PlayerFlags)playerPawn.Flags;
             var buttons = player.Buttons;

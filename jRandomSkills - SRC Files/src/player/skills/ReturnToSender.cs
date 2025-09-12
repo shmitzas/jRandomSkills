@@ -14,32 +14,30 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                playersToSender.Clear();
-                return HookResult.Continue;
-            });
+        public static void NewRound()
+        {
+            playersToSender.Clear();
+        }
 
-            Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
-            {
-                var attacker = @event.Attacker;
-                var victim = @event.Userid;
-                int damage = @event.DmgHealth;
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var attacker = @event.Attacker;
+            var victim = @event.Userid;
+            int damage = @event.DmgHealth;
 
-                if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
-                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
-                if (attackerInfo == null || attackerInfo.Skill != skillName) return HookResult.Continue;
+            if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return;
+            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            if (attackerInfo == null || attackerInfo.Skill != skillName) return;
 
-                if (playersToSender.TryGetValue(victim!.Handle, out _))
-                    return HookResult.Continue;
+            if (playersToSender.TryGetValue(victim!.Handle, out _))
+                return;
 
-                var spawn = GetSpawnVector(victim);
-                if (spawn == null) return HookResult.Continue;
-                victim!.PlayerPawn!.Value!.Teleport(spawn);
-                playersToSender.Add(victim.Handle);
-                return HookResult.Stop;
-            });
+            var spawn = GetSpawnVector(victim);
+            if (spawn == null) return;
+            victim!.PlayerPawn!.Value!.Teleport(spawn);
+            playersToSender.Add(victim.Handle);
         }
 
         public static void DisableSkill(CCSPlayerController player)

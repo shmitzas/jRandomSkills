@@ -18,7 +18,7 @@
   "areareaper_desc": "You can choose a bomb site to deactivate",
   "areareaper_incorrect_site": "No such bomb site found.",
   "areareaper_no_site": "No bomb sites found.",
-  "areareaper_select_info": "Choose the bomb site you want to deactivate:",
+  "areareaper_select_info": "Select site to deactivate:",
   "areareaper_site_disabled": "Bomb site {0} has been deactivated - no bombs can be planted there!",
   "areareaper_used_info": "Your skill has already been used.",
 
@@ -66,19 +66,19 @@
   "darkness_desc": "Applies a darkness effect to a chosen enemy",
   "darkness_enemy_info": "Let the lights go out.",
   "darkness_player_info": "Darkness has overtaken player '{0}'.",
-  "darkness_select_info": "Choose the player you want to apply the darkness effect to:",
+  "darkness_select_info": "Select player for darkness:",
 
   "deactivator": "Deactivator",
   "deactivator_desc": "Choose a player whose skill you want to disable",
   "deactivator_enemy_info": "Your skill has been disabled.",
   "deactivator_player_info": "Player '{0}'s skill has been disabled.",
-  "deactivator_select_info": "Choose the player whose skill you want to disable:",
+  "deactivator_select_info": "Disable a player's skill:",
 
   "deaf": "Deaf",
   "deaf_desc": "Choose a player to mute all sounds for",
   "deaf_enemy_info": "Your headphones have left the game.",
   "deaf_player_info": "Sound has been disabled for player '{0}'.",
-  "deaf_select_info": "Choose the player for whom you want to mute all sounds:",
+  "deaf_select_info": "Mute all sounds for player:",
 
   "disarmament": "Disarmament",
   "disarmament_desc": "You have a random chance to make an enemy drop their weapon on hit",
@@ -93,7 +93,7 @@
   "duplicator": "Duplicator",
   "duplicator_desc": "Choose a player to copy their skill",
   "duplicator_player_info": "Player '{0}'s skill has been copied.",
-  "duplicator_select_info": "Choose the player whose skill you want to copy:",
+  "duplicator_select_info": "Copy a player's skill:",
 
   "dwarf": "Dwarf",
   "dwarf_desc": "Random character size at the start of the round",
@@ -129,6 +129,11 @@
   "frozendecoy": "Freezing Decoy",
   "frozendecoy_desc": "Your decoy freezes all nearby players",
 
+  "gambler": "Gambler",
+  "gambler_desc": "Select a skill from the list provided.",
+  "gambler_select_info": "Select your skill:",
+  "gambler_more": "<font class='fontSize-m' color='#00FF00'>Refresh for $100</font>",
+
   "ghost": "Ghost",
   "ghost_desc": "You are completely invisible",
 
@@ -139,7 +144,7 @@
   "glitch_desc": "Disables the radar for a chosen enemy",
   "glitch_enemy_info": "Your radar has been disabled.",
   "glitch_player_info": "Player '{0}'s radar has been disabled.",
-  "glitch_select_info": "Choose the player whose radar you want to disable:",
+  "glitch_select_info": "Turn off player's radar:",
 
   "glue": "Glue",
   "glue_desc": "Your grenades stick to walls",
@@ -171,13 +176,19 @@
   "jammer_desc": "Choose a player to disable their crosshair",
   "jammer_enemy_info": "Your crosshair has been disabled.",
   "jammer_player_info": "Player '{0}'s crosshair has been disabled.",
-  "jammer_select_info": "Choose the player whose crosshair you want to disable:",
+  "jammer_select_info": "Disable player's crosshair:",
+
+  "jester": "Jester",
+  "jester_desc": "In jester mode, you cannot get or take any damage. This mode changes every few seconds.",
+  "jester_mode": "Jester Mode",
+  "jester_on": "ON",
+  "jester_off": "OFF",
 
   "jumpban": "Legless",
   "jumpban_desc": "Choose a player who cannot jump",
   "jumpban_enemy_info": "Someone cut off your legs.",
   "jumpban_player_info": "Player '{0}' can no longer jump.",
-  "jumpban_select_info": "Choose the player who cannot jump:",
+  "jumpban_select_info": "Ban player from jumping:",
 
   "jumpingjack": "Jumping Jack",
   "jumpingjack_desc": "Jumping restores health",
@@ -189,7 +200,7 @@
   "lifeswap_desc": "Choose a player to swap health with",
   "lifeswap_enemy_info": "Someone borrowed your health.",
   "lifeswap_player_info": "You swapped health with player '{0}'.",
-  "lifeswap_select_info": "Choose the player to swap health with:",
+  "lifeswap_select_info": "Swap health with player:",
 
   "longknife": "Long Knife",
   "longknife_desc": "A primary knife attack deals damage regardless of distance",
@@ -201,7 +212,7 @@
   "magnifier_desc": "Forces the enemy's screen to zoom in, reducing their field of view",
   "magnifier_enemy_info": "Your field of view has been distorted!",
   "magnifier_player_info": "Player '{0}' has been forced into zoom mode.",
-  "magnifier_select_info": "Select the player whose screen you want to magnify:",
+  "magnifier_select_info": "Magnify player's screen:",
 
   "medic": "Medic",
   "medic_desc": "Click [css_useSkill] to use a healing charge that restores 50 health",
@@ -210,7 +221,7 @@
   "moneyswap_desc": "Choose a player to swap money with",
   "moneyswap_enemy_info": "The tax office got you.",
   "moneyswap_player_info": "You swapped money with player '{0}'.",
-  "moneyswap_select_info": "Choose the player to swap money with:",
+  "moneyswap_select_info": "Swap money with player:",
 
   "muhammed": "Muhammed",
   "muhammed_desc": "You explode upon death, killing nearby players",
@@ -257,13 +268,13 @@
   "poison_desc": "Choose a player who will take damage every few seconds",
   "poison_enemy_info": "You have been poisoned.",
   "poison_player_info": "Player '{0}' has been poisoned.",
-  "poison_select_info": "Choose the player who will take damage every few seconds:",
+  "poison_select_info": "Poison a player:",
 
   "primaryban": "No Rifles",
   "primaryban_desc": "Choose a player who cannot use rifles",
   "primaryban_enemy_info": "You can no longer use rifles.",
   "primaryban_player_info": "Player '{0}' can no longer use rifles.",
-  "primaryban_select_info": "Choose the player to ban from using rifles:",
+  "primaryban_select_info": "Ban rifles for player:",
 
   "prosthesis": "Prosthesis",
   "prosthesis_desc": "Arms and legs are bulletproof",
@@ -353,7 +364,7 @@
   "thief_desc": "You can steal a skill from a chosen player",
   "thief_enemy_info": "Your skill has been stolen.",
   "thief_player_info": "Player '{0}'s skill has been stolen.",
-  "thief_select_info": "Choose the player whose skill you want to steal:",
+  "thief_select_info": "Steal a player's skill:",
 
   "thirdeye": "Third Eye",
   "thirdeye_desc": "Click [css_useSkill] to activate third-person view",
@@ -394,7 +405,7 @@
   "no_player": "No matching player found.",
   "duplicate_player": "More than one player found with the same name.",
   "selectplayerskill_command": "Type /t",
-  "selectplayerskill_incorrect_enemy_index": "No player found with that index.",
+  "selectplayerskill_incorrect_enemy_index": "No players were found to select.",
 
   "skill_not_found_setskill": "No such CHATCOLORS.REDskill found",
   "player_not_found_setskill": "No such CHATCOLORS.REDplayer found",
@@ -420,7 +431,12 @@
   "vote_alredy_voted": "You have already voted!",
   "vote_vote": "Vote",
 
+  "bombsite_a": "Bombsite A",
+  "bombsite_b": "Bombsite B",
+
   "teammate_skills": "Your teammates' skills",
   "summary_start": "======SUMMARY=OF=THE=LAST=ROUND======",
-  "summary_end": "======================================="
+  "summary_end": "=======================================",
+
+  "menu_controlls": "<font class='fontSize-m' color='cyan'>W/S - Scroll</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>E - Select</font> <br>"
 }

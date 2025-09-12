@@ -14,22 +14,18 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-            
-            Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
-            {
-                var attacker = @event.Attacker;
-                var victim = @event.Userid;
+        }
 
-                if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var attacker = @event.Attacker;
+            var victim = @event.Userid;
 
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
-                if (playerInfo?.Skill == skillName && victim!.PawnIsAlive)
-                {
-                    HealAttacker(attacker!, @event.DmgHealth);
-                }
-                return HookResult.Continue;
-            });
+            if (playerInfo?.Skill == skillName && victim!.PawnIsAlive)
+                HealAttacker(attacker!, @event.DmgHealth);
         }
 
         private static void HealAttacker(CCSPlayerController attacker, float damage)

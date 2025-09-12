@@ -6,7 +6,6 @@ using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -14,8 +13,6 @@ namespace jRandomSkills
     public class Ghost : ISkill
     {
         private const Skills skillName = Skills.Ghost;
-        private static bool roundEnd = false;
-        private static bool exists = false;
         private static readonly string[] disabledWeapons =
         [
             "weapon_deagle", "weapon_revolver", "weapon_glock", "weapon_usp_silencer",
@@ -36,83 +33,34 @@ namespace jRandomSkills
                 return;
 
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                roundEnd = false;
-                Instance.AddTimer(0.1f, () => 
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill == skillName)
-                            EnableSkill(player);
-                    }
-                });
+        public static void NewRound()
+        {
+            foreach (var player in Utilities.GetPlayers())
+                SetWeaponAttack(player, false);
+        }
 
-                return HookResult.Continue;
-            });
+        public static void WeaponPickup(EventItemPickup @event)
+        {
+            var player = @event.Userid;
+            if (!Instance.IsPlayerValid(player)) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
 
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                foreach (var player in Utilities.GetPlayers())
-                {
-                    if (!Instance.IsPlayerValid(player)) continue;
-                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    if (playerInfo?.Skill == skillName)
-                        DisableSkill(player);
-                }
-                roundEnd = true;
-                Instance.RemoveListener<CheckTransmit>(CheckTransmit);
-                exists = false;
-                return HookResult.Continue;
-            });
+            if (playerInfo?.Skill != skillName) return;
+            SetWeaponVisibility(player!, false);
+            SetWeaponAttack(player!, true);
+        }
 
-            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return HookResult.Continue;
+        public static void WeaponEquip(EventItemEquip @event)
+        {
+            var player = @event.Userid;
+            if (!Instance.IsPlayerValid(player)) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
 
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    DisableSkill(player);
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventItemPickup>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
-
-                if (playerInfo?.Skill != skillName) return HookResult.Continue;
-                SetWeaponVisibility(player!, false);
-                SetWeaponAttack(player!, true);
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventItemEquip>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
-
-                if (playerInfo?.Skill != skillName) return HookResult.Continue;
-                SetWeaponVisibility(player!, false);
-                SetWeaponAttack(player!, true);
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundStart>((@event, info) =>
-            {
-                foreach (var player in Utilities.GetPlayers())
-                    SetWeaponAttack(player, false);
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<OnTick>(OnTick);
+            if (playerInfo?.Skill != skillName) return;
+            SetWeaponVisibility(player!, false);
+            SetWeaponAttack(player!, true);
         }
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
@@ -129,10 +77,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            if (!exists)
-                Instance.RegisterListener<CheckTransmit>(CheckTransmit);
-            exists = true;
-
+            Event.enableTransmit = true;
             SetPlayerVisibility(player, false);
             SetWeaponVisibility(player, false);
             SetWeaponAttack(player, true);
@@ -146,7 +91,7 @@ namespace jRandomSkills
             invisibleEntities.Remove(player.SteamID);
         }
 
-        private static void OnTick()
+        public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
             {
@@ -207,7 +152,7 @@ namespace jRandomSkills
 
         private static void SetWeaponAttack(CCSPlayerController player, bool disableWeapon)
         {
-            if (roundEnd || player == null || !player.IsValid) return;
+            if (player == null || !player.IsValid) return;
             var pawn = player?.PlayerPawn?.Value;
             if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return;
 

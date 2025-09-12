@@ -15,36 +15,19 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var victim = @event.Userid;
+            int damage = @event.DmgHealth;
+            string weapon = @event.Weapon;
 
-                return HookResult.Continue;
-            });
+            if (weapon != "inferno" || !Instance.IsPlayerValid(victim)) return;
+            var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+            if (victimInfo == null || victimInfo.Skill != skillName) return ;
 
-            Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
-            {
-                var victim = @event.Userid;
-                int damage = @event.DmgHealth;
-                string weapon = @event.Weapon;
-
-                if (weapon != "inferno" || !Instance.IsPlayerValid(victim)) return HookResult.Continue;
-                var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
-                if (victimInfo == null || victimInfo.Skill != skillName) return HookResult.Continue;
-
-                RestoreHealth(victim!, damage * regenerationMultiplier);
-                return HookResult.Stop;
-            });
+            RestoreHealth(victim!, damage * regenerationMultiplier);
         }
 
         public static void EnableSkill(CCSPlayerController player)

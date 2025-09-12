@@ -6,7 +6,10 @@ using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
+using jRandomSkills.src.utils;
 using System.Runtime.InteropServices;
+using WASDMenuAPI.Classes;
+using WASDSharedAPI;
 
 namespace jRandomSkills
 {
@@ -110,6 +113,75 @@ namespace jRandomSkills
             };
 
             return designerName;
+        }
+
+        private static IWasdMenuManager? GetMenuManager()
+        {
+            if (jRandomSkills.Instance.MenuManager == null)
+                jRandomSkills.Instance.MenuManager = new WasdManager();
+            return jRandomSkills.Instance.MenuManager;
+        }
+
+        public static void CloseMenu(CCSPlayerController? player)
+        {
+            var manager = GetMenuManager();
+            if (manager == null) return;
+            manager.CloseMenu(player);
+        }
+
+        public static bool HasMenu(CCSPlayerController? player)
+        {
+            var manager = GetMenuManager();
+            if (manager == null) return false;
+            return manager.HasMenu(player);
+        }
+
+        public static void UpdateMenu(CCSPlayerController? player, HashSet<(string, string)> items)
+        {
+            if (player == null) return;
+
+            var manager = GetMenuManager();
+            if (manager == null) return;
+
+            var playerInfo = jRandomSkills.Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
+
+            Dictionary<string, Action<CCSPlayerController, IWasdMenuOption>> list = [];
+            foreach (var item in items)
+                list.Add(item.Item1, (p, option) =>
+                {
+                    jRandomSkills.Instance.SkillAction(playerInfo.Skill.ToString(), "TypeSkill", [p, new[] { item.Item2 }]);
+                    manager.CloseMenu(p);
+                });
+
+            manager.UpdateActiveMenu(player, list);
+        }
+
+        public static void CreateMenu(CCSPlayerController? player, HashSet<(string, string)> enemies)
+        {
+            if (player == null || !player.IsValid) return;
+
+            var playerInfo = jRandomSkills.Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
+
+            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == playerInfo.Skill);
+            if (skillData == null) return;
+
+            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
+            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>"
+                + $"<font color='green'>{Localization.GetTranslation($"{playerInfo.Skill.ToString().ToLower()}_select_info")}</font>";
+
+            var manager = GetMenuManager();
+            if (manager == null) return;
+
+            IWasdMenu menu = manager.CreateMenu(infoLine + skillLine, "<font class='fontSize-m' color='cyan'>W/S - Scroll</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>E - Select</font> <br>");
+            foreach (var enemy in enemies)
+                menu.Add(enemy.Item1, (p, option) =>
+                {
+                    jRandomSkills.Instance.SkillAction(playerInfo.Skill.ToString(), "TypeSkill", [p, new[] { enemy.Item2 }]);
+                    manager.CloseMenu(p);
+                });
+            manager.OpenMainMenu(player, menu);
         }
 
         public static void SetTeamScores(short ctScore, short tScore, RoundEndReason roundEndReason)

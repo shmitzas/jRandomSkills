@@ -1,11 +1,9 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -19,51 +17,22 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+        public static void NewRound()
+        {
+            SkillPlayerInfo.Clear();
+        }
+
+        public static void OnTick()
+        {
+            foreach (var player in Utilities.GetPlayers())
             {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) return;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill == skillName)
-                            EnableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                SkillPlayerInfo.Clear();
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid) return HookResult.Continue;
                 var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                    SkillPlayerInfo.Remove(player.SteamID);
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<OnTick>(() =>
-            {
-                foreach (var player in Utilities.GetPlayers())
-                {
-                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    if (playerInfo?.Skill == skillName)
-                        if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-                            UpdateHUD(player, skillInfo);
-                }
-            });
-
-            VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamage, HookMode.Pre);
+                    if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
+                        UpdateHUD(player, skillInfo);
+            }
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -144,27 +113,26 @@ namespace jRandomSkills
             replica.AcceptInput("EnableCollision");
         }
 
-        private static HookResult OnTakeDamage(DynamicHook h)
+        public static void OnTakeDamage(DynamicHook h)
         {
             CEntityInstance param = h.GetParam<CEntityInstance>(0);
             CTakeDamageInfo param2 = h.GetParam<CTakeDamageInfo>(1);
 
             if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
-                return HookResult.Continue;
+                return;
 
             CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
-            if (string.IsNullOrEmpty(param.Entity.Name)) return HookResult.Continue;
-            if (!param.Entity.Name.StartsWith("Replica_")) return HookResult.Continue;
+            if (string.IsNullOrEmpty(param.Entity.Name)) return;
+            if (!param.Entity.Name.StartsWith("Replica_")) return;
 
             var replica = param.As<CPhysicsPropMultiplayer>();
-            if (replica == null || !replica.IsValid) return HookResult.Continue;
+            if (replica == null || !replica.IsValid) return;
             replica.EmitSound("GlassBottle.BulletImpact", volume: 1f);
             
             var attackerTeam = attackerPawn.TeamNum;
             var replicaTeam = replica.Globalname.EndsWith("CT") ? 3 : 2;
             SkillUtils.TakeHealth(attackerPawn, attackerTeam != replicaTeam ? 15 : 5);
             replica.Remove();
-            return HookResult.Continue;
         }
 
         public class PlayerSkillInfo

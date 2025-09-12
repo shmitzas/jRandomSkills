@@ -14,28 +14,24 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-            
-            Instance.RegisterEventHandler<EventBombBeginplant>((@event, info) =>
+        }
+
+        public static void BombBeginplant(EventBombBeginplant @event)
+        {
+            var player = @event.Userid;
+            if (!Instance.IsPlayerValid(player)) return;
+
+            var anyChillOut = Instance.SkillPlayer.FirstOrDefault(p => p.Skill == skillName);
+            if (anyChillOut != null)
             {
-                var player = @event.Userid;
-
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
-
-                var anyChillOut = Instance.SkillPlayer.FirstOrDefault(p => p.Skill == skillName);
-                if (anyChillOut != null)
+                var bombEntities = Utilities.FindAllEntitiesByDesignerName<CC4>("weapon_c4").ToList();
+                if (bombEntities.Count != 0)
                 {
-                    var bombEntities = Utilities.FindAllEntitiesByDesignerName<CC4>("weapon_c4").ToList();
-
-                    if (bombEntities.Count != 0)
-                    {
-                        var bomb = bombEntities.FirstOrDefault();
-                        if (bomb != null)
-                            bomb.ArmedTime = Server.CurrentTime + bombArmedTime;
-                    }
+                    var bomb = bombEntities.FirstOrDefault();
+                    if (bomb != null)
+                        bomb.ArmedTime = Server.CurrentTime + bombArmedTime;
                 }
-
-                return HookResult.Continue;
-            });
+            }
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#343deb", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false, float bombArmedTime = 10f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)

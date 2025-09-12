@@ -1,6 +1,5 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
@@ -18,24 +17,6 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
-
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamage, HookMode.Pre);
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -65,28 +46,27 @@ namespace jRandomSkills
             heProjectile.DetonateTime = 0;
         }
 
-        private static HookResult OnTakeDamage(DynamicHook h)
+        public static void OnTakeDamage(DynamicHook h)
         {
             CEntityInstance param = h.GetParam<CEntityInstance>(0);
             CTakeDamageInfo param2 = h.GetParam<CTakeDamageInfo>(1);
 
             if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
-                return HookResult.Continue;
+                return;
 
             CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
             if (attackerPawn.DesignerName != "player")
-                return HookResult.Continue;
+                return;
 
             if (attackerPawn == null || attackerPawn.Controller?.Value == null)
-                return HookResult.Continue;
+                return;
 
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
-            if (playerInfo == null || playerInfo.Skill != skillName) return HookResult.Continue;
+            if (playerInfo == null || playerInfo.Skill != skillName) return;
 
             if (Instance.Random.NextDouble() <= playerInfo.SkillChance)
                 SpawnExplosion(param2.DamagePosition);
-            return HookResult.Continue;
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#9c0000", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float damage = 10f, float damageRadius = 190f, float chanceFrom = .15f, float chanceTo = .3f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)

@@ -129,6 +129,11 @@
   "frozendecoy": "冰冻诱饵",
   "frozendecoy_desc": "你的诱饵弹会冻结附近的所有玩家",
 
+  "gambler": "赌徒",
+  "gambler_desc": "从提供的列表中选择一个技能。",
+  "gambler_select_info": "选择你的技能：",
+  "gambler_more": "<font class='fontSize-m' color='#00FF00'>刷新 $100</font>",
+
   "ghost": "幽灵",
   "ghost_desc": "你完全隐形",
 
@@ -172,6 +177,12 @@
   "jammer_enemy_info": "你的准星已被禁用。",
   "jammer_player_info": "玩家 '{0}' 的准星已被禁用。",
   "jammer_select_info": "选择你想禁用其准星的玩家：",
+
+  "jester": "小丑",
+  "jester_desc": "在小丑模式下，你不能造成或受到任何伤害。此模式每隔几秒会变化。",
+  "jester_mode": "小丑模式",
+  "jester_on": "开",
+  "jester_off": "关",
 
   "jumpban": "无腿",
   "jumpban_desc": "选择一个玩家使其无法跳跃",
@@ -394,7 +405,7 @@
   "no_player": "未找到匹配的玩家。",
   "duplicate_player": "找到多个同名玩家。",
   "selectplayerskill_command": "输入 /t",
-  "selectplayerskill_incorrect_enemy_index": "未找到该索引的玩家。",
+  "selectplayerskill_incorrect_enemy_index": "未找到可供选择的玩家。",
 
   "skill_not_found_setskill": "未找到 CHATCOLORS.RED 技能",
   "player_not_found_setskill": "未找到 CHATCOLORS.RED 玩家",
@@ -420,7 +431,12 @@
   "vote_alredy_voted": "您已投票！",
   "vote_vote": "投票",
 
+  "bombsite_a": "爆轰区A",
+  "bombsite_b": "爆轰区B",
+
   "teammate_skills": "你队友的技能",
   "summary_start": "=============上一回合总结==============",
-  "summary_end": "======================================="
+  "summary_end": "=======================================",
+
+  "menu_controlls": "<font class='fontSize-m' color='cyan'>W/S - 滚动</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>E - 选择</font> <br>"
 }

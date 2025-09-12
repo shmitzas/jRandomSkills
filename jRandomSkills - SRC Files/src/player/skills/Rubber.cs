@@ -17,36 +17,32 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-            
-            Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
-            {
-                var attacker = @event.Attacker;
-                var victim = @event.Userid;
-
-                if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
-                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
-
-                var victimPawn = victim!.PlayerPawn.Value;
-                if (victimPawn == null || !victimPawn.IsValid) return HookResult.Continue;
-
-                if (attackerInfo?.Skill == skillName)
-                    if (playersToSlow.ContainsKey(victimPawn))
-                        playersToSlow[victimPawn] = Server.TickCount + (64 * rubberTime);
-                    else playersToSlow.TryAdd(victimPawn, Server.TickCount + (64 * rubberTime));
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                playersToSlow.Clear();
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<Listeners.OnTick>(OnTick);
         }
 
-        private static void OnTick()
+        public static void NewRound()
+        {
+            playersToSlow.Clear();
+        }
+
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var attacker = @event.Attacker;
+            var victim = @event.Userid;
+
+            if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return;
+            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+
+            var victimPawn = victim!.PlayerPawn.Value;
+            if (victimPawn == null || !victimPawn.IsValid) return;
+
+            if (attackerInfo?.Skill == skillName)
+                if (playersToSlow.ContainsKey(victimPawn))
+                    playersToSlow[victimPawn] = Server.TickCount + (64 * rubberTime);
+                else playersToSlow.TryAdd(victimPawn, Server.TickCount + (64 * rubberTime));
+
+        }
+
+        public static void OnTick()
         {
             foreach(var item in playersToSlow)
             {

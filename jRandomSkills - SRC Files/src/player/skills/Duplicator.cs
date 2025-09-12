@@ -13,23 +13,39 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+        public static void NewRound()
+        {
+            foreach (var player in Utilities.GetPlayers())
+                SkillUtils.CloseMenu(player);
+        }
+
+        public static void OnTick()
+        {
+            if (Server.TickCount % 32 != 0) return;
+            foreach (var player in Utilities.GetPlayers())
             {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
+                if (!SkillUtils.HasMenu(player)) continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
 
-                return HookResult.Continue;
-            });
+                if (playerInfo == null || playerInfo.Skill != skillName) continue;
+                var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p != player && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
+                if (enemies.Length > 0)
+                {
+                    HashSet<(string, string)> menuItems = [];
+                    foreach (var enemy in enemies)
+                    {
+                        var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
+                        if (enemyInfo == null) continue;
+                        var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
+                        if (skillData == null) continue;
+                        menuItems.Add(($"{enemy.PlayerName} : {skillData.Name}", enemy.Index.ToString()));
+                    }
+                    SkillUtils.CreateMenu(player, menuItems);
+                }
+            }
         }
 
         public static void TypeSkill(CCSPlayerController player, string[] commands)
@@ -57,24 +73,22 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillUtils.PrintToChat(player, Localization.GetTranslation("duplicator") + ":", false);
-
-            player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("duplicator_select_info")}");
-            var enemies = Utilities.GetPlayers().Where(p => p != player && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).ToArray();
+            var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p != player && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
             if (enemies.Length > 0)
             {
+                HashSet<(string, string)> menuItems = [];
                 foreach (var enemy in enemies)
                 {
                     var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
                     if (enemyInfo == null) continue;
                     var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
                     if (skillData == null) continue;
-                    player.PrintToChat($" {ChatColors.Green}⠀⠀⠀[{ChatColors.Red}{enemy.Index}{ChatColors.Green}] {enemy.PlayerName}: {ChatColors.Red}{skillData.Name}");
+                    menuItems.Add(($"{enemy.PlayerName} : {skillData.Name}", enemy.Index.ToString()));
                 }
+                SkillUtils.CreateMenu(player, menuItems);
             }
             else
-                player.PrintToChat($" {ChatColors.Red}⠀⠀⠀{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
-            player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("selectplayerskill_command")} {ChatColors.Red}index");
+                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
         }
 
         public static void DisableSkill(CCSPlayerController player)
@@ -82,6 +96,7 @@ namespace jRandomSkills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
             playerInfo.SpecialSkill = Skills.None;
+            SkillUtils.CloseMenu(player);
         }
 
         private static void DuplicateSkill(CCSPlayerController player, CCSPlayerController enemy)
@@ -91,10 +106,12 @@ namespace jRandomSkills
 
             if (playerInfo != null && enemyInfo != null)
             {
-                playerInfo.Skill = enemyInfo.Skill;
-                playerInfo.SpecialSkill = skillName;
-                Instance.SkillAction(enemyInfo.Skill.ToString(), "EnableSkill", [player]);
-
+                Instance.AddTimer(.1f, () =>
+                {
+                    playerInfo.Skill = enemyInfo.Skill;
+                    playerInfo.SpecialSkill = skillName;
+                    Instance.SkillAction(enemyInfo.Skill.ToString(), "EnableSkill", [player]);
+                });
                 player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("duplicator_player_info", enemy.PlayerName));
             }
         }

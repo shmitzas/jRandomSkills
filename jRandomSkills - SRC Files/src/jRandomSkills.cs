@@ -5,6 +5,7 @@ using CounterStrikeSharp.API.Modules.Commands;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using System.Reflection;
+using WASDSharedAPI;
 
 namespace jRandomSkills
 {
@@ -19,6 +20,7 @@ namespace jRandomSkills
         public List<jSkill_PlayerInfo> SkillPlayer { get; } = [];
         public Random Random { get; } = new Random();
         public CCSGameRules? GameRules { get; set; }
+        public IWasdMenuManager? MenuManager;
 
         public override string ModuleName => "[CS2] [ jRandomSkills ]";
         public override string ModuleAuthor => "D3X, Juzlus";
@@ -32,9 +34,10 @@ namespace jRandomSkills
             Config.Initialize();
             Localization.Load();
             Debug.Load();
-            Event.Load();
             PlayerOnTick.Load();
+            Event.Load();
             Command.Load();
+            WASDMenuAPI.WASDMenuAPI.LoadPlugin(Instance, hotReload);
             LoadAllSkills();
         }
 

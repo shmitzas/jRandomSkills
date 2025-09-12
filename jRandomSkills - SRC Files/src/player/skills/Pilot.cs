@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -17,42 +16,21 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-            
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () => 
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill == skillName)
-                            EnableSkill(player);
-                    }
-                });
+        }
 
-                return HookResult.Continue;
-            });
+        public static void NewRound()
+        {
+            PlayerPilotInfo.Clear();
+        }
 
-            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
+        public static void OnTick()
+        {
+            foreach (var player in Utilities.GetPlayers())
             {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid) return HookResult.Continue;
                 var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                     PlayerPilotInfo.Remove(player.SteamID);
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<OnTick>(() =>
-            {
-                foreach (var player in Utilities.GetPlayers())
-                {
-                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    if (playerInfo?.Skill == skillName)
-                        HandlePilot(player);
-                }
-            });
+                    HandlePilot(player);
+            }
         }
 
         public static void EnableSkill(CCSPlayerController player)

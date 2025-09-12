@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -20,90 +19,70 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+        public static void NewRound()
+        {
+            SkillPlayerInfo.Clear();
+            bombLocation = null;
+        }
+
+        public static void PlayerDeath(EventPlayerDeath @event)
+        {
+            var player = @event.Userid;
+            if (player == null || !player.IsValid) return;
+
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid) return;
+
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo?.Skill == skillName)
+                SkillPlayerInfo.Remove(pawn);
+        }
+
+        public static void BombPlanted(EventBombPlanted _)
+        {
+            var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
+            if (plantedBomb != null)
+                bombLocation = plantedBomb.AbsOrigin;
+        }
+
+        public static void OnTick()
+        {
+            if (bombLocation == null) return;
+            foreach (var skillInfo in SkillPlayerInfo)
             {
-                Instance.AddTimer(0.1f, () =>
+                var player = skillInfo.Key;
+                var info = skillInfo.Value;
+
+                if (player.AbsOrigin == null || SkillUtils.GetDistance(player.AbsOrigin, bombLocation) > maxDefusingRange)
                 {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                SkillPlayerInfo.Clear();
-                bombLocation = null;
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid) return HookResult.Continue;
-
-                var pawn = player.PlayerPawn.Value;
-                if (pawn == null || !pawn.IsValid) return HookResult.Continue;
-
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    SkillPlayerInfo.Remove(pawn);
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventBombPlanted>((@event, info) =>
-            {
-                var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
-                if (plantedBomb != null)
-                    bombLocation = plantedBomb.AbsOrigin;
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<OnTick>(() =>
-            {
-                if (bombLocation == null) return;
-                foreach (var skillInfo in SkillPlayerInfo)
-                {
-                    var player = skillInfo.Key;
-                    var info = skillInfo.Value;
-
-                    if (player.AbsOrigin == null || SkillUtils.GetDistance(player.AbsOrigin, bombLocation) > maxDefusingRange)
-                    {
-                        info.Defusing = false;
-                        info.DefusingTime = defusingTime;
-                        continue;
-                    }
-
-                    if (!info.Defusing)
-                        player.EmitSound("c4.disarmstart");
-                    info.Defusing = true;
-                    info.DefusingTime -= (1f / tickRate);
-
-                    if (info.DefusingTime <= 0)
-                    {
-                        var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
-                        if (plantedBomb != null)
-                        {
-                            plantedBomb.Remove();
-                            SkillUtils.TerminateRound(CsTeam.CounterTerrorist);
-                        }
-
-                        SkillPlayerInfo.Clear();
-                    }
-
-                    var playerController = player.Controller.Value;
-                    if (playerController == null || !player.Controller.IsValid) return;
-                    UpdateHUD(playerController.As<CCSPlayerController>(), info);
+                    info.Defusing = false;
+                    info.DefusingTime = defusingTime;
+                    continue;
                 }
-            });
+
+                if (!info.Defusing)
+                    player.EmitSound("c4.disarmstart");
+                info.Defusing = true;
+                info.DefusingTime -= (1f / tickRate);
+
+                if (info.DefusingTime <= 0)
+                {
+                    var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
+                    if (plantedBomb != null)
+                    {
+                        plantedBomb.Remove();
+                        SkillUtils.TerminateRound(CsTeam.CounterTerrorist);
+                    }
+
+                    SkillPlayerInfo.Clear();
+                }
+
+                var playerController = player.Controller.Value;
+                if (playerController == null || !player.Controller.IsValid) return;
+                UpdateHUD(playerController.As<CCSPlayerController>(), info);
+            }
         }
 
         public static void EnableSkill(CCSPlayerController player)

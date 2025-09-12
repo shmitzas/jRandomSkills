@@ -15,50 +15,31 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (player == null || !player.IsValid || player.PlayerPawn?.Value == null) continue;
+        public static void NewRound()
+        {
+            secondLifePlayers.Clear();
+        }
 
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var victim = @event.Userid;
+            int damage = @event.DmgHealth;
 
-                return HookResult.Continue;
-            });
+            if (!Instance.IsPlayerValid(victim)) return;
+            var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+            if (victimInfo == null || victimInfo.Skill != skillName) return;
 
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                secondLifePlayers.Clear();
-                return HookResult.Continue;
-            });
+            var victimPawn = victim!.PlayerPawn.Value;
+            if (victimPawn!.Health > 0 || secondLifePlayers.TryGetValue(victim.Handle, out _) == true)
+                return;
 
-            Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
-            {
-                var victim = @event.Userid;
-                int damage = @event.DmgHealth;
-
-                if (!Instance.IsPlayerValid(victim)) return HookResult.Continue;
-                var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
-                if (victimInfo == null || victimInfo.Skill != skillName) return HookResult.Continue;
-
-                var victimPawn = victim!.PlayerPawn.Value;
-                if (victimPawn!.Health > 0 || secondLifePlayers.TryGetValue(victim.Handle, out _) == true)
-                    return HookResult.Continue;
-
-                secondLifePlayers.Add(victim.Handle);
-                SetHealth(victim, secondLifeHealth);
-                var spawn = GetSpawnVector(victim);
-                if (spawn != null)
-                    victimPawn.Teleport(spawn, victimPawn.AbsRotation, null);
-                return HookResult.Stop;
-            });
+            secondLifePlayers.Add(victim.Handle);
+            SetHealth(victim, secondLifeHealth);
+            var spawn = GetSpawnVector(victim);
+            if (spawn != null)
+                victimPawn.Teleport(spawn, victimPawn.AbsRotation, null);
         }
 
         public static void EnableSkill(CCSPlayerController player)

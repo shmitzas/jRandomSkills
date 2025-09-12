@@ -14,49 +14,18 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
-
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                        player.Respawn();
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        DisableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid) return HookResult.Continue;
-                DisableSkill(player);
-                return HookResult.Continue;
-            });
         }
 
-        public static void EnableSkill(CCSPlayerController player)
+        public static void NewRound()
+        {
+            foreach (var player in Utilities.GetPlayers())
+            {
+                if (!Instance.IsPlayerValid(player)) continue;
+                DisableSkill(player);
+            }
+        }
+
+        public static unsafe void EnableSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && player.IsValid)
@@ -67,6 +36,7 @@ namespace jRandomSkills
                 // playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = newSize;
                 if (playerPawn.CBodyComponent == null || playerPawn.CBodyComponent.SceneNode == null) return;
                 playerPawn.CBodyComponent.SceneNode.Scale = newSize;
+
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
                 SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("dwarf")}{ChatColors.Lime}: " + Localization.GetTranslation("dwarf_desc2", newSize), false);
             }

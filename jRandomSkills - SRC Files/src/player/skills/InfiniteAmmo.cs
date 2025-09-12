@@ -12,48 +12,38 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventWeaponFire>((@event, info) =>
-            {
-                var player = @event.Userid;
+        public static void WeaponFire(EventWeaponFire @event)
+        {
+            var player = @event.Userid;
+            if (!Instance.IsPlayerValid(player)) return;
 
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            if (playerInfo?.Skill == skillName)
+                ApplyInfiniteAmmo(player!);
 
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+        }
 
-                if (playerInfo?.Skill == skillName)
-                    ApplyInfiniteAmmo(player!);
+        public static void GrenadeThrown(EventGrenadeThrown @event)
+        {
+            var player = @event.Userid;
+            if (!Instance.IsPlayerValid(player)) return;
 
-                return HookResult.Continue;
-            });
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            if (playerInfo?.Skill == skillName)
+                player!.GiveNamedItem($"weapon_{@event.Weapon}");
 
-            Instance.RegisterEventHandler<EventGrenadeThrown>((@event, info) =>
-            {
-                var player = @event.Userid;
+        }
 
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
+        public static void WeaponReload(EventWeaponReload @event)
+        {
+            var player = @event.Userid;
+            if (!Instance.IsPlayerValid(player)) return;
 
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
-
-                if (playerInfo?.Skill == skillName)
-                    player!.GiveNamedItem($"weapon_{@event.Weapon}");
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventWeaponReload>((@event, info) =>
-            {
-                var player = @event.Userid;
-
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
-
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
-
-                if (playerInfo?.Skill == skillName)
-                    ApplyInfiniteAmmo(player!);
-                
-                return HookResult.Continue;
-            });
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            if (playerInfo?.Skill == skillName)
+                ApplyInfiniteAmmo(player!);
         }
 
         private static void ApplyInfiniteAmmo(CCSPlayerController player)

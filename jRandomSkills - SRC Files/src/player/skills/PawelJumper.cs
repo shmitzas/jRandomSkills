@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -21,19 +20,17 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
-            
-            Instance.RegisterListener<OnTick>(() =>
+        }
+
+        public static void OnTick()
+        {
+            foreach (var player in Utilities.GetPlayers())
             {
-                foreach (var player in Utilities.GetPlayers())
-                {
-                    if (!Instance.IsPlayerValid(player)) return;
-                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    if (playerInfo?.Skill == skillName)
-                    {
-                        GiveAdditionalJump(player);
-                    }
-                }
-            });
+                if (!Instance.IsPlayerValid(player)) return;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill == skillName)
+                    GiveAdditionalJump(player);
+            }
         }
 
         public static void EnableSkill(CCSPlayerController player)

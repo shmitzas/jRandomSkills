@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="src\command\Command.cs~RF4f34d1e7.TMP" />
     <None Remove="src\player\skills\RespWroga.cs~RF528d210.TMP" />
   </ItemGroup>
 
@@ -15,6 +16,12 @@
     <PackageReference Include="CounterStrikeSharp.API" Version="1.0.337" />
     <PackageReference Include="CS2TraceRay" Version="1.0.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="WASDMenuAPI">
+      <HintPath>F:\CS2 Server\server\game\csgo\addons\counterstrikesharp\plugins\jRandomSkills\WASDMenuAPI.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

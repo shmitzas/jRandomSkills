@@ -1,9 +1,9 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.UserMessages;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -15,50 +15,24 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
-            Instance.RegisterListener<OnTick>(UpdateSpeed);
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () => 
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerPawn = player.PlayerPawn.Value;
-                        if (playerPawn == null || !playerPawn.IsValid) continue;
+        public static void PlayerMakeSound(UserMessage um)
+        {
+            var soundevent = um.ReadUInt("soundevent_hash");
+            var userIndex = um.ReadUInt("source_entity_index");
 
-                        playerPawn.VelocityModifier = 1;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
-                
-                return HookResult.Continue;
-            });
+            if (userIndex == 0) return;
+            if (!Instance.footstepSoundEvents.Contains(soundevent)) return;
 
-            Instance.HookUserMessage(208, um =>
-            {
-                var soundevent = um.ReadUInt("soundevent_hash");
-                var userIndex = um.ReadUInt("source_entity_index");
+            var player = Utilities.GetPlayers().FirstOrDefault(p => p.Pawn?.Value != null && p.Pawn.Value.IsValid && p.Pawn.Value.Index == userIndex);
+            if (!Instance.IsPlayerValid(player)) return;
 
-                if (userIndex == 0) return HookResult.Continue;
-                if (!Instance.footstepSoundEvents.Contains(soundevent)) return HookResult.Continue;
-                
-                var player = Utilities.GetPlayers().FirstOrDefault(p => p.Pawn?.Value != null && p.Pawn.Value.IsValid && p.Pawn.Value.Index == userIndex);
-                if (!Instance.IsPlayerValid(player)) return HookResult.Continue;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            if (playerInfo?.Skill != skillName) return;
 
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
-                if (playerInfo?.Skill != skillName) return HookResult.Continue;
-
-                if (player!.Buttons.HasFlag(PlayerButtons.Speed) || player.Buttons.HasFlag(PlayerButtons.Duck))
-                {
-                    um.Recipients.Clear();
-                    return HookResult.Handled;
-                }
-
-                return HookResult.Continue;
-            }, HookMode.Pre);
+            if (player!.Buttons.HasFlag(PlayerButtons.Speed) || player.Buttons.HasFlag(PlayerButtons.Duck))
+                um.Recipients.Clear();
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -85,7 +59,7 @@ namespace jRandomSkills
             playerPawn.VelocityModifier = 1;
         }
 
-        private static void UpdateSpeed()
+        public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
             {

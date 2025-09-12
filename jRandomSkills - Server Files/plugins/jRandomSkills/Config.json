@@ -7,6 +7,7 @@
     "SummaryAfterTheRound": true,
     "DebugMode": true,
     "AlternativeSkillButton": null,
+    "SkillTimeBeforeStart": 7.0,
     "SetSkillCommands": {
       "Alias": "ustawskill, ustaw_skill, setskill, set_skill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能",
       "Permissions": "@jRandmosSkills/admin"
@@ -374,6 +375,14 @@
       "Name": "FrozenDecoy"
     },
     {
+      "RefreshPrice": 150,
+      "NeedsTeammates": false,
+      "OnlyTeam": 0,
+      "Color": "#7eff47",
+      "Active": true,
+      "Name": "Gambler"
+    },
+    {
       "NeedsTeammates": false,
       "OnlyTeam": 0,
       "Color": "#FFFFFF",
@@ -464,6 +473,15 @@
       "Color": "#42f5a7",
       "Active": true,
       "Name": "Jammer"
+    },
+    {
+      "MinTime": 10.0,
+      "MaxTime": 25.0,
+      "NeedsTeammates": false,
+      "OnlyTeam": 0,
+      "Color": "#8f108f",
+      "Active": true,
+      "Name": "Jester"
     },
     {
       "NeedsTeammates": false,

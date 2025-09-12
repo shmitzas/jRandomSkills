@@ -11,43 +11,11 @@ namespace jRandomSkills
     public class Wallhack : ISkill
     {
         private const Skills skillName = Skills.Wallhack;
-        private static bool exists = false;
         private static readonly List<(CDynamicProp, CDynamicProp)> glows = [];
 
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, @info) =>
-            {
-                glows.Clear();
-                Instance.AddTimer(2f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill == skillName)
-                            EnableSkill(player);
-                    }
-                });
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, @info) =>
-            {
-                foreach (var glow in glows)
-                {
-                    glow.Item1.Remove();
-                    glow.Item2.Remove();
-                }
-                glows.Clear();
-
-                Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
-                exists = false;
-                return HookResult.Continue;
-            });
         }
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
@@ -71,11 +39,19 @@ namespace jRandomSkills
             }
         }
 
+        public static void NewRound()
+        {
+            foreach (var glow in glows)
+            {
+                glow.Item1.Remove();
+                glow.Item2.Remove();
+            }
+            glows.Clear();
+        }
+
         public static void EnableSkill(CCSPlayerController player)
         {
-            if (!exists)
-                Instance.RegisterListener<Listeners.CheckTransmit>(CheckTransmit);
-            exists = true;
+            Event.enableTransmit = true;
             SetGlowEffectForEnemies(player);
         }
 

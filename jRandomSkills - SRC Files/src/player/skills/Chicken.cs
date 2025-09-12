@@ -3,7 +3,6 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 using jRandomSkills.src.utils;
 using CounterStrikeSharp.API.Core.Attributes;
@@ -13,8 +12,6 @@ namespace jRandomSkills
     public class Chicken : ISkill
     {
         private const Skills skillName = Skills.Chicken;
-        private static bool roundEnd = false;
-        private static bool exists = false;
         private static readonly string[] disabledWeapons =
         [
             "weapon_ak47", "weapon_m4a4", "weapon_m4a1", "weapon_m4a1_silencer",
@@ -30,70 +27,21 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-            
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                roundEnd = false;
-                Instance.AddTimer(0.1f, () => 
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
+        }
 
-                return HookResult.Continue;
-            });
+        public static void NewRound()
+        {
+            foreach (var player in Utilities.GetPlayers())
+                SetWeaponAttack(player, false);
+        }
 
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                foreach (var player in Utilities.GetPlayers())
-                {
-                    if (!Instance.IsPlayerValid(player)) continue;
-
-                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    if (playerInfo?.Skill != skillName) continue;
-                    DisableSkill(player);
-                }
-                roundEnd = true;
-                Instance.RemoveListener<CheckTransmit>(CheckTransmit);
-                exists = false;
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return HookResult.Continue;
-
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    DisableSkill(player);
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventItemPickup>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid) return HookResult.Continue;
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill != skillName) return HookResult.Continue;
-                SetWeaponAttack(player, true);
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundStart>((@event, info) =>
-            {
-                foreach (var player in Utilities.GetPlayers())
-                    SetWeaponAttack(player, false);
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<OnTick>(OnTick);
+        public static void WeaponPickup(EventItemPickup @event)
+        {
+            var player = @event.Userid;
+            if (player == null || !player.IsValid) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo?.Skill != skillName) return;
+            SetWeaponAttack(player, true);
         }
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
@@ -112,10 +60,7 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && playerPawn.IsValid)
             {
-                if (!exists)
-                    Instance.RegisterListener<CheckTransmit>(CheckTransmit);
-                exists = true;
-
+                Event.enableTransmit = true;
                 playerPawn.VelocityModifier = 1.1f;
 
                 playerPawn.Health = 50;
@@ -165,7 +110,7 @@ namespace jRandomSkills
 
         private static void SetWeaponAttack(CCSPlayerController player, bool disableWeapon)
         {
-            if (roundEnd || player == null || !player.IsValid) return;
+            if (player == null || !player.IsValid) return;
             var pawn = player?.PlayerPawn?.Value;
             if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null || pawn.WeaponServices.MyWeapons == null) return;
 
@@ -200,7 +145,7 @@ namespace jRandomSkills
             Instance.AddTimer(1f, () => chickens.TryAdd(player, chickenModel));
         }
 
-        private static void OnTick()
+        public static void OnTick()
         {
             foreach (var valuePair in chickens)
             {

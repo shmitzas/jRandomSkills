@@ -14,36 +14,17 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
-
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        var playerPawn = player.PlayerPawn.Value;
-
-                        if (playerInfo?.Skill == skillName && playerPawn != null)
-                        {
-                            EnableSkill(player);
-                        }
-                    }
-                });
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                foreach (var player in Utilities.GetPlayers())
-                    DisableSkill(player);
-                return HookResult.Continue;
-            });
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
             ApplyGravityModifier(player);
+        }
+
+        public static void NewRound()
+        {
+            foreach (var player in Utilities.GetPlayers())
+                DisableSkill(player);
         }
 
         public static void DisableSkill(CCSPlayerController player)

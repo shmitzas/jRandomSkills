@@ -38,7 +38,7 @@ Join the 3v3 test server and try out the jRandomSkills plugin:
 Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.html).
 
 
-## ✨ Current Skills (104)
+## ✨ Current Skills (106)
 <details>
 <summary>The table below lists all available skills in the game, along with their descriptions.</summary>
 
@@ -78,6 +78,7 @@ Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.
 | Fragile Bomb | Shooting the bomb damages it | - |
 | Friendly Fire  | Shooting teammates heals them | - |
 | Freezing Decoy | Your decoy freezes all nearby players  | - |
+| Gambler | Select a skill from the list provided  | - |
 | Ghost | You are completely invisible  | - |
 | Glaz  | You can see through smoke grenades  | - |
 | Glitch | Disables the radar for a chosen enemy  | - |
@@ -90,6 +91,7 @@ Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.
 | Infinite Ammo  | You receive infinite ammo for all your weapons  | - |
 | Tracker  | Choose a player who will leave a trail behind them  | - |
 | Jammer | Choose a player to disable their crosshair | - |
+| Jester | In jester mode, you cannot get or take any damage. This mode changes every few seconds | (10 - 25) s |
 | Legless  | Choose a player who cannot jump  | - |
 | Jumping Jack | Jumping restores health | - |
 | Killer Flash | Anyone fully blinded by your flashbang dies (including you) | - |
@@ -240,6 +242,8 @@ All skills can be customized in the **`Config.cfg`** file located in the **`game
                                         // "Alt2", "Speed", "Walk", "Zoom", "Weapon1",
                                         // "Weapon2", "Bullrush", "Grenade1", "Grenade2",
                                         // "Attack3", "Scoreboard", "Inspect"
+        "SkillTimeBeforeStart": 7.0,    // How many seconds before freeze time ends should skills
+                                        // drawing be completed? (freezetime - SkillTimeBeforeStart)
         ...
     },
     "SkillsInfo": [
@@ -260,11 +264,33 @@ All skills can be customized in the **`Config.cfg`** file located in the **`game
 
 ## 🔗 Dependency Includes
 This plugin uses content from the following projects:
+- [dRandomSkills](https://github.com/jakubbartosik/dRandomSkills) by [Jakub Bartosik (D3X)](https://github.com/jakubbartosik) - random skills system
 - [CS2TraceRay](https://github.com/schwarper/CS2TraceRay) by [schwarper](https://github.com/schwarper) - Trace Ray system
 - [CS2FlashingHtmlHudFix](https://github.com/girlglock/CS2FlashingHtmlHudFix) by [girlglock](https://github.com/girlglock) - a fix for window flickering
 - [ChaseMod](https://github.com/ipsvn/ChaseMod/blob/master/Utils/Memory/CCSMatch.cs) by [ipsvn](https://github.com/ipsvn) - round score management
+- [WASDMenuAPI](https://github.com/Interesting-exe/WASDMenuAPI) by [Interesting-exe](https://github.com/Interesting-exe) - API to easily create WASD menus
 
 ## 📋 Changelog
+
+<details>
+<summary><b>v1.1.4</b></summary>
+  
+- #### General:
+    - ###### The `SkillTimeBeforeStart` option has been added to the config file, which specifies how many seconds before the end of freeze time the skills drawing should stop.
+    - ###### Skills are no longer disabled at the end of the round.
+    - ###### The logic for granting skills has been changed.
+    - ###### Nicknames that are too long are shortened when spectating players.
+    - ###### The player selection has been changed via the Chat Menu to the WSAD Menu.
+    - ###### Skill descriptions with player selection have been shortened.
+- #### Skill improvements:
+    - ##### Legless
+        - ###### Legless's skill completely disables Bunny's skill.
+- #### New skills:
+    - ##### Jester:
+        - ###### In jester mode, you cannot get or take any damage. This mode changes every few seconds.
+    - ##### Gambler:
+        - ###### Select a skill from the list provided.
+</details>
 
 <details>
 <summary><b>v1.1.3</b></summary>

@@ -2,7 +2,6 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -14,43 +13,24 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                Server.ExecuteCommand("weapon_accuracy_nospread 0");
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<OnTick>(OnTick);
         }
 
-        public static void EnableSkill(CCSPlayerController player)
-        {
-            Server.ExecuteCommand("weapon_accuracy_nospread 1");
-        }
-
-        public static void DisableSkill(CCSPlayerController player)
+        public static void NewRound()
         {
             Server.ExecuteCommand("weapon_accuracy_nospread 0");
         }
 
-        private static void OnTick()
+        public static void EnableSkill(CCSPlayerController _)
+        {
+            Server.ExecuteCommand("weapon_accuracy_nospread 1");
+        }
+
+        public static void DisableSkill(CCSPlayerController _)
+        {
+            Server.ExecuteCommand("weapon_accuracy_nospread 0");
+        }
+
+        public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
             {

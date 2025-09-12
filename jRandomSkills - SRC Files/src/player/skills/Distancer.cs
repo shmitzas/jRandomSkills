@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
-using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
@@ -15,34 +14,14 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                foreach (var player in distancerPlayers)
-                    DisableSkill(player);
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<Listeners.OnTick>(OnTick);
         }
 
-        private static void OnTick()
+        public static void NewRound()
+        {
+            distancerPlayers.Clear();
+        }
+
+        public static void OnTick()
         {
             foreach (var player in distancerPlayers)
             {

@@ -1,4 +1,3 @@
-using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
@@ -14,46 +13,23 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var attacker = @event.Attacker;
+            var victim = @event.Userid;
+
+            if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return;
+            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+
+            if (attackerInfo?.Skill == skillName && victim!.PawnIsAlive)
+                if (Instance.Random.NextDouble() <= attackerInfo.SkillChance)
                 {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
-            {
-                var attacker = @event.Attacker;
-                var victim = @event.Userid;
-
-                if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return HookResult.Continue;
-                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
-
-                if (attackerInfo?.Skill == skillName && victim!.PawnIsAlive)
-                {
-                    if (Instance.Random.NextDouble() <= attackerInfo.SkillChance)
-                    {
-                        var victimPawn = victim.PlayerPawn?.Value;
-                        if (victimPawn != null)
-                        {
-                            victimPawn.AbsVelocity.Z = 300f;
-                        }
-                    }
+                    var victimPawn = victim.PlayerPawn?.Value;
+                    if (victimPawn != null)
+                        victimPawn.AbsVelocity.Z = 300f;
                 }
-                
-                return HookResult.Continue;
-            });
         }
 
         public static void EnableSkill(CCSPlayerController player)

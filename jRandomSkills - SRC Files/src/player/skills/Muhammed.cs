@@ -1,7 +1,9 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
+using Microsoft.Extensions.Logging;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -15,18 +17,16 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-            
-            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (!IsDeadPlayerValid(player)) return HookResult.Continue;
+        }
 
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    SpawnExplosion(player!);
+        public static void PlayerDeath(EventPlayerDeath @event)
+        {
+            var player = @event.Userid;
+            if (!IsDeadPlayerValid(player)) return;
 
-                return HookResult.Continue;
-            });
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            if (playerInfo?.Skill == skillName)
+                SpawnExplosion(player!);
         }
 
         private static void SpawnExplosion(CCSPlayerController player)

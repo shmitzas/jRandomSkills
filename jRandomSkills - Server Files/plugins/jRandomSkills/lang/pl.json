@@ -18,7 +18,7 @@
   "areareaper_desc": "Możesz wybrać strefę detonacji, którą chcesz dezaktywować",
   "areareaper_incorrect_site": "Nie znaleziono takiej strefy detonacji.",
   "areareaper_no_site": "Nie znaleziono żadnej strefy detonacji.",
-  "areareaper_select_info": "Wybierz strefę detonacji, którą chcesz dezaktywować:",
+  "areareaper_select_info": "Wybierz strefę do dezaktyw.:",
   "areareaper_site_disabled": "Strefa detonacji {0} została dezaktywowana - nie można na niej podłożyć bomby!",
   "areareaper_used_info": "Twoja moc została już wykorzystana.",
 
@@ -66,19 +66,19 @@
   "darkness_desc": "Nadaje efekt ciemności wybranemu przeciwnikowi",
   "darkness_enemy_info": "Niech zgasną światła.",
   "darkness_player_info": "Ciemność opanowała gracza '{0}'.",
-  "darkness_select_info": "Wybierz gracza, któremu chcesz nadać efekt ciemności:",
+  "darkness_select_info": "Nałóż efekt ciemności:",
 
   "deactivator": "Deaktywator",
   "deactivator_desc": "Wybierasz gracza, którego supermoc chcesz wyłączyć",
   "deactivator_enemy_info": "Twoja supermoc została wyłączona.",
   "deactivator_player_info": "Moc gracza '{0}' została wyłączona.",
-  "deactivator_select_info": "Wybierz gracza, którego supermoc chcesz wyłączyć:",
+  "deactivator_select_info": "Wyłącz moc gracza:",
 
   "deaf": "Głuchy",
   "deaf_desc": "Wybierasz gracza, dla którego chcesz wyłączyć wszystkie dźwięki",
   "deaf_enemy_info": "Słuchawki opuściły grę.",
   "deaf_player_info": "Dźwięk został wyłączony dla gracza '{0}'.",
-  "deaf_select_info": "Wybierz gracza, dla którego chcesz wyłączyć wszystkie dźwięki:",
+  "deaf_select_info": "Wycisz dźwięki gracza:",
 
   "disarmament": "Rozbrojenie",
   "disarmament_desc": "Masz losową szanse na wyrzucenie broni wroga po trafieniu",
@@ -93,7 +93,7 @@
   "duplicator": "Duplikator",
   "duplicator_desc": "Wybierasz gracza, od którego chcesz skopiować supermoc",
   "duplicator_player_info": "Moc gracza '{0}' została skopiowana.",
-  "duplicator_select_info": "Wybierz gracza, od którego chcesz skopiować supermoc:",
+  "duplicator_select_info": "Skopiuj moc gracza:",
 
   "dwarf": "Mini Majk",
   "dwarf_desc": "Losowa wielkość postaci na początku rundy",
@@ -129,6 +129,11 @@
   "frozendecoy": "Zamrażający Wabik",
   "frozendecoy_desc": "Twój decoy zamraża wszystkich graczy w pobliżu",
 
+  "gambler": "Hazardzista",
+  "gambler_desc": "Wybierz umiejętność z podanej listy.",
+  "gambler_select_info": "Wybierz umiejętność:",
+  "gambler_more": "<font class='fontSize-m' color='#00FF00'>Odśwież za $100</font>",
+
   "ghost": "Duszek",
   "ghost_desc": "Jesteś całkowicie niewidzialny",
 
@@ -139,7 +144,7 @@
   "glitch_desc": "Wyłączasz radar wybranemu przeciwnikowi",
   "glitch_enemy_info": "Twój radar został wyłączony.",
   "glitch_player_info": "Radar gracza '{0}' został wyłączony.",
-  "glitch_select_info": "Wybierz gracza, dla którego chcesz wyłączyć radar:",
+  "glitch_select_info": "Wyłącz radar dla gracza:",
 
   "glue": "Klej",
   "glue_desc": "Twoje granaty przyklejają się do ścian",
@@ -171,13 +176,19 @@
   "jammer_desc": "Wybierasz gracza, dla którego chcesz wyłączyć celownik",
   "jammer_enemy_info": "Twój celownik został wyłączony.",
   "jammer_player_info": "Celownik gracza '{0}' została wyłączona.",
-  "jammer_select_info": "Wybierz gracza, dla którego chcesz wyłączyć celownik:",
+  "jammer_select_info": "Wyłącz celownik dla gracza:",
+
+  "jester": "Błazen",
+  "jester_desc": "W trybie błazna nie możesz zadawać ani otrzymywać obrażeń. Tryb zmienia się co kilka sekund.",
+  "jester_mode": "Tryb Błazna",
+  "jester_on": "WŁ.",
+  "jester_off": "WYŁ.",
 
   "jumpban": "Beznogi",
   "jumpban_desc": "Wybierasz gracza, który nie będzie mógł skakać",
   "jumpban_enemy_info": "Ktoś odciął ci nogi.",
   "jumpban_player_info": "Gracz '{0}' nie może teraz skakać.",
-  "jumpban_select_info": "Wybierz gracza, który nie będzie mógł skakać:",
+  "jumpban_select_info": "Zablokuj skok dla gracza:",
 
   "jumpingjack": "Pajacyk",
   "jumpingjack_desc": "Skakanie przywraca zdrowie",
@@ -189,7 +200,7 @@
   "lifeswap_desc": "Wybierasz gracza, z którym chcesz wymienić się zdrowiem",
   "lifeswap_enemy_info": "Ktoś pożyczył sobie twoje zdrowie.",
   "lifeswap_player_info": "Wymieniłeś się zdrowiem z graczem '{0}'.",
-  "lifeswap_select_info": "Wybierz gracza, z którym chcesz wymienić się zdrowiem:",
+  "lifeswap_select_info": "Zamień się zdrowiem z graczem:",
 
   "longknife": "Długi Nóż",
   "longknife_desc": "Podstawowy atak nożem zadaje obrażenia niezależnie od odległości",
@@ -201,7 +212,7 @@
   "magnifier_desc": "Przybiżasz ekran wybranemu przeciwnikowi",
   "magnifier_enemy_info": "Twoje pole widzenia zostało zniekształcone!",
   "magnifier_player_info": "Gracz '{0}' został zmuszony do przejścia w tryb powiększenia.",
-  "magnifier_select_info": "Wybierz gracza, którego ekran chcesz powiększyć:",
+  "magnifier_select_info": "Powiększ ekran gracza:",
 
   "medic": "Medyk",
   "medic_desc": "Kliknij [css_useSkill], aby użyć ładunku leczniczego, który przywraca 50 punktów zdrowia",
@@ -210,7 +221,7 @@
   "moneyswap_desc": "Wybierasz gracza, z którym chcesz zamienić się pieniędzmi",
   "moneyswap_enemy_info": "Urząd skarbowy cię dopadł.",
   "moneyswap_player_info": "Wymieniłeś swoje pieniądze z graczem '{0}'.",
-  "moneyswap_select_info": "Wybierz gracza, z którym chcesz zamienić się pieniędzmi:",
+  "moneyswap_select_info": "Zamień się kasą z graczem:",
 
   "muhammed": "Muhammed",
   "muhammed_desc": "Po śmierci eksplodujesz i zabijasz graczy znajdujących się w zasięgu",
@@ -257,13 +268,13 @@
   "poison_desc": "Wybierasz gracza, który co kilka sekund będzie otrzymywał obrażenia",
   "poison_enemy_info": "Zostałeś otruty.",
   "poison_player_info": "Gracz '{0}' został otruty.",
-  "poison_select_info": "Wybierz gracza, który co kilka sekund będzie otrzymywał obrażenia:",
+  "poison_select_info": "Zatruj gracza:",
 
   "primaryban": "Brak Karabinów",
   "primaryban_desc": "Wybierasz gracza, który nie może używać karabinów",
   "primaryban_enemy_info": "Nie możesz już używać karabinów.",
   "primaryban_player_info": "Gracz '{0}' nie może już używać karabinów.",
-  "primaryban_select_info": "Wybierz gracza, któremu chcesz zabronić używania karabinów:",
+  "primaryban_select_info": "Zablokuj karabiny dla gracza:",
 
   "prosthesis": "Proteza",
   "prosthesis_desc": "Ramiona i nogi są kuloodporne",
@@ -353,7 +364,7 @@
   "thief_desc": "Możesz ukraść supermoc wybranemu graczowi",
   "thief_enemy_info": "Twoja supermoc została skradziona.",
   "thief_player_info": "Moc gracza '{0}' została skradziona.",
-  "thief_select_info": "Wybierz gracza, którego supermoc chcesz ukraść:",
+  "thief_select_info": "Ukradnij moc gracza:",
 
   "thirdeye": "Trzecie Oko",
   "thirdeye_desc": "Kliknij [css_useSkill], aby aktywować trzecią osobę",
@@ -394,7 +405,7 @@
   "no_player": "Nie znaleziono pasującego gracza.",
   "duplicate_player": "Znaleziono więcej niż jednego gracza o tej samej nazwie.",
   "selectplayerskill_command": "Wpisz /t",
-  "selectplayerskill_incorrect_enemy_index": "Nie znaleziono gracza o takim index'ie.",
+  "selectplayerskill_incorrect_enemy_index": "Nie znaleziono graczy do wyboru.",
 
   "skill_not_found_setskill": "Nie znaleziono takiej CHATCOLORS.REDsupermocy",
   "player_not_found_setskill": "Nie znaleziono takiego CHATCOLORS.REDgracza",
@@ -420,7 +431,12 @@
   "vote_alredy_voted": "Już zagłosowałeś!",
   "vote_vote": "Głosowanie",
 
+  "bombsite_a": "Strefa detonacji A",
+  "bombsite_b": "Strefa detonacji B",
+
   "teammate_skills": "Supermoce twoich sojuszników",
   "summary_start": "======PODSUMOWANIE=Z=OSTATNIEJ=RUNDY======",
-  "summary_end": "============================================"
+  "summary_end": "============================================",
+
+  "menu_controlls": "<font class='fontSize-m' color='cyan'>W/S – Przewijanie</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>E - Wybierz</font> <br>"
 }

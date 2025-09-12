@@ -13,34 +13,39 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+        public static void NewRound()
+        {
+            foreach (var player in Utilities.GetPlayers())
+                SkillUtils.CloseMenu(player);
+        }
+
+        public static void OnTick()
+        {
+            if (Server.TickCount % 32 != 0) return;
+            foreach (var player in Utilities.GetPlayers())
             {
-                Instance.AddTimer(0.1f, () =>
+                if (!SkillUtils.HasMenu(player)) continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+
+                if (playerInfo == null || playerInfo.Skill != skillName) continue;
+                var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
+                if (enemies.Length > 0)
                 {
-                    foreach (var player in Utilities.GetPlayers())
+                    HashSet<(string, string)> menuItems = [];
+                    foreach (var enemy in enemies)
                     {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
+                        var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
+                        if (enemyInfo == null) continue;
+                        var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
+                        if (skillData == null) continue;
+                        menuItems.Add(($"{enemy.PlayerName} : {skillData.Name}", enemy.Index.ToString()));
                     }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                foreach (var player in Utilities.GetPlayers())
-                {
-                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    if (playerInfo?.Skill == skillName)
-                        DisableSkill(player);
+                    SkillUtils.CreateMenu(player, menuItems);
                 }
-                return HookResult.Continue;
-            });
+            }
         }
 
         public static void TypeSkill(CCSPlayerController player, string[] commands)
@@ -68,24 +73,22 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillUtils.PrintToChat(player, Localization.GetTranslation("deactivator") + ":", false);
-
-            player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("deactivator_select_info")}");
-            var enemies = Utilities.GetPlayers().Where(p => p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).ToArray();
+            var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
             if (enemies.Length > 0)
             {
+                HashSet<(string, string)> menuItems = [];
                 foreach (var enemy in enemies)
                 {
                     var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
                     if (enemyInfo == null) continue;
                     var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
                     if (skillData == null) continue;
-                    player.PrintToChat($" {ChatColors.Green}⠀⠀⠀[{ChatColors.Red}{enemy.Index}{ChatColors.Green}] {enemy.PlayerName}: {ChatColors.Red}{skillData.Name}");
+                    menuItems.Add(($"{enemy.PlayerName} : {skillData.Name}", enemy.Index.ToString()));
                 }
+                SkillUtils.CreateMenu(player, menuItems);
             }
             else
-                player.PrintToChat($" {ChatColors.Red}⠀⠀⠀{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
-            player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("selectplayerskill_command")} {ChatColors.Red}index");
+                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
         }
 
         public static void DisableSkill(CCSPlayerController player)
@@ -93,6 +96,7 @@ namespace jRandomSkills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
             playerInfo.SpecialSkill = Skills.None;
+            SkillUtils.CloseMenu(player);
         }
 
         private static void DeacitvateSkill(CCSPlayerController player, CCSPlayerController enemy)

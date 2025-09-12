@@ -20,38 +20,38 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+        public static void NewRound()
+        {
+            bannedPlayers.Clear();
+            foreach (var player in Utilities.GetPlayers())
+                SkillUtils.CloseMenu(player);
+        }
+
+        public static void WeaponEquip(EventItemEquip @event)
+        {
+            var player = @event.Userid;
+            var weapon = @event.Item;
+            if (player == null || !player.IsValid) return;
+            if (!bannedPlayers.Contains(player.SteamID) || !disabledWeapons.Contains(weapon)) return;
+            player.ExecuteClientCommand("slot3");
+        }
+
+        public static void OnTick()
+        {
+            if (Server.TickCount % 32 != 0) return;
+            foreach (var player in Utilities.GetPlayers())
             {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
+                if (!SkillUtils.HasMenu(player)) continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
 
-                return HookResult.Continue;
-            });
+                if (playerInfo == null || playerInfo.Skill != skillName) continue;
+                var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
 
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                bannedPlayers.Clear();
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventItemEquip>((@event, info) =>
-            {
-                var player = @event.Userid;
-                var weapon = @event.Item;
-                if (player == null || !player.IsValid) return HookResult.Continue;
-                if (!bannedPlayers.Contains(player.SteamID) || !disabledWeapons.Contains(weapon)) return HookResult.Continue;
-                player.ExecuteClientCommand("slot3");
-                return HookResult.Stop;
-            });
+                HashSet<(string, string)> menuItems = enemies.Select(e => (e.PlayerName, e.Index.ToString())).ToHashSet();
+                SkillUtils.UpdateMenu(player, menuItems);
+            }
         }
 
         public static void TypeSkill(CCSPlayerController player, string[] commands)
@@ -98,23 +98,20 @@ namespace jRandomSkills
             if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
-            SkillUtils.PrintToChat(player, Localization.GetTranslation("primaryban") + ":", false);
-
-            player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("primaryban_select_info")}");
-            var enemies = Utilities.GetPlayers().Where(p => p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).ToArray();
+            var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
             if (enemies.Length > 0)
             {
-                foreach (var enemy in enemies)
-                    player.PrintToChat($" {ChatColors.Green}⠀⠀⠀[{ChatColors.Red}{enemy.Index}{ChatColors.Green}] {enemy.PlayerName}");
+                HashSet<(string, string)> menuItems = enemies.Select(e => (e.PlayerName, e.Index.ToString())).ToHashSet();
+                SkillUtils.CreateMenu(player, menuItems);
             }
             else
-                player.PrintToChat($" {ChatColors.Red}⠀⠀⠀{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
-            player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("selectplayerskill_command")} {ChatColors.Red}index");
+                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
             bannedPlayers.Remove(player.SteamID);
+            SkillUtils.CloseMenu(player);
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ffc061", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)

@@ -16,32 +16,13 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundStart>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    EnableBombsite();
-                });
-
-                return HookResult.Continue;
-            });
+        public static void NewRound()
+        {
+            foreach (var player in Utilities.GetPlayers())
+                SkillUtils.CloseMenu(player);
+            Instance.AddTimer(0.1f, EnableBombsite);
         }
 
         public static void TypeSkill(CCSPlayerController player, string[] commands)
@@ -78,19 +59,16 @@ namespace jRandomSkills
             if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
-            SkillUtils.PrintToChat(player, Localization.GetTranslation("areareaper") + ":", false);
-            player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("areareaper_select_info")}");
-            player.PrintToChat($" {ChatColors.Green}· {ChatColors.Red}/t {ChatColors.Green}A");
-            player.PrintToChat($" {ChatColors.Green}· {ChatColors.Red}/t {ChatColors.Green}B");
+            HashSet<(string, string)> menuItems = [(Localization.GetTranslation("bombsite_a"), "a"), (Localization.GetTranslation("bombsite_b"), "b")];
+            SkillUtils.CreateMenu(player, menuItems);
         }
 
-#pragma warning disable IDE0060 // Usuń nieużywany parametr
         public static void DisableSkill(CCSPlayerController player)
-#pragma warning restore IDE0060 // Usuń nieużywany parametr
         {
-            if (Instance.SkillPlayer.FirstOrDefault(p => p.Skill == skillName) != null)
-                return;
+            SkillUtils.CloseMenu(player);
+            if (Instance.SkillPlayer.FirstOrDefault(p => p.Skill == skillName) != null) return;
             EnableBombsite();
+
         }
 
         private static void EnableBombsite()

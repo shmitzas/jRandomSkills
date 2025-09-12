@@ -13,23 +13,18 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-            
-            Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
-            {
-                var victim = @event.Userid;
-                var attacker = @event.Attacker;
+        }
 
-                if (!Instance.IsPlayerValid(victim) || !Instance.IsPlayerValid(attacker)) return HookResult.Continue;
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var victim = @event.Userid;
+            var attacker = @event.Attacker;
 
-                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            if (!Instance.IsPlayerValid(victim) || !Instance.IsPlayerValid(attacker)) return;
+            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
-                if (attackerInfo?.Skill == skillName)
-                {
-                    TeleportPlayers(attacker!, victim!);
-                }
-
-                return HookResult.Continue;
-            });
+            if (attackerInfo?.Skill == skillName)
+                TeleportPlayers(attacker!, victim!);
         }
 
         private static void TeleportPlayers(CCSPlayerController attacker, CCSPlayerController victim)

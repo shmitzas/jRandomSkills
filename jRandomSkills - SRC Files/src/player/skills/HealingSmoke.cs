@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -18,84 +17,65 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundStart>((@event, info) =>
+        public static void NewRound()
+        {
+            smokes.Clear();
+        }
+
+        public static void SmokegrenadeDetonate(EventSmokegrenadeDetonate @event)
+        {
+            var player = @event.Userid;
+            if (player == null || !player.IsValid) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo?.Skill != skillName) return;
+            smokes.Add(new Vector(@event.X, @event.Y, @event.Z));
+        }
+
+        public static void SmokegrenadeExpired(EventSmokegrenadeExpired @event)
+        {
+            var player = @event.Userid;
+            if (player == null || !player.IsValid) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo?.Skill != skillName) return;
+            smokes.RemoveAll(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z);
+        }
+
+        public static void OnEntitySpawned(CEntityInstance entity)
+        {
+            var name = entity.DesignerName;
+            if (name != "smokegrenade_projectile") return;
+
+            var grenade = entity.As<CBaseCSGrenadeProjectile>();
+            if (grenade == null || !grenade.IsValid || grenade.OwnerEntity == null || !grenade.OwnerEntity.IsValid || grenade.OwnerEntity.Value == null || !grenade.OwnerEntity.Value.IsValid) return;
+
+            var pawn = grenade.OwnerEntity.Value.As<CCSPlayerPawn>();
+            if (pawn == null || !pawn.IsValid || pawn.Controller == null || !pawn.Controller.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
+
+            var player = pawn.Controller.Value.As<CCSPlayerController>();
+            if (player == null || !player.IsValid) return;
+
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo?.Skill != skillName) return;
+
+            Server.NextFrame(() =>
             {
-                smokes.Clear();
-                return HookResult.Continue;
+                var smoke = entity.As<CSmokeGrenadeProjectile>();
+                smoke.SmokeColor.X = 0;
+                smoke.SmokeColor.Y = 255;
+                smoke.SmokeColor.Z = 0;
             });
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventSmokegrenadeDetonate>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid) return HookResult.Continue;
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill != skillName) return HookResult.Continue;
-                smokes.Add(new Vector(@event.X, @event.Y, @event.Z));
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventSmokegrenadeExpired>((@event, @info) =>
-            {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid) return HookResult.Continue;
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill != skillName) return HookResult.Continue;
-                smokes.RemoveAll(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z);
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<OnEntitySpawned>(@event =>
-            {
-                var name = @event.DesignerName;
-                if (name != "smokegrenade_projectile") return;
-
-                var grenade = @event.As<CBaseCSGrenadeProjectile>();
-                if (grenade == null || !grenade.IsValid || grenade.OwnerEntity == null || !grenade.OwnerEntity.IsValid || grenade.OwnerEntity.Value == null || !grenade.OwnerEntity.Value.IsValid) return;
-
-                var pawn = grenade.OwnerEntity.Value.As<CCSPlayerPawn>();
-                if (pawn == null || !pawn.IsValid || pawn.Controller == null || !pawn.Controller.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
-
-                var player = pawn.Controller.Value.As<CCSPlayerController>();
-                if (player == null || !player.IsValid) return;
-
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill != skillName) return;
-
-                Server.NextFrame(() =>
-                {
-                    var smoke = @event.As<CSmokeGrenadeProjectile>();
-                    smoke.SmokeColor.X = 0;
-                    smoke.SmokeColor.Y = 255;
-                    smoke.SmokeColor.Z = 0;
-                });
-            });
-
-            Instance.RegisterListener<OnTick>(() =>
-            {
-                foreach (Vector smokePos in smokes)
-                    foreach (var player in Utilities.GetPlayers())
-                        if (Server.TickCount % 17 == 0)
-                            if (player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && player.PlayerPawn.Value.AbsOrigin != null)
-                                if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= smokeRadius)
-                                    AddHealth(player.PlayerPawn.Value, smokeHeal);
-            });
+        public static void OnTick()
+        {
+            foreach (Vector smokePos in smokes)
+                foreach (var player in Utilities.GetPlayers())
+                    if (Server.TickCount % 17 == 0)
+                        if (player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && player.PlayerPawn.Value.AbsOrigin != null)
+                            if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= smokeRadius)
+                                AddHealth(player.PlayerPawn.Value, smokeHeal);
         }
 
         public static void EnableSkill(CCSPlayerController player)

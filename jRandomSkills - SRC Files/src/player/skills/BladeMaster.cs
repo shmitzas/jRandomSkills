@@ -16,38 +16,38 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var victim = @event.Userid;
+            int damage = @event.DmgHealth;
+            HitGroup_t hitGroup = (HitGroup_t)@event.Hitgroup;
+            string weapon = @event.Weapon;
+
+            if (noReflectionWeapon.Contains(weapon) || !Instance.IsPlayerValid(victim)) return;
+            var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+            if (victimInfo == null || victimInfo.Skill != skillName) return;
+
+            int chance = Instance.Random.Next(0, 101);
+            if (hitGroup == HitGroup_t.HITGROUP_LEFTLEG || hitGroup == HitGroup_t.HITGROUP_RIGHTLEG)
             {
-                var victim = @event.Userid;
-                int damage = @event.DmgHealth;
-                HitGroup_t hitGroup = (HitGroup_t)@event.Hitgroup;
-                string weapon = @event.Weapon;
+                if (chance > legReflectionChance)
+                    return;
+            }
+            else
+                if (chance > torseReflectionChance)
+                    return;
 
-                if (noReflectionWeapon.Contains(weapon) || !Instance.IsPlayerValid(victim)) return HookResult.Continue;
-                var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
-                if (victimInfo == null || victimInfo.Skill != skillName) return HookResult.Continue;
+            var pawn = victim!.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid) return;
 
-                int chance = Instance.Random.Next(0, 101);
-                if (hitGroup == HitGroup_t.HITGROUP_LEFTLEG || hitGroup == HitGroup_t.HITGROUP_RIGHTLEG)
-                {
-                    if (chance > legReflectionChance)
-                        return HookResult.Continue;
-                }
-                else
-                    if (chance > torseReflectionChance)
-                    return HookResult.Continue;
+            var weaponServices = pawn.WeaponServices;
+            if (weaponServices == null) return;
+            if (weaponServices.ActiveWeapon == null || !weaponServices.ActiveWeapon.IsValid || weaponServices.ActiveWeapon.Value == null || !weaponServices.ActiveWeapon.Value.IsValid || weaponServices.ActiveWeapon.Value.DesignerName != "weapon_knife")
+                return;
 
-                var pawn = victim!.PlayerPawn.Value;
-                if (pawn == null || !pawn.IsValid) return HookResult.Continue;
-
-                var weaponServices = pawn.WeaponServices;
-                if (weaponServices == null) return HookResult.Continue;
-                if (weaponServices.ActiveWeapon == null || !weaponServices.ActiveWeapon.IsValid || weaponServices.ActiveWeapon.Value == null || !weaponServices.ActiveWeapon.Value.IsValid || weaponServices.ActiveWeapon.Value.DesignerName != "weapon_knife") return HookResult.Continue;
-
-                RestoreHealth(victim, damage);
-                return HookResult.Stop;
-            });
+            RestoreHealth(victim, damage);
         }
 
         private static void RestoreHealth(CCSPlayerController victim, float damage)

@@ -15,25 +15,6 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-            
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-
-                        if (playerInfo?.Skill == skillName)
-                        {
-                            int moneyBonus = Instance.Random.Next(minMoney, maxMoney);
-                            playerInfo.SkillChance = moneyBonus;
-                            AddMoney(player, moneyBonus);
-                        }
-                    }
-                });
-                return HookResult.Continue;
-            });
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -50,6 +31,7 @@ namespace jRandomSkills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
             AddMoney(player, -(int)(playerInfo.SkillChance ?? 0));
+            playerInfo.SkillChance = 0;
         }
 
         private static void AddMoney(CCSPlayerController player, int money)

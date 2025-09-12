@@ -10,54 +10,50 @@ namespace jRandomSkills
     public class JumpBan : ISkill
     {
         private const Skills skillName = Skills.JumpBan;
-        private static readonly Dictionary<CCSPlayerPawn, int> bannedPlayers = [];
+        public static readonly Dictionary<CCSPlayerPawn, int> bannedPlayers = [];
 
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                bannedPlayers.Clear();
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventPlayerJump>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return HookResult.Continue;
-                if (!bannedPlayers.TryGetValue(player.PlayerPawn.Value, out _)) return HookResult.Continue;
-                bannedPlayers[player.PlayerPawn.Value] = Server.TickCount + 10;
-                return HookResult.Stop;
-            });
-
-            Instance.RegisterListener<Listeners.OnTick>(OnTick);
         }
 
-        private static void OnTick()
+        public static void NewRound()
+        {
+            bannedPlayers.Clear();
+            foreach (var player in Utilities.GetPlayers())
+                SkillUtils.CloseMenu(player);
+        }
+
+        public static void PlayerJump(EventPlayerJump @event)
+        {
+            var player = @event.Userid;
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
+            if (!bannedPlayers.TryGetValue(player.PlayerPawn.Value, out _)) return;
+            bannedPlayers[player.PlayerPawn.Value] = Server.TickCount + 10;
+        }
+
+        public static void OnTick()
         {
             foreach (var item in bannedPlayers)
             {
                 var pawn = item.Key;
                 var time = item.Value;
                 if (time > Server.TickCount)
-                    pawn.AbsVelocity.Z = -100;
+                    if (pawn != null && pawn.IsValid)
+                        pawn.AbsVelocity.Z = -100;
+            }
+
+            if (Server.TickCount % 32 != 0) return;
+            foreach (var player in Utilities.GetPlayers())
+            {
+                if (!SkillUtils.HasMenu(player)) continue;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+
+                if (playerInfo == null || playerInfo.Skill != skillName) continue;
+                var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
+
+                HashSet<(string, string)> menuItems = enemies.Select(e => (e.PlayerName, e.Index.ToString())).ToHashSet();
+                SkillUtils.UpdateMenu(player, menuItems);
             }
         }
 
@@ -94,24 +90,21 @@ namespace jRandomSkills
             if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
-            SkillUtils.PrintToChat(player, Localization.GetTranslation("jumpban") + ":", false);
-
-            player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("jumpban_select_info")}");
-            var enemies = Utilities.GetPlayers().Where(p => p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).ToArray();
+            var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
             if (enemies.Length > 0)
             {
-                foreach (var enemy in enemies)
-                    player.PrintToChat($" {ChatColors.Green}⠀⠀⠀[{ChatColors.Red}{enemy.Index}{ChatColors.Green}] {enemy.PlayerName}");
+                HashSet<(string, string)> menuItems = enemies.Select(e => (e.PlayerName, e.Index.ToString())).ToHashSet();
+                SkillUtils.CreateMenu(player, menuItems);
             }
             else
-                player.PrintToChat($" {ChatColors.Red}⠀⠀⠀{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
-            player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("selectplayerskill_command")} {ChatColors.Red}index");
+                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
             bannedPlayers.Remove(player.PlayerPawn.Value);
+            SkillUtils.CloseMenu(player);
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#b01e5d", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)

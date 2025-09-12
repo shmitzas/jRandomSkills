@@ -18,77 +18,56 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
-            {
-                var victim = @event.Userid;
-                var attacker = @event.Attacker;
-                var weapon = @event.Weapon;
-
-                if (weapon != "decoy") return HookResult.Continue;
-                if (!Instance.IsPlayerValid(victim) || !Instance.IsPlayerValid(attacker)) return HookResult.Continue;
-
-                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
-                if (attackerInfo?.Skill != skillName) return HookResult.Continue;
-
-                SkillUtils.TakeHealth(victim!.PlayerPawn.Value, damageDeal);
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<Listeners.OnEntitySpawned>(@event =>
-            {
-                var name = @event.DesignerName;
-                if (name != "decoy_projectile")
-                    return;
-
-                var decoy = @event.As<CDecoyProjectile>();
-                if (decoy == null || !decoy.IsValid || decoy.OwnerEntity == null || decoy.OwnerEntity.Value == null || !decoy.OwnerEntity.Value.IsValid) return;
-                
-                var pawn = decoy.OwnerEntity.Value.As<CCSPlayerPawn>();
-                if (pawn == null || !pawn.IsValid || pawn.Controller == null || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
-                
-                var player = pawn.Controller.Value.As<CCSPlayerController>();
-                if (player == null || !player.IsValid) return;
-
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill != skillName) return;
-                decoys.Add(decoy);
-            });
-
-            Instance.RegisterEventHandler<EventDecoyStarted>((@event, info) =>
-            {
-                var player = @event.Userid;
-                if (player == null || !player.IsValid) return HookResult.Continue;
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill != skillName) return HookResult.Continue;
-
-                var decoy = decoys.FirstOrDefault(d => d.Index == @event.Entityid);
-                if (decoy != null && decoy.IsValid)
-                    decoy.Remove();
-
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<Listeners.OnTick>(OnTick);
         }
 
-        private static void OnTick()
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var victim = @event.Userid;
+            var attacker = @event.Attacker;
+            var weapon = @event.Weapon;
+
+            if (weapon != "decoy") return;
+            if (!Instance.IsPlayerValid(victim) || !Instance.IsPlayerValid(attacker)) return;
+
+            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            if (attackerInfo?.Skill != skillName) return;
+
+            SkillUtils.TakeHealth(victim!.PlayerPawn.Value, damageDeal);
+        }
+
+        public static void OnEntitySpawned(CEntityInstance entity)
+        {
+            var name = entity.DesignerName;
+            if (name != "decoy_projectile")
+                return;
+
+            var decoy = entity.As<CDecoyProjectile>();
+            if (decoy == null || !decoy.IsValid || decoy.OwnerEntity == null || decoy.OwnerEntity.Value == null || !decoy.OwnerEntity.Value.IsValid) return;
+
+            var pawn = decoy.OwnerEntity.Value.As<CCSPlayerPawn>();
+            if (pawn == null || !pawn.IsValid || pawn.Controller == null || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
+
+            var player = pawn.Controller.Value.As<CCSPlayerController>();
+            if (player == null || !player.IsValid) return;
+
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo?.Skill != skillName) return;
+            decoys.Add(decoy);
+        }
+
+        public static void DecoyStarted(EventDecoyStarted @event)
+        {
+            var player = @event.Userid;
+            if (player == null || !player.IsValid) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo?.Skill != skillName) return;
+
+            var decoy = decoys.FirstOrDefault(d => d.Index == @event.Entityid);
+            if (decoy != null && decoy.IsValid)
+                decoy.Remove();
+        }
+
+        public static void OnTick()
         {
             foreach (var decoy in decoys)
             {

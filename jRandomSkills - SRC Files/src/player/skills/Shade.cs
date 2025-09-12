@@ -7,7 +7,6 @@ using CS2TraceRay.Struct;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using System.Numerics;
-using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 
@@ -22,40 +21,37 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
-            
-            Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
-            {
-                var attacker = @event.Attacker;
-                var victim = @event.Userid;
+        }
 
-                if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim)) return HookResult.Continue;
+        public static void NewRound()
+        {
+            noSpace.Clear();
+        }
 
-                var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
-                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var attacker = @event.Attacker;
+            var victim = @event.Userid;
 
-                if (attackerInfo?.Skill == skillName)
-                    TeleportAttackerBehindVictim(attacker!, victim!);
+            if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim)) return;
 
-                return HookResult.Continue;
-            });
+            var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
-            {
-                noSpace.Clear();
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterListener<OnTick>(() =>
-            {
-                foreach (var item in noSpace)
-                    if (item.Value >= Server.TickCount)
-                        UpdateHUD(item.Key);
-            });
+            if (attackerInfo?.Skill == skillName)
+                TeleportAttackerBehindVictim(attacker!, victim!);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
             noSpace.Remove(player);
+        }
+
+        public static void OnTick()
+        {
+            foreach (var item in noSpace)
+                if (item.Value >= Server.TickCount)
+                    UpdateHUD(item.Key);
         }
 
         private static void UpdateHUD(CCSPlayerController player)

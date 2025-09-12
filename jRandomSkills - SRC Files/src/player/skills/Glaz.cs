@@ -11,49 +11,26 @@ namespace jRandomSkills
     public class Glaz : ISkill
     {
         private const Skills skillName = Skills.Glaz;
-        private static bool exists = false;
         private readonly static List<int> smokes = [];
 
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, @info) =>
-            {
-                smokes.Clear();
-                Instance.AddTimer(2f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
+        public static void NewRound()
+        {
+            smokes.Clear();
+        }
 
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill == skillName)
-                            EnableSkill(player);
-                    }
-                });
-                return HookResult.Continue;
-            });
+        public static void SmokegrenadeDetonate(EventSmokegrenadeDetonate @event)
+        {
+            smokes.Add(@event.Entityid);
+        }
 
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, @info) =>
-            {
-                smokes.Clear();
-                Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
-                exists = false;
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventSmokegrenadeDetonate>((@event, @info) =>
-            {
-                smokes.Add(@event.Entityid);
-                return HookResult.Continue;
-            });
-
-            Instance.RegisterEventHandler<EventSmokegrenadeExpired>((@event, @info) =>
-            {
-                smokes.Remove(@event.Entityid);
-                return HookResult.Continue;
-            });
+        public static void SmokegrenadeExpired(EventSmokegrenadeExpired @event)
+        {
+            smokes.Remove(@event.Entityid);
         }
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
@@ -74,9 +51,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            if (!exists)
-                Instance.RegisterListener<Listeners.CheckTransmit>(CheckTransmit);
-            exists = true;
+            Event.enableTransmit = true;
             SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
         }
 

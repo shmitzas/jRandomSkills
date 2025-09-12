@@ -13,23 +13,22 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventPlayerHurt>((@event, info) =>
-            {
-                var attacker = @event.Attacker;
-                var victim = @event.Userid;
-                int damage = @event.DmgHealth;
-                var hitgroup = (HitGroup_t)@event.Hitgroup;
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var attacker = @event.Attacker;
+            var victim = @event.Userid;
+            int damage = @event.DmgHealth;
+            var hitgroup = (HitGroup_t)@event.Hitgroup;
 
-                if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim)) return HookResult.Continue;
-                var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
-                if (victimInfo == null || victimInfo.Skill != skillName) return HookResult.Continue;
+            if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim)) return;
+            var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+            if (victimInfo == null || victimInfo.Skill != skillName) return;
 
-                HitGroup_t[] disabledHitbox = [HitGroup_t.HITGROUP_LEFTARM, HitGroup_t.HITGROUP_RIGHTARM, HitGroup_t.HITGROUP_LEFTLEG, HitGroup_t.HITGROUP_RIGHTLEG];
-                if (hitgroup != HitGroup_t.HITGROUP_HEAD)
-                    RestoreHealth(victim!, damage);
-                return HookResult.Stop;
-            });
+            HitGroup_t[] disabledHitbox = [HitGroup_t.HITGROUP_LEFTARM, HitGroup_t.HITGROUP_RIGHTARM, HitGroup_t.HITGROUP_LEFTLEG, HitGroup_t.HITGROUP_RIGHTLEG];
+            if (hitgroup != HitGroup_t.HITGROUP_HEAD)
+                RestoreHealth(victim!, damage);
         }
 
         private static void RestoreHealth(CCSPlayerController victim, float damage)

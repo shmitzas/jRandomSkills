@@ -1,4 +1,3 @@
-using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
@@ -14,44 +13,25 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+        }
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
-            {
-                Instance.AddTimer(0.1f, () =>
-                {
-                    foreach (var player in Utilities.GetPlayers())
-                    {
-                        if (!Instance.IsPlayerValid(player)) continue;
-                        var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                        if (playerInfo?.Skill != skillName) continue;
-                        EnableSkill(player);
-                    }
-                });
+        public static void PlayerBlind(EventPlayerBlind @event)
+        {
+            var player = @event.Userid;
+            var attacker = @event.Attacker;
+            if (player == null || !player.IsValid || player.LifeState != (byte)LifeState_t.LIFE_ALIVE) return;
+            if (attacker == null || !attacker.IsValid) return;
 
-                return HookResult.Continue;
-            });
+            var playerPawn = player.PlayerPawn.Value;
+            if (playerPawn == null || !playerPawn.IsValid) return;
 
-            Instance.RegisterEventHandler<EventPlayerBlind>((@event, info) =>
-            {
-                var player = @event.Userid;
-                var attacker = @event.Attacker;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
 
-                if (player == null || !player.IsValid || player.LifeState != (byte)LifeState_t.LIFE_ALIVE) return HookResult.Continue;
-                if (attacker == null || !attacker.IsValid) return HookResult.Continue;
-
-                var playerPawn = player.PlayerPawn.Value;
-                if (playerPawn == null || !playerPawn.IsValid) return HookResult.Continue;
-
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
-
-                if (playerInfo?.Skill == skillName)
-                    playerPawn.FlashDuration = 0.0f;
-                else if (attackerInfo?.Skill == skillName)
-                    playerPawn.FlashDuration = 7.0f;
-
-                return HookResult.Continue;
-            });
+            if (playerInfo?.Skill == skillName)
+                playerPawn.FlashDuration = 0.0f;
+            else if (attackerInfo?.Skill == skillName)
+                playerPawn.FlashDuration = 7.0f;
         }
 
         public static void EnableSkill(CCSPlayerController player)
