@@ -43,8 +43,10 @@ namespace jRandomSkills
         {
             foreach (var glow in glows)
             {
-                glow.Item1.Remove();
-                glow.Item2.Remove();
+                if (glow.Item1 != null && glow.Item1.IsValid)
+                    glow.Item1.AcceptInput("Kill");
+                if (glow.Item2 != null && glow.Item2.IsValid)
+                    glow.Item2.AcceptInput("Kill");
             }
             glows.Clear();
         }

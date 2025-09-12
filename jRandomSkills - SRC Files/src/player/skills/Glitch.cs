@@ -21,9 +21,18 @@ namespace jRandomSkills
         {
             glitchedPlayers.Clear();
             foreach (var player in Utilities.GetPlayers())
+            {
+                DisableSkill(player);
                 SkillUtils.CloseMenu(player);
+            }
         }
 
+        public static void PlayerDeath(EventPlayerDeath @event)
+        {
+            var player = @event.Userid;
+            if (player == null) return;
+            DisableSkill(player);
+        }
         public static void OnTick()
         {
             if (Server.TickCount % 32 != 0) return;

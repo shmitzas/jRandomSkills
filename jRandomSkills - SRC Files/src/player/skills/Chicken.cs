@@ -66,9 +66,7 @@ namespace jRandomSkills
                 playerPawn.Health = 50;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
 
-                if (playerPawn.CBodyComponent == null || playerPawn.CBodyComponent.SceneNode == null) return;
-                playerPawn.CBodyComponent.SceneNode.Scale = 0.2f;
-                Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
+                SkillUtils.ChangePlayerScale(player, .2f);
 
                 playerPawn.Render = Color.FromArgb(0, 255, 255, 255);
                 playerPawn.ShadowStrength = 0.0f;
@@ -89,9 +87,7 @@ namespace jRandomSkills
                 playerPawn.Health += 50;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
 
-                if (playerPawn.CBodyComponent == null || playerPawn.CBodyComponent.SceneNode == null) return;
-                playerPawn.CBodyComponent.SceneNode.Scale = 1f;
-                Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
+                SkillUtils.ChangePlayerScale(player, 1);
 
                 playerPawn.Render = Color.FromArgb(255, 255, 255, 255);
                 playerPawn.ShadowStrength = 1.0f;
@@ -103,7 +99,7 @@ namespace jRandomSkills
             if (chickens.TryGetValue(player, out var chicken))
             {
                 if (chicken != null && chicken.IsValid)
-                    chicken.Remove();
+                    chicken.AcceptInput("Kill");
                 chickens.Remove(player);
             }
         }
@@ -154,7 +150,7 @@ namespace jRandomSkills
                 if (player == null || !player.IsValid) continue;
                 if (chicken == null || !chicken.IsValid) continue;
 
-                var pawn = player.Pawn.Value;
+                var pawn = player.PlayerPawn.Value;
                 if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null || chicken.AbsOrigin == null) continue;
 
                 float X = (float)Math.Round(pawn.AbsOrigin.X, 2);
@@ -163,6 +159,7 @@ namespace jRandomSkills
                 Vector pos = new(X, Y, Z);
                 if (chicken.AbsOrigin.X != pos.X || chicken.AbsOrigin.Y != pos.Y || chicken.AbsOrigin.Z != pos.Z)
                     chicken.Teleport(pos, pawn.AbsRotation, null);
+                pawn.VelocityModifier = 1.1f;
                 UpdateHUD(player);
             }
         }

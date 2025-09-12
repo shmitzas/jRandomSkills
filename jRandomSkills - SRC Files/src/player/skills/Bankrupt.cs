@@ -7,11 +7,9 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Magnifier : ISkill
+    public class Bankrupt : ISkill
     {
-        private const Skills skillName = Skills.Magnifier;
-        private static readonly uint customFOV = Config.GetValue<uint>(skillName, "customFOV");
-        private static readonly Dictionary<CCSPlayerController, uint> playersFOV = [];
+        private const Skills skillName = Skills.Bankrupt;
 
         public static void LoadSkill()
         {
@@ -20,18 +18,8 @@ namespace jRandomSkills
 
         public static void NewRound()
         {
-            foreach (var player in playersFOV.Keys)
-                DisableSkill(player);
-            playersFOV.Clear();
             foreach (var player in Utilities.GetPlayers())
                 SkillUtils.CloseMenu(player);
-        }
-
-        public static void PlayerDeath(EventPlayerDeath @event)
-        {
-            var player = @event.Userid;
-            if (player == null) return;
-            DisableSkill(player);
         }
 
         public static void OnTick()
@@ -45,7 +33,7 @@ namespace jRandomSkills
                 if (playerInfo == null || playerInfo.Skill != skillName) continue;
                 var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
 
-                HashSet<(string, string)> menuItems = enemies.Select(e => (e.PlayerName, e.Index.ToString())).ToHashSet();
+                HashSet<(string, string)> menuItems = enemies.Select(e => ($"{e.PlayerName} : {(e.InGameMoneyServices == null ? 0 : e.InGameMoneyServices.Account)}$", e.Index.ToString())).ToHashSet();
                 SkillUtils.UpdateMenu(player, menuItems);
             }
         }
@@ -71,14 +59,10 @@ namespace jRandomSkills
                 return;
             }
 
-            if (!playersFOV.ContainsKey(enemy))
-                playersFOV.Add(enemy, enemy.DesiredFOV);
-            enemy.DesiredFOV = customFOV;
-            Utilities.SetStateChanged(enemy, "CBasePlayerController", "m_iDesiredFOV");
-
+            ResetMoney(enemy);
             playerInfo.SkillChance = 1;
-            player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("magnifier_player_info", enemy.PlayerName));
-            enemy.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("magnifier_enemy_info"));
+            player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("bankrupt_player_info", enemy.PlayerName));
+            enemy.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("bankrupt_enemy_info"));
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -90,27 +74,30 @@ namespace jRandomSkills
             var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
             if (enemies.Length > 0)
             {
-                HashSet<(string, string)> menuItems = enemies.Select(e => (e.PlayerName, e.Index.ToString())).ToHashSet();
+                HashSet<(string, string)> menuItems = enemies.Select(e => ($"{e.PlayerName} : {(e.InGameMoneyServices == null ? 0 : e.InGameMoneyServices.Account)}$", e.Index.ToString())).ToHashSet();
                 SkillUtils.CreateMenu(player, menuItems);
             }
             else
                 player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
         }
 
+        private static void ResetMoney(CCSPlayerController enemy)
+        {
+            if (enemy == null || !enemy.IsValid) return;
+            var enemyMoneyServices = enemy.InGameMoneyServices;
+            if (enemyMoneyServices == null) return;
+
+            enemyMoneyServices.Account = 0;
+            Utilities.SetStateChanged(enemy, "CCSPlayerController", "m_pInGameMoneyServices");
+        }
+
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (playersFOV.TryGetValue(player, out uint fov))
-            {
-                player.DesiredFOV = fov;
-                Utilities.SetStateChanged(player, "CBasePlayerController", "m_iDesiredFOV");
-            }
-            playersFOV.Remove(player);
             SkillUtils.CloseMenu(player);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#9ba882", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, uint customFOV = 50) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#abab33", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public uint CustomFOV { get; set; } = customFOV;
         }
     }
 }

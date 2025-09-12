@@ -1,4 +1,5 @@
 ﻿using CounterStrikeSharp.API.Modules.Utils;
+using Newtonsoft.Json;
 using System.Text.Json;
 
 namespace jRandomSkills.src.utils
@@ -37,7 +38,7 @@ namespace jRandomSkills.src.utils
 
             var code = Path.GetFileNameWithoutExtension(langPath);
             var jsonText = File.ReadAllText(langPath);
-            var translations = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonText);
+            var translations = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonText);
 
             if (translations != null)
                 _translations[code] = translations;

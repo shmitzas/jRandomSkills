@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <None Remove="src\command\Command.cs~RF4f34d1e7.TMP" />
+    <None Remove="src\player\PlayerOnTick.cs~RF38b6229.TMP" />
     <None Remove="src\player\skills\RespWroga.cs~RF528d210.TMP" />
   </ItemGroup>
 

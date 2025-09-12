@@ -21,7 +21,8 @@ namespace jRandomSkills
         public static void NewRound()
         {
             foreach (var camera in cameras)
-                camera.Value.Item2.Remove();
+                if (camera.Value.Item2 != null && camera.Value.Item2.IsValid)
+                    camera.Value.Item2.AcceptInput("Kill");
             cameras.Clear();
         }
 

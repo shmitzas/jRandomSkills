@@ -27,29 +27,31 @@ namespace jRandomSkills
 
         public static unsafe void EnableSkill(CCSPlayerController player)
         {
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
+
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && player.IsValid)
             {
                 float newSize = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "maxScale") - Config.GetValue<float>(skillName, "minScale")) + Config.GetValue<float>(skillName, "minScale");
                 newSize = (float)Math.Round(newSize, 2);
+                playerInfo.SkillChance = newSize;
 
-                // playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = newSize;
-                if (playerPawn.CBodyComponent == null || playerPawn.CBodyComponent.SceneNode == null) return;
-                playerPawn.CBodyComponent.SceneNode.Scale = newSize;
-
-                Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
+                SkillUtils.ChangePlayerScale(player, newSize);
                 SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("dwarf")}{ChatColors.Lime}: " + Localization.GetTranslation("dwarf_desc2", newSize), false);
             }
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
+
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && playerPawn?.CBodyComponent != null)
             {
-                // playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = 1;
-                if (playerPawn.CBodyComponent == null || playerPawn.CBodyComponent.SceneNode == null) return;
-                playerPawn.CBodyComponent.SceneNode.Scale = 1;
+                playerInfo.SkillChance = 1;
+                SkillUtils.ChangePlayerScale(player, 1);
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
             }
         }

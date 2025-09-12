@@ -128,7 +128,7 @@ namespace jRandomSkills
                 foreach (var item in pawn.WeaponServices.MyWeapons)
                 {
                     if (item != null && item.IsValid && item.Value != null && item.Value.IsValid && item.Value.DesignerName == weaponToRemove)
-                        item.Value.Remove();
+                        item.Value.AcceptInput("Kill");
                 }
             }
 

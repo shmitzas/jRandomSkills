@@ -21,7 +21,8 @@ namespace jRandomSkills
         public static void NewRound()
         {
             foreach (var camera in cameras)
-                camera.Value.Item2.Remove();
+                if (camera.Value.Item2 != null && camera.Value.Item2.IsValid)
+                    camera.Value.Item2.AcceptInput("Kill");
             cameras.Clear();
         }
 
@@ -75,10 +76,10 @@ namespace jRandomSkills
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid || pawn.CameraServices == null) return;
 
-            if (cameras.TryGetValue(player.SteamID, out var cameraInfo) && cameraInfo.Item2.IsValid)
+            if (cameras.TryGetValue(player.SteamID, out var cameraInfo) && cameraInfo.Item2 != null && cameraInfo.Item2.IsValid)
             {
                 orginalCameraRaw = cameraInfo.Item1;
-                cameraInfo.Item2.Remove();
+                cameraInfo.Item2.AcceptInput("Kill");
                 newCameraRaw = CreateCamera(player);
             } else
             {

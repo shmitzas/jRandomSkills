@@ -11,10 +11,16 @@ namespace jRandomSkills
     public class Flash : ISkill
     {
         private const Skills skillName = Skills.Flash;
+        public static readonly Dictionary<ulong, int> jumpedPlayers = [];
 
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+        }
+
+        public static void NewRound()
+        {
+            jumpedPlayers.Clear();
         }
 
         public static void PlayerMakeSound(UserMessage um)
@@ -35,6 +41,14 @@ namespace jRandomSkills
                 um.Recipients.Clear();
         }
 
+        public static void PlayerJump(EventPlayerJump @event)
+        {
+            var player = @event.Userid;
+            if (player == null || !player.IsValid) return;
+            if (!jumpedPlayers.TryGetValue(player.SteamID, out _)) return;
+            jumpedPlayers[player.SteamID] = Server.TickCount + 20;
+        }
+
         public static void EnableSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
@@ -48,6 +62,7 @@ namespace jRandomSkills
             newSpeed = (float)Math.Round(newSpeed, 2);
             playerInfo.SkillChance = newSpeed;
 
+            jumpedPlayers.TryAdd(player.SteamID, 0);
             playerPawn.VelocityModifier = newSpeed;
             SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("flash")}{ChatColors.Lime}: " + Localization.GetTranslation("flash_desc2", newSpeed), false);
         }
@@ -57,6 +72,7 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null) return;
             playerPawn.VelocityModifier = 1;
+            jumpedPlayers.Remove(player.SteamID);
         }
 
         public static void OnTick()
@@ -69,8 +85,18 @@ namespace jRandomSkills
                 if (playerInfo?.Skill != skillName) continue;
 
                 var playerPawn = player.PlayerPawn?.Value;
-                if (playerPawn != null && playerPawn.VelocityModifier != 0)
-                    playerPawn.VelocityModifier = Math.Max((float)(playerInfo?.SkillChance ?? 1), 1);
+                if (playerPawn == null || playerPawn.VelocityModifier == 0) continue;
+
+                var buttons = player.Buttons;
+                float newVelocity = Math.Max((float)(playerInfo?.SkillChance ?? 1), 1);
+                if (buttons.HasFlag(PlayerButtons.Moveleft) || buttons.HasFlag(PlayerButtons.Moveright) || buttons.HasFlag(PlayerButtons.Forward) || buttons.HasFlag(PlayerButtons.Back))
+                    playerPawn.VelocityModifier = newVelocity;
+
+                if (jumpedPlayers.TryGetValue(player.SteamID, out var time) && time > Server.TickCount)
+                    continue;
+
+                if (!((PlayerFlags)player.Flags).HasFlag(PlayerFlags.FL_ONGROUND))
+                    playerPawn.AbsVelocity.Z = Math.Min(playerPawn.AbsVelocity.Z, 10);
             }
         }
 

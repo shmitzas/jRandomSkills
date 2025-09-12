@@ -25,7 +25,7 @@ namespace jRandomSkills
             foreach (var beams in stepBeams.Values)
                 foreach (var beam in beams)
                     if (beam != null && beam.IsValid)
-                        beam.Remove();
+                        beam.AcceptInput("Kill");
             stepBeams.Clear();
             Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
             exists = false;
@@ -57,7 +57,7 @@ namespace jRandomSkills
 
                 if (beams.Count >= maxStepBeam)
                 {
-                    beams[0].Remove();
+                    beams[0].AcceptInput("Kill");
                     beams.RemoveAt(0);
                 }
             }

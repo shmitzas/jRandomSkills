@@ -1,6 +1,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Cvars;
+using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
@@ -67,6 +68,18 @@ namespace jRandomSkills
             float z = (float)Math.Sin(pitch);
 
             return new Vector(x, y, z);
+        }
+
+        public static void ChangePlayerScale(CCSPlayerController? player, float scale)
+        {
+            if (player == null || !player.IsValid) return;
+            var playerPawn = player.PlayerPawn.Value;
+            if (playerPawn == null || !playerPawn.IsValid || playerPawn.CBodyComponent == null || playerPawn.CBodyComponent.SceneNode == null) return;
+
+            playerPawn.CBodyComponent.SceneNode.Scale = scale;
+            playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = scale;
+            playerPawn.AcceptInput("SetScale", null, null, scale.ToString());
+            Server.NextFrame(() => Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent"));
         }
 
         public static void TakeHealth(CCSPlayerPawn? pawn, int damage)

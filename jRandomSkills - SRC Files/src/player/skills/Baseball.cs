@@ -64,7 +64,7 @@ namespace jRandomSkills
 
             var decoy = decoys.FirstOrDefault(d => d.Index == @event.Entityid);
             if (decoy != null && decoy.IsValid)
-                decoy.Remove();
+                decoy.AcceptInput("Kill");
         }
 
         public static void OnTick()

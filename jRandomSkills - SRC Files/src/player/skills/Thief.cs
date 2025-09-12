@@ -68,7 +68,7 @@ namespace jRandomSkills
                 return;
             }
 
-            DeacitvateSkill(player, enemy);
+            StealSkill(player, enemy);
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -99,29 +99,33 @@ namespace jRandomSkills
             SkillUtils.CloseMenu(player);
         }
 
-        private static void DeacitvateSkill(CCSPlayerController player, CCSPlayerController enemy)
+        private static void StealSkill(CCSPlayerController player, CCSPlayerController enemy)
         {
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
             if (playerInfo == null || enemyInfo == null) return;
+            var enemySkill = enemyInfo.Skill;
 
             if (playerInfo != null)
             {
                 Instance.AddTimer(.1f, () =>
                 {
-                    playerInfo.Skill = enemyInfo.Skill;
+                    playerInfo.Skill = enemySkill;
                     playerInfo.SpecialSkill = skillName;
-                    Instance.SkillAction(enemyInfo.Skill.ToString(), "EnableSkill", [player]);
+                    Instance.SkillAction(enemySkill.ToString(), "EnableSkill", [player]);
+                    player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("thief_player_info", enemy.PlayerName));
                 });
-                player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("thief_player_info", enemy.PlayerName));
             }
 
             if (enemyInfo != null)
             {
-                Instance.SkillAction(enemyInfo.Skill.ToString(), "DisableSkill", [enemy]);
-                enemyInfo.SpecialSkill = enemyInfo.Skill;
-                enemyInfo.Skill = Skills.None;
-                enemy.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("thief_enemy_info"));
+                Instance.AddTimer(.1f, () =>
+                {
+                    Instance.SkillAction(enemySkill.ToString(), "DisableSkill", [enemy]);
+                    enemyInfo.SpecialSkill = enemySkill;
+                    enemyInfo.Skill = Skills.None;
+                    enemy.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("thief_enemy_info"));
+                });
             }
         }
 

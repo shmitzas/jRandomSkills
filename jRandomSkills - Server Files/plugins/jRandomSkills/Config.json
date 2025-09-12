@@ -8,6 +8,7 @@
     "DebugMode": true,
     "AlternativeSkillButton": null,
     "SkillTimeBeforeStart": 7.0,
+    "SkillDescriptionDuration": 7.0,
     "SetSkillCommands": {
       "Alias": "ustawskill, ustaw_skill, setskill, set_skill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能",
       "Permissions": "@jRandmosSkills/admin"
@@ -159,6 +160,13 @@
       "Name": "Astronaut"
     },
     {
+      "NeedsTeammates": false,
+      "OnlyTeam": 0,
+      "Color": "#abab33",
+      "Active": true,
+      "Name": "Bankrupt"
+    },
+    {
       "SpeedMultipier": 2.0,
       "MaxSpeed": 900.0,
       "DamageDeal": 9999.0,
@@ -305,8 +313,8 @@
       "Name": "EnemySpawn"
     },
     {
-      "Damage": 10.0,
-      "DamageRadius": 190.0,
+      "Damage": 25.0,
+      "DamageRadius": 210.0,
       "ChanceFrom": 0.15,
       "ChanceTo": 0.3,
       "NeedsTeammates": false,
@@ -636,7 +644,9 @@
       "Name": "Phoenix"
     },
     {
-      "MaximumFuel": 100.0,
+      "MaximumFuel": 150.0,
+      "FuelConsumption": 0.64,
+      "Refuelling": 0.1,
       "NeedsTeammates": false,
       "OnlyTeam": 0,
       "Color": "#1466F5",

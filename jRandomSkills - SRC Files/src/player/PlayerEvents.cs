@@ -208,6 +208,13 @@ namespace jRandomSkills
             foreach (var playerSkill in Instance.SkillPlayer)
                 if (!playerSkill.IsDrawing)
                     Instance.SkillAction(playerSkill.Skill.ToString(), "OnTick");
+
+            foreach (var playerSkill in Instance.SkillPlayer)
+            {
+                if (playerSkill.SkillDescriptionHudExpired >= DateTime.Now)
+                    if (playerSkill.Skill != Skills.None)
+                        ShowSkillDescription(Utilities.GetPlayerFromSteamId(playerSkill.SteamID));
+            }
         }
 
         private static HookResult PlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)
@@ -267,7 +274,7 @@ namespace jRandomSkills
 
             Instance.RemoveListener<CheckTransmit>(CheckTransmit);
             int freezetime = ConVar.Find("mp_freezetime")?.GetPrimitiveValue<Int32>() ?? 0;
-            Instance.AddTimer(Math.Max(freezetime - Config.LoadedConfig.Settings.SkillTimeBeforeStart, 0) + .3f, SetSkill);
+            Instance.AddTimer((Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0) + Math.Max(freezetime - Config.LoadedConfig.Settings.SkillTimeBeforeStart, 0) + .3f, SetSkill);
             return HookResult.Continue;
         }
 
@@ -477,10 +484,11 @@ namespace jRandomSkills
                 skillPlayer.SpecialSkill = Skills.None;
                 Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", new [] { player });
                 Debug.WriteToDebug($"Player {skillPlayer.PlayerName} has got the skill \"{randomSkill.Name}\".");
+                skillPlayer.SkillDescriptionHudExpired = DateTime.Now.AddSeconds(Config.LoadedConfig.Settings.SkillDescriptionDuration);
 
                 if (Config.LoadedConfig.Settings.TeamMateSkillInfo)
                 {
-                    Instance?.AddTimer(0.5f, () =>
+                    Instance?.AddTimer(.5f, () =>
                     {
                         foreach (var teammate in teammates)
                         {
@@ -511,6 +519,31 @@ namespace jRandomSkills
             foreach (var playerSkill in Instance.SkillPlayer)
                 if (!playerSkill.IsDrawing)
                     Instance.SkillAction(playerSkill.Skill.ToString(), "CheckTransmit", [infoList]);
+        }
+
+        private static void ShowSkillDescription(CCSPlayerController? player)
+        {
+            if (player == null || !player.IsValid) return;
+
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
+
+            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == playerInfo.Skill);
+            if (skillData == null) return;
+
+            var skillName = playerInfo.Skill.ToString().ToLower();
+            var value = Math.Round((double)(playerInfo.SkillChance ?? 1), 2);
+            var desc2 = Localization.GetTranslation($"{skillName}_desc2", value);
+            var skilLDescription = desc2 == $"{skillName}_desc2"
+                ? Localization.GetTranslation($"{skillName}_desc")
+                : (desc2.Contains('%') ? desc2.Replace(value.ToString(), (value * 100).ToString()) : desc2);
+
+            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
+            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
+            string remainingLine = $"<font size='0.2' color='#999999'>{skilLDescription} <br>";
+
+            var hudContent = infoLine + skillLine + remainingLine;
+            player.PrintToCenterHtml(hudContent);
         }
 
         [GeneratedRegex(@"\{AUTHOR1\}", RegexOptions.IgnoreCase, "pl-PL")]

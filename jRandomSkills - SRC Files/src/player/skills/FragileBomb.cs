@@ -71,9 +71,9 @@ namespace jRandomSkills
         private static void RemoveBomb()
         {
             if (plantedC4 != null && plantedC4.IsValid)
-                plantedC4.Remove();
+                plantedC4.AcceptInput("Kill");
             if (triggerC4 != null && triggerC4.IsValid)
-                triggerC4.Remove();
+                triggerC4.AcceptInput("Kill");
             SkillUtils.TerminateRound(CsTeam.CounterTerrorist);
         }
 

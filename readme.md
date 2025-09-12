@@ -38,7 +38,7 @@ Join the 3v3 test server and try out the jRandomSkills plugin:
 Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.html).
 
 
-## ✨ Current Skills (106)
+## ✨ Current Skills (107)
 <details>
 <summary>The table below lists all available skills in the game, along with their descriptions.</summary>
 
@@ -52,6 +52,7 @@ Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.
 | Armored  | You have a random damage taken multiplier  | (0.65 - 0.85)x |
 | Assassin | You deal increased damage to enemies from behind | - |
 | Astronaut | You receive a random gravity value at the start of the round | (0.1 - 0.7)x  |
+| Bankrupt | Choose the player who will lose all their money  | - |
 | Baseball Player | Your decoy bounces off walls and instantly kills an enemy on impact | - |
 | Enemy Spin | You have a random chance to turn an enemy 180° when hitting them | (20 - 40)%  |
 | Blademaster  | While holding a knife, you have a high chance to deflect a shot | - |
@@ -236,7 +237,7 @@ All skills can be customized in the **`Config.cfg`** file located in the **`game
         "SummaryAfterTheRound": true,   // Show summary of the last round
         "DebugMode": true,              // Write activity to the ‘Debug’ folder
         "AlternativeSkillButton": null, // Possible buttons:
-                                        // "Attack", "Jump", "Duck", "Forward", "Back",
+                                        // null, "Attack", "Jump", "Duck", "Forward", "Back",
                                         // "Use", "Cancel", "Left", "Right", "Moveleft",
                                         // "Moveright", "Attack2", "Run", "Reload", "Alt1",
                                         // "Alt2", "Speed", "Walk", "Zoom", "Weapon1",
@@ -244,6 +245,7 @@ All skills can be customized in the **`Config.cfg`** file located in the **`game
                                         // "Attack3", "Scoreboard", "Inspect"
         "SkillTimeBeforeStart": 7.0,    // How many seconds before freeze time ends should skills
                                         // drawing be completed? (freezetime - SkillTimeBeforeStart)
+        "SkillDescriptionDuration": 7.0,// How long should the skill description be visible for?
         ...
     },
     "SkillsInfo": [
@@ -277,19 +279,43 @@ This plugin uses content from the following projects:
   
 - #### General:
     - ###### The `SkillTimeBeforeStart` option has been added to the config file, which specifies how many seconds before the end of freeze time the skills drawing should stop.
+    - ###### The `SkillDescriptionDuration` option has been added to the config file, which specifies how many seconds the skill description HTML message should be visible.
     - ###### Skills are no longer disabled at the end of the round.
     - ###### The logic for granting skills has been changed.
     - ###### Nicknames that are too long are shortened when spectating players.
     - ###### The player selection has been changed via the Chat Menu to the WSAD Menu.
+    - ###### Skill descriptions added at the start of the round using PrintToCenterHtml.
     - ###### Skill descriptions with player selection have been shortened.
+    - ###### Fixed a problem where the css_setskill and css_setstaticskill commands could not be executed from the server.
 - #### Skill improvements:
-    - ##### Legless
+    - ##### Legless:
         - ###### Legless's skill completely disables Bunny's skill.
+    - ##### Rich Boy:
+        - ###### The cap has been set at $16,000.
+    - ##### Pilot:
+        - ###### The jetpack has been redesigned.
+        - ###### The amount of fuel has been increased.
+        - ###### From now on, the amount of fuel is always visible.
+        - ###### It is no longer possible to use a jetpack while defusing a bomb.
+    - ##### Explosive Shot:
+        - ###### The damage and range of attack have increased a little.
+    - ##### Flash:
+        - ###### Fixed a bug causing players to be launched upwards on stairs/ramps.
+    - ##### Magnifier:
+        - ###### Unnecessary Server.PrintToChatAll have been removed.
+    - ##### Weapon Swap:
+        - ###### Fixed a bug with the option to change weapons with a dead player.
+    - ##### Dwarf:
+        - ###### Fixed a bug with unchanged hitboxes.
+    - ##### Chicken:
+        - ###### Fixed a bug with unchanged hitboxes.
 - #### New skills:
     - ##### Jester:
         - ###### In jester mode, you cannot get or take any damage. This mode changes every few seconds.
     - ##### Gambler:
         - ###### Select a skill from the list provided.
+    - ##### Bankrupt:
+        - ###### Choose the player who will lose all their money.
 </details>
 
 <details>

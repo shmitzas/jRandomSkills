@@ -33,6 +33,12 @@
   "astronaut_desc": "回合开始时你会获得随机重力值",
   "astronaut_desc2": "你的随机重力是：{0}x",
 
+  "bankrupt": "破产",
+  "bankrupt_desc": "选择一个会失去所有金钱的玩家",
+  "bankrupt_enemy_info": "你破产了。",
+  "bankrupt_player_info": "玩家“{0}”已破产。",
+  "bankrupt_select_info": "选择玩家破产:",
+
   "baseball": "棒球手",
   "baseball_desc": "你的诱饵弹会在墙壁上反弹并在击中敌人时立即杀死",
 
@@ -259,7 +265,7 @@
 
   "pilot": "飞行员",
   "pilot_desc": "在有限时间内飞行。按住 [USE - E] 飞行",
-  "pilot_hud_info": "正在充能",
+  "pilot_hud_info": "燃料",
 
   "planter": "自由种植者",
   "planter_desc": "你可以在任何地方放置炸弹，引爆时间为60秒。",

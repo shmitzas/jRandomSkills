@@ -72,7 +72,7 @@ namespace jRandomSkills
                     var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
                     if (plantedBomb != null)
                     {
-                        plantedBomb.Remove();
+                        plantedBomb.AcceptInput("Kill");
                         SkillUtils.TerminateRound(CsTeam.CounterTerrorist);
                     }
 

@@ -142,6 +142,7 @@ namespace jRandomSkills
             public bool DebugMode { get; set; }
             public string? AlternativeSkillButton { get; set; }
             public float SkillTimeBeforeStart { get; set; }
+            public float SkillDescriptionDuration { get; set; }
             public NormalCommand SetSkillCommands { get; set; }
             public NormalCommand SkillsListCommands { get; set; }
             public NormalCommand UseSkillCommands { get; set; }
@@ -165,6 +166,7 @@ namespace jRandomSkills
                 DebugMode = true;
                 AlternativeSkillButton = null;
                 SkillTimeBeforeStart = 7;
+                SkillDescriptionDuration = 7;
 
                 SetSkillCommands = new NormalCommand("ustawskill, ustaw_skill, setskill, set_skill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能", "@jRandmosSkills/admin");
                 SkillsListCommands = new NormalCommand("supermoc, skille, listamocy, supermoce, skills, listaHabilidades, habilidades, 技能列表, 超能力列表", "@jRandmosSkills/admin");

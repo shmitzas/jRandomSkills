@@ -37,7 +37,7 @@ Dołącz do serwera testowego 3v3 i wypróbuj plugin jRandomSkills:
 
 Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://pukawka.pl/pp,juzlus.html).
 
-## ✨ Aktualne Supermoce (106)
+## ✨ Aktualne Supermoce (107)
 <details>
 <summary>Poniższa tabela przedstawia wszystkie dostępne supermoce w grze, wraz z ich opisami.</summary>
 
@@ -51,6 +51,7 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 | Gruby | Masz losowy mnożnik otrzymywanych obrażeń | (0.65 - 0.85)x |
 | Skrytobójca | Zadajesz podwójne obrażenia przeciwnikowi od tyłu | - |
 | Astronauta | Na początku rundy otrzymujesz losową wartość grawitacji | (0.1 - 0.7)x |
+| Bankrut | Wybierz gracza, który straci wszystkie swoje pieniądze | - |
 | Bejsbolista | Twój wabik odbija się od ścian i natychmiastowo zabija wroga po trafieniu | - |
 | Obrót Wroga | Masz losową szansę na obrócenie wroga o 180 stopni po trafieniu go | (20 - 40)% |
 | Mistrz Ostrza | Trzymając nóż, masz duże szanse na odparcie strzału | - |
@@ -236,7 +237,7 @@ Wszystkie sypermoce można dostosować w pliku **`Config.cfg`** znajdującym si�
         "SummaryAfterTheRound": true,   // Pokazuj podsumowanie z ostatniej rundy
         "DebugMode": true,              // Zapisuj aktywność do folderu 'Debug'
         "AlternativeSkillButton": null, // Możliwe przyciski:
-                                        // "Attack", "Jump", "Duck", "Forward", "Back",
+                                        // null, "Attack", "Jump", "Duck", "Forward", "Back",
                                         // "Use", "Cancel", "Left", "Right", "Moveleft",
                                         // "Moveright", "Attack2", "Run", "Reload", "Alt1",
                                         // "Alt2", "Speed", "Walk", "Zoom", "Weapon1",
@@ -244,6 +245,7 @@ Wszystkie sypermoce można dostosować w pliku **`Config.cfg`** znajdującym si�
                                         // "Attack3", "Scoreboard", "Inspect"
         "SkillTimeBeforeStart": 7.0,    // Ile sekund przed końcem freeze time należy zakończyć 
                                         // losowanie umiejętności? (freezetime - SkillTimeBeforeStart)
+        "SkillDescriptionDuration": 7.0,// Jak długo opis umiejętności powinien być widoczny?
         ...
     },
     "SkillsInfo": [
@@ -277,19 +279,43 @@ Plugin korzysta z zawartości następujących projektów:
   
 - #### Ogólne:
     - ###### Do pliku konfiguracyjnego dodano opcję `SkillTimeBeforeStart`, która określa, na ile sekund przed końcem freezetime powinno się zakończyć losowanie umiejętności.
+    - ###### Do pliku konfiguracyjnego dodano opcję `SkillDescriptionDuration`, która określa, ile sekund opis umiejętności w wiadomości HTML powinien być widoczny.
     - ###### Umiejętności nie są już wyłączane pod koniec rundy.
-    - ###### Zmieniono logikę przyznawania umiejętności.
+    - ###### Zmieniono logikę przydzielania umiejętności.
     - ###### Zbyt długie pseudonimy są skracane podczas oglądania graczy.
     - ###### Wybór gracza został zmieniony z Chat Menu na WSAD Menu.
-    - ###### Opisy umiejętności z wyborem gracza zostały skrócone.
+    - ###### Na początku rundy dodano opisy umiejętności wyświetlane za pomocą PrintToCenterHtml.
+    - ###### Skrócono opisy umiejętności przy wyborze gracza.
+    - ###### Naprawiono problem, w którym komendy css_setskill i css_setstaticskill nie mogły być wykonywane z serwera.
 - #### Poprawki mocy:
-    - ##### Beznogi
+    - ##### Beznogi:
         - ###### Umiejętność Beznogi całkowicie wyłącza umiejętność Królik.
+    - ##### Bogacz:
+        - ###### Limit został ustawiony na $16,000.
+    - ##### Pilot:
+        - ###### Plecak odrzutowy został przeprojektowany.
+        - ###### Zwiększono ilość paliwa.
+        - ###### Od teraz ilość paliwa jest zawsze widoczna.
+        - ###### Nie można już używać plecaka odrzutowego podczas rozbrajania bomby.
+    - ##### Strzał Wybuchowy:
+        - ###### Obrażenia i zasięg ataku zostały nieznacznie zwiększone.
+    - ##### Flash:
+        - ###### Naprawiono błąd powodujący "wystrzelenie w górę" graczy na schodach/rampach.
+    - ##### Lupa:
+        - ###### Usunięto niepotrzebne wywołania Server.PrintToChatAll.
+    - ##### Zamiana Broni:
+        - ###### Naprawiono błąd z możliwością wymiany broni z martwym graczem.
+    - ##### Mini Majk:
+        - ###### Naprawiono błąd z niezmienionymi hitboxami.
+    - ##### Kurczak:
+        - ###### Naprawiono błąd z niezmienionymi hitboxami.
 - #### Nowe moce:
     - ##### Błazen:
         - ###### W trybie błazna nie możesz zadawać ani otrzymywać obrażeń. Tryb zmienia się co kilka sekund.
     - ##### Hazardzista:
         - ###### Wybierz umiejętność z podanej listy.
+    - ##### Bankrut:
+        - ###### Wybierz gracza, który straci wszystkie swoje pieniądze.
 </details>
 
 <details>

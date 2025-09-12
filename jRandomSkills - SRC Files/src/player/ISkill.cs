@@ -55,6 +55,7 @@ public enum Skills
     Armored,
     Assassin,
     Astronaut,
+    Bankrupt,
     Baseball,
     Behind,
     BladeMaster,

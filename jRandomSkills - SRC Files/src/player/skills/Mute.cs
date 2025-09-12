@@ -55,7 +55,7 @@ namespace jRandomSkills
                     Instance.AddTimer(5f, () =>
                     {
                         if (@event != null && @event.IsValid)
-                            @event.Remove();
+                            @event.AcceptInput("Kill");
                     });
                 });
             });

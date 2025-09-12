@@ -162,7 +162,7 @@ namespace jRandomSkills
 
         private static CCSPlayerController? GetRandomEnemy(CCSPlayerController player)
         {
-            CCSPlayerController[] enemies = [.. Utilities.GetPlayers().FindAll(e => e.Team != player.Team)];
+            CCSPlayerController[] enemies = [.. Utilities.GetPlayers().FindAll(e => e.Team != player.Team && e.PawnIsAlive)];
             if (enemies.Length == 0) return null;
             return enemies[Instance.Random.Next(enemies.Length)];
         }

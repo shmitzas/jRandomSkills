@@ -33,6 +33,12 @@
   "astronaut_desc": "Na początku rundy otrzymujesz losową wartość grawitacji",
   "astronaut_desc2": "Twoja losowa grawitacja wynosi: {0}x",
 
+  "bankrupt": "Bankrut",
+  "bankrupt_desc": "Wybierz gracza, który straci wszystkie swoje pieniądze",
+  "bankrupt_enemy_info": "Stałeś się bankrutem.",
+  "bankrupt_player_info": "Gracz '{0}' zbankrutował.",
+  "bankrupt_select_info": "Wybierz gracza do bankrucji:",
+
   "baseball": "Bejsbolista",
   "baseball_desc": "Twój wabik odbija się od ścian i natychmiastowo zabija wroga po trafieniu",
 
@@ -259,7 +265,7 @@
 
   "pilot": "Pilot",
   "pilot_desc": "Latanie przez określony czas. Przytrzymaj [USE - E], aby latać",
-  "pilot_hud_info": "W trakcie odnawiania",
+  "pilot_hud_info": "Paliwo",
 
   "planter": "Samowolka",
   "planter_desc": "Bombę można podłożyć w dowolnym miejscu, a czas detonacji wynosi 60 sekund.",

@@ -16,7 +16,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
@@ -24,10 +24,18 @@ namespace jRandomSkills
             foreach (var player in defaultPostProcessings.Keys)
                 DisableSkill(player);
             foreach (var postProcessing in newPostProcessing)
-                postProcessing.Remove();
+                if (postProcessing != null && postProcessing.IsValid)
+                    postProcessing.AcceptInput("Kill");
             newPostProcessing.Clear();
             foreach (var player in Utilities.GetPlayers())
                 SkillUtils.CloseMenu(player);
+        }
+
+        public static void PlayerDeath(EventPlayerDeath @event)
+        {
+            var player = @event.Userid;
+            if (player == null) return;
+            DisableSkill(player);
         }
 
         public static void OnTick()

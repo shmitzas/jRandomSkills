@@ -33,6 +33,12 @@
   "astronaut_desc": "You receive a random gravity value at the start of the round",
   "astronaut_desc2": "Your random gravity is: {0}x",
 
+  "moneyswap": "Taxman",
+  "moneyswap_desc": "Choose a player to swap money with",
+  "moneyswap_enemy_info": "The tax office got you.",
+  "moneyswap_player_info": "You swapped money with player '{0}'.",
+  "moneyswap_select_info": "Swap money with player:",
+
   "baseball": "Baseball Player",
   "baseball_desc": "Your decoy bounces off walls and instantly kills an enemy on impact",
 
@@ -217,11 +223,11 @@
   "medic": "Medic",
   "medic_desc": "Click [css_useSkill] to use a healing charge that restores 50 health",
 
-  "moneyswap": "Taxman",
-  "moneyswap_desc": "Choose a player to swap money with",
-  "moneyswap_enemy_info": "The tax office got you.",
-  "moneyswap_player_info": "You swapped money with player '{0}'.",
-  "moneyswap_select_info": "Swap money with player:",
+  "bankrupt": "Bankrupt",
+  "bankrupt_desc": "Choose the player who will lose all their money",
+  "bankrupt_enemy_info": "You have gone bankrupt.",
+  "bankrupt_player_info": "Player '{0}' has gone bankrupt.",
+  "bankrupt_select_info": "Pick a player to go bankrupt:",
 
   "muhammed": "Muhammed",
   "muhammed_desc": "You explode upon death, killing nearby players",
@@ -259,7 +265,7 @@
 
   "pilot": "Pilot",
   "pilot_desc": "Fly for a limited time. Hold [USE - E] to fly",
-  "pilot_hud_info": "Recharging",
+  "pilot_hud_info": "Fuel",
 
   "planter": "Free Planter",
   "planter_desc": "You can plant the bomb anywhere, with a detonation time of 60 seconds.",

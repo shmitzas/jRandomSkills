@@ -33,6 +33,12 @@
   "astronaut_desc": "Você recebe um valor de gravidade aleatório no início da rodada",
   "astronaut_desc2": "Sua gravidade aleatória é: {0}x",
 
+  "bankrupt": "Falido",
+  "bankrupt_desc": "Escolha o jogador que perderá todo o dinheiro",
+  "bankrupt_enemy_info": "Você faliu.",
+  "bankrupt_player_info": "O jogador '{0}' faliu.",
+  "bankrupt_select_info": "Escolha jogador p/ falir:",
+
   "baseball": "Jogador de Beisebol",
   "baseball_desc": "Seu chamariz ricocheteia nas paredes e mata instantaneamente um inimigo ao acertar",
 
@@ -259,7 +265,7 @@
 
   "pilot": "Piloto",
   "pilot_desc": "Voe por um tempo limitado. Segure [USE - E] para voar",
-  "pilot_hud_info": "Recarregando",
+  "pilot_hud_info": "Combustível",
 
   "planter": "Plantador Livre",
   "planter_desc": "Você pode plantar a bomba em qualquer lugar, com um tempo de detonação de 60 segundos.",

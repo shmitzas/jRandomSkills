@@ -69,7 +69,7 @@ namespace jRandomSkills
                 SpawnExplosion(param2.DamagePosition);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#9c0000", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float damage = 10f, float damageRadius = 190f, float chanceFrom = .15f, float chanceTo = .3f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#9c0000", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float damage = 25f, float damageRadius = 210f, float chanceFrom = .15f, float chanceTo = .3f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
             public float Damage { get; set; } = damage;
             public float DamageRadius { get; set; } = damageRadius;

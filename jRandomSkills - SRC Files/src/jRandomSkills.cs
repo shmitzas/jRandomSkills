@@ -107,6 +107,7 @@ namespace jRandomSkills
         public Skills SpecialSkill { get; set; }
         public float? SkillChance { get; set; }
         public bool IsDrawing { get; set; }
+        public DateTime SkillDescriptionHudExpired { get; set; }
     }
 
 #pragma warning disable IDE1006

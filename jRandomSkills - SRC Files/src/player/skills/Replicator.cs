@@ -132,7 +132,7 @@ namespace jRandomSkills
             var attackerTeam = attackerPawn.TeamNum;
             var replicaTeam = replica.Globalname.EndsWith("CT") ? 3 : 2;
             SkillUtils.TakeHealth(attackerPawn, attackerTeam != replicaTeam ? 15 : 5);
-            replica.Remove();
+            replica.AcceptInput("Kill");
         }
 
         public class PlayerSkillInfo

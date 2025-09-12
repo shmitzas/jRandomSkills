@@ -138,9 +138,9 @@ namespace jRandomSkills
             {
                 health -= (int)param2.Damage;
                 barricades[box.Index] = health;
-                if (health <= 0) box.Remove();
+                if (health <= 0) box.AcceptInput("Kill");
             }
-            else box.Remove();
+            else box.AcceptInput("Kill");
         }
 
         public class PlayerSkillInfo
