@@ -320,13 +320,16 @@ namespace jRandomSkills
 
         private static HookResult PlayerDeath(EventPlayerDeath @event, GameEventInfo info)
         {
+            foreach (var playerSkill in Instance.SkillPlayer)
+                if (!playerSkill.IsDrawing)
+                    Instance.SkillAction(playerSkill.Skill.ToString(), "PlayerDeath", [@event]);
+
             var victim = @event.Userid;
             var attacker = @event.Attacker;
             if (victim == null || attacker == null) return HookResult.Continue;
 
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
             if (playerInfo == null || playerInfo.IsDrawing) return HookResult.Continue;
-            Instance.SkillAction(playerInfo.Skill.ToString(), "PlayerDeath", [@event]);
             Instance.SkillAction(playerInfo.Skill.ToString(), "DisableSkill", [victim]);
 
             if (victim == attacker) return HookResult.Continue;

@@ -40,7 +40,7 @@ namespace jRandomSkills
             var moneyServices = player.InGameMoneyServices;
             if (moneyServices == null) return;
 
-            moneyServices.Account = Math.Max(moneyServices.Account + money, 0);
+            moneyServices.Account = Math.Min(Math.Max(moneyServices.Account + money, 0), 16000);
             Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
         }
 
