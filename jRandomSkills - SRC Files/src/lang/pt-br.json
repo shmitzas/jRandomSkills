@@ -132,7 +132,7 @@
   "gambler": "Apostador",
   "gambler_desc": "Selecione uma habilidade da lista.",
   "gambler_select_info": "Escolha sua habilidade:",
-  "gambler_more": "<font class='fontSize-m' color='#00FF00'>Atualizar por $100</font>",
+  "gambler_more": "#00FF00|Atualizar por ${0}",
 
   "ghost": "Fantasma",
   "ghost_desc": "Você é completamente invisível",

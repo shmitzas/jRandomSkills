@@ -132,7 +132,7 @@
   "gambler": "赌徒",
   "gambler_desc": "从提供的列表中选择一个技能。",
   "gambler_select_info": "选择你的技能：",
-  "gambler_more": "<font class='fontSize-m' color='#00FF00'>刷新 $100</font>",
+  "gambler_more": "#00FF00|刷新 ${0}",
 
   "ghost": "幽灵",
   "ghost_desc": "你完全隐形",

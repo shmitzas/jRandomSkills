@@ -8,36 +8,36 @@ public class WasdManager : IWasdMenuManager
     public void OpenMainMenu(CCSPlayerController? player, IWasdMenu? menu)
     {
         if(!TryGetPlayer(player, out var menuPlayer)) return;
-        menuPlayer.OpenMainMenu((WasdMenu?)menu);
+        menuPlayer?.OpenMainMenu((WasdMenu?)menu);
     }
 
     public void CloseMenu(CCSPlayerController? player)
     {
         if (!TryGetPlayer(player, out var menuPlayer)) return;
-        menuPlayer.OpenMainMenu(null);
+        menuPlayer?.OpenMainMenu(null);
     }
 
     public void CloseSubMenu(CCSPlayerController? player)
     {
         if (!TryGetPlayer(player, out var menuPlayer)) return;
-        menuPlayer.CloseSubMenu();
+        menuPlayer?.CloseSubMenu();
     }
 
     public void CloseAllSubMenus(CCSPlayerController? player)
     {
         if (!TryGetPlayer(player, out var menuPlayer)) return;
-        menuPlayer.CloseAllSubMenus();
+        menuPlayer?.CloseAllSubMenus();
     }
 
     public void OpenSubMenu(CCSPlayerController? player, IWasdMenu? menu)
     {
         if (!TryGetPlayer(player, out var menuPlayer)) return;
-        menuPlayer.OpenSubMenu(menu);
+        menuPlayer?.OpenSubMenu(menu);
     }
 
     public IWasdMenu CreateMenu(string title = "", string controlText = "")
     {
-        WasdMenu menu = new WasdMenu
+        WasdMenu menu = new()
         {
             Title = title,
             ControlText = controlText
@@ -53,10 +53,10 @@ public class WasdManager : IWasdMenuManager
     public void UpdateActiveMenu(CCSPlayerController? player, Dictionary<string, Action<CCSPlayerController, IWasdMenuOption>> list)
     {
         if (!TryGetPlayer(player, out var menuPlayer)) return;
-        menuPlayer.UpdateActiveMenu(list);
+        menuPlayer?.UpdateActiveMenu(list);
     }
 
-    private bool TryGetPlayer(CCSPlayerController? player, out WasdMenuPlayer menuPlayer)
+    private static bool TryGetPlayer(CCSPlayerController? player, out WasdMenuPlayer? menuPlayer)
     {
         menuPlayer = null!;
         if (player == null || !player.IsValid || player.IsBot || player.SteamID == 0) return false;

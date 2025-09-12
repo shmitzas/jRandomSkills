@@ -47,6 +47,8 @@ namespace jRandomSkills
             Instance.AddTimer(.1f, () =>
             {
                 playerInfo.Skill = skill.Skill;
+                if (skill.Skill != skillName)
+                    playerInfo.SpecialSkill = skillName;
                 playerInfo.SkillChance = 1;
                 Instance.SkillAction(skill.Skill.ToString(), "EnableSkill", [player]);
             });
@@ -73,7 +75,7 @@ namespace jRandomSkills
 
             HashSet<(string, string)> menuItems = [(firstSkill.Name, firstSkill.Skill.ToString()),
                                                    (secondSkill.Name, secondSkill.Skill.ToString()),
-                                                    (Localization.GetTranslation("gambler_more"), skillName.ToString())];
+                                                    (Localization.GetTranslation("gambler_more", refreshPrice), skillName.ToString())];
             SkillUtils.CreateMenu(player, menuItems);
         }
 

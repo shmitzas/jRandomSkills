@@ -132,7 +132,7 @@
   "gambler": "Hazardzista",
   "gambler_desc": "Wybierz umiejętność z podanej listy.",
   "gambler_select_info": "Wybierz umiejętność:",
-  "gambler_more": "<font class='fontSize-m' color='#00FF00'>Odśwież za $100</font>",
+  "gambler_more": "#00FF00|Odśwież za ${0}",
 
   "ghost": "Duszek",
   "ghost_desc": "Jesteś całkowicie niewidzialny",

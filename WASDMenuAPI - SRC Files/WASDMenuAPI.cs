@@ -6,9 +6,9 @@ namespace WASDMenuAPI;
 
 public class WASDMenuAPI
 {
-    public string ModuleName => "WASDMenuAPI";
-    public string ModuleVersion => "1.0.2";
-    public string ModuleAuthor => "Interesting";
+    public static string ModuleName => "WASDMenuAPI";
+    public static string ModuleVersion => "1.0.2";
+    public static string ModuleAuthor => "Interesting";
 
     public static readonly Dictionary<ulong, WasdMenuPlayer> Players = [];
     
@@ -20,7 +20,7 @@ public class WASDMenuAPI
             if (@event.Userid != null)
                 Players[@event.Userid.SteamID] = new WasdMenuPlayer
                 {
-                    player = @event.Userid,
+                    Player = @event.Userid,
                     Buttons = 0
                 };
             return HookResult.Continue;
@@ -38,7 +38,7 @@ public class WASDMenuAPI
             {
                Players[pl.SteamID] = new WasdMenuPlayer
                {
-                   player = pl,
+                   Player = pl,
                    Buttons = pl.Buttons
                };
             }
@@ -48,23 +48,23 @@ public class WASDMenuAPI
     {
         foreach (var player in Players.Values.Where(p => p.MainMenu != null))
         {
-            if ((player.Buttons & PlayerButtons.Forward) == 0 && (player.player.Buttons & PlayerButtons.Forward) != 0)
+            if ((player.Buttons & PlayerButtons.Forward) == 0 && (player.Player.Buttons & PlayerButtons.Forward) != 0)
             {
                 player.ScrollUp();
             }
-            else if((player.Buttons & PlayerButtons.Back) == 0 && (player.player.Buttons & PlayerButtons.Back) != 0)
+            else if((player.Buttons & PlayerButtons.Back) == 0 && (player.Player.Buttons & PlayerButtons.Back) != 0)
             {
                 player.ScrollDown();
             }
-            else if((player.Buttons & PlayerButtons.Use) == 0 && (player.player.Buttons & PlayerButtons.Use) != 0)
+            else if((player.Buttons & PlayerButtons.Use) == 0 && (player.Player.Buttons & PlayerButtons.Use) != 0)
             {
                 player.Choose();
             }
             
-            player.Buttons = player.player.Buttons;
+            player.Buttons = player.Player.Buttons;
             if(player.CenterHtml != "")
                 Server.NextFrame(() =>
-                player.player.PrintToCenterHtml(player.CenterHtml)
+                player.Player.PrintToCenterHtml(player.CenterHtml)
             );
         }
     }

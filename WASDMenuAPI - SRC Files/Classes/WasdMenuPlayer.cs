@@ -8,7 +8,7 @@ namespace WASDMenuAPI;
 
 public class WasdMenuPlayer
 {
-    public CCSPlayerController player { get; set; }
+    public required CCSPlayerController Player { get; set; }
     public WasdMenu? MainMenu = null;
     public LinkedListNode<IWasdMenuOption>? CurrentChoice = null;
     public LinkedListNode<IWasdMenuOption>? MenuStart = null;
@@ -87,7 +87,7 @@ public class WasdMenuPlayer
     
     public void Choose()
     {
-        CurrentChoice?.Value.OnChoose?.Invoke(player, CurrentChoice.Value);
+        CurrentChoice?.Value.OnChoose?.Invoke(Player, CurrentChoice.Value);
     }
 
     public void ScrollDown()
@@ -126,10 +126,10 @@ public class WasdMenuPlayer
         string endControl = "";
         LinkedListNode<IWasdMenuOption>? option = MenuStart;
 
-        if (option?.Value?.Parent?.Title != "")
+        if (!string.IsNullOrEmpty(option?.Value?.Parent?.Title))
             builder.AppendLine($"{option.Value.Parent?.Title}</u><font class='fontSize-m' color='white'><br>");
 
-        if (option?.Value?.Parent?.ControlText != "")
+        if (!string.IsNullOrEmpty(option?.Value?.Parent?.ControlText))
              endControl = option?.Value?.Parent?.ControlText ?? "";
 
         int shown = 0;
@@ -143,29 +143,43 @@ public class WasdMenuPlayer
                                 $"<img src='https://raw.githubusercontent.com/oqyh/cs2-Kill-Sound-GoldKingZ/main/Resources/arrow.gif' class=''> <img src='https://raw.githubusercontent.com/oqyh/cs2-Kill-Sound-GoldKingZ/main/Resources/arrow.gif' class=''> <img src='https://raw.githubusercontent.com/oqyh/cs2-Kill-Sound-GoldKingZ/main/Resources/arrow.gif' class=''> <br>");
                             break;
                         }*/
-            string text = option.Value.OptionDisplay!;
+
+            string input = option.Value.OptionDisplay ?? string.Empty;
+            string color = string.Empty;
+            string text = input;
+
+            if (input.Contains('|'))
+            {
+                string[] parts = input.Split("|", 2);
+                color = parts[0].StartsWith("#") && parts[0].Length == 7 ? parts[0] : string.Empty;
+                text = parts.Length > 1 ? parts[1] : "";
+            }
+            
             if (option == CurrentChoice)
             {
                 if (text.Length > maxLength)
                 {
-                    if (scrollIndex >= text.Length - maxLength)
+                    int remaining = text.Length - scrollIndex;
+                    if (remaining <= maxLength)
                     {
-                        text = text.Substring(scrollIndex);
+                        text = SafeSubstring(text, scrollIndex, remaining);
                         if (Server.TickCount % 32 == 0)
                             scrollIndex = 0;
                     }
                     else
                     {
-                        text = text.Substring(scrollIndex, maxLength);
+                        text = SafeSubstring(text, scrollIndex, maxLength);
                         if (Server.TickCount % 32 == 0)
                             scrollIndex += scrollJump;
                     }
                 }
+                else
+                    text = SafeSubstring(text, 0, maxLength);
 
                 builder.AppendLine($"</font><font color='purple'>[ </font><font color='orange'>{text}</font><font color='purple'> ]</font><font color='white'> <br>");
             }
             else
-                builder.AppendLine($"{text.Substring(0, maxLength)} <br>");
+                builder.AppendLine($"<font color='{color ?? "white"}'>{SafeSubstring(text, 0, maxLength)}</font> <br>");
 
             option = option.Next;
             shown++;
@@ -194,7 +208,7 @@ public class WasdMenuPlayer
 
         foreach (var item in list)
         {
-            WasdMenuOption newOption = new WasdMenuOption
+            WasdMenuOption newOption = new()
             {
                 OptionDisplay = item.Key,
                 OnChoose = item.Value,
@@ -225,5 +239,15 @@ public class WasdMenuPlayer
         }
 
         UpdateCenterHtml();
+    }
+
+    private static string SafeSubstring(string text, int start, int length)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+        if (start < 0) start = 0;
+        if (start >= text.Length) return "";
+        if (start + length > text.Length)
+            length = text.Length - start;
+        return text.Substring(start, length);
     }
 }
