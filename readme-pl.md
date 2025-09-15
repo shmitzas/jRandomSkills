@@ -37,7 +37,7 @@ Dołącz do serwera testowego 3v3 i wypróbuj plugin jRandomSkills:
 
 Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://pukawka.pl/pp,juzlus.html).
 
-## ✨ Aktualne Supermoce (107)
+## ✨ Aktualne Supermoce (109)
 <details>
 <summary>Poniższa tabela przedstawia wszystkie dostępne supermoce w grze, wraz z ich opisami.</summary>
 
@@ -66,6 +66,7 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 | Głuchy | Wybierasz gracza, dla którego chcesz wyłączyć wszystkie dźwięki | - |
 | Rozbrojenie | Masz losową szanse na wyrzucenie broni wroga po trafieniu | (65 - 85)% |
 | Odległościomierz | Możesz zobaczyć odległość do najbliższego przeciwnika | - |
+| Doskok | Wykonaj drugi skok, aby wykonać doskok | - |
 | Drakula | Po trafieniu ofiary odzyskujesz zdrowie równe pewnemu procentowi zadanych obrażeń | - |
 | Duplikator | Wybierasz gracza, od którego chcesz skopiować supermoc | - |
 | Mini Majk | Losowa wielkość postaci na początku rundy | (60 - 95)% |
@@ -84,6 +85,7 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 | Glitch | Wyłączasz radar wybranemu przeciwnikowi | - |
 | Klej | Twoje granaty przyklejają się do ścian | - |
 | Nieśmiertelność | Kliknij [css_useSkill], aby stać się nieśmiertelnym na krótką chwilę | 30 s |
+| Granatnik | Masz nieskończone granaty odłamkowe | - |
 | Leczący Dym | Twoje granaty dymne leczą | - |
 | Pustelnik | Zabijanie przywraca amunicję i część zdrowia | - |
 | Święty Granat Ręczny | Twoje granaty uderzeniowe zadają podwójne obrażenia i mają podwójny zasięg | - |
@@ -187,10 +189,11 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 | Komenda | Przykład | Opis | Uprawnienia |
 | - | - | - | - |
 | `!setskill <playerName/steamID> <skill>` | `!setskill Juzlus Aimbot` | Przypisanie supermocy do gracza | `@jRandmosSkills/admin` |
+| `!lang <IsoCode>` | `!lang pl` | Zmień język | - |
 | `!skills` | `!skills` | Lista supermocy | - |
 | `!map <mapName>` | `!map de_nuke` | Zmiana mapy | `@jRandmosSkills/admin` |
 | `!map <mapWorkshopId>` | `!map 3332005394` | Zmiana mapy z warsztatu | `@jRandmosSkills/admin` |
-| `!start` | `!start` | Rozpoczęcie gry z parametrami: `mp_forcecamera 0, mp_freezetime 5, mp_overtime_enable 1, sv_cheats 0` | `@jRandmosSkills/admin` |
+| `!start` | `!start` | Rozpoczęcie gry z parametrami: `mp_forcecamera 0, mp_freezetime 15, mp_overtime_enable 1, sv_cheats 0` | `@jRandmosSkills/admin` |
 | `!start sv` | `!start sv` | Rozpoczęcie gry z parametrami: `mp_forcecamera 0, mp_freezetime 0, mp_overtime_enable 1, sv_cheats 1` | `@jRandmosSkills/admin` |
 | `!console <command>` | `!console sv_cheats 1` | Uruchomienie komendy na serwerze | `@jRandmosSkills/root` |
 | `!swap` | `!swap` | Zamiana stron | `@jRandmosSkills/admin` |
@@ -200,6 +203,7 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 | `!setscore <CT> <TT>` | `!setscore 10 7` | Ustawienie wyniku gry | `@jRandmosSkills/root` |
 | `!setstaticskill <playerName/steamID> <skill>` | `!setstaticskill Juzlus Aimbot` | Przypisanie supermocy do gracza na stałe | `@jRandmosSkills/admin` |
 | `!setstaticskill <playerName/steamID> None` | `!setstaticskill Juzlus None` | Powrót do normalności | `@jRandmosSkills/admin` |
+| `!reload` | `!reload` | Odśwież tłumaczenia | - |
 
 _Większość poleceń wymaga uprawnień, które należy ustawić w pliku: `game/csgo/addons/counterstrikesharp/configs/admins.json`_
 </details>
@@ -246,6 +250,9 @@ Wszystkie sypermoce można dostosować w pliku **`Config.cfg`** znajdującym si�
         "SkillTimeBeforeStart": 7.0,    // Ile sekund przed końcem freeze time należy zakończyć 
                                         // losowanie umiejętności? (freezetime - SkillTimeBeforeStart)
         "SkillDescriptionDuration": 7.0,// Jak długo opis umiejętności powinien być widoczny?
+        "DisableSpectateHUD": false,    // Wyłącz HUD HTML bedąc martwym
+        "FlashingHtmlHudFix": true,     // Włącz FlashingHtmlHudFix
+        "CS2TraceRayDebug": false,      // Włącz widoczność ścieżki dla LongKnife, LongZeus
         ...
     },
     "SkillsInfo": [
@@ -271,8 +278,50 @@ Plugin korzysta z zawartości następujących projektów:
 - [CS2FlashingHtmlHudFix](https://github.com/girlglock/CS2FlashingHtmlHudFix) autorstwa [girlglock](https://github.com/girlglock) - poprawka migotania okienka z supermocą
 - [ChaseMod](https://github.com/ipsvn/ChaseMod/blob/master/Utils/Memory/CCSMatch.cs) autorstwa [ipsvn](https://github.com/ipsvn) - ustawianie wyniku rund
 - [WASDMenuAPI](https://github.com/Interesting-exe/WASDMenuAPI) by [Interesting-exe](https://github.com/Interesting-exe) - API do łatwego tworzenia menu za pomocą klawiszy WASD
+- [GeoLocationLanguageManagerPlugin](https://github.com/aprox2/GeoLocationLanguageManagerPlugin) by [aprox2](https://github.com/aprox2) - zarządzenie geolokalizacją
+- [GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) by [MaxMind](https://www.maxmind.com/) - dane geolokalizacyjne
 
 ## 📋 Lista Zmian
+
+<details>
+<summary><b>v1.1.5</b></summary>
+  
+- #### Ogólne:
+    - ###### Zaktualizowano zależności do najnowszej wersji.
+    - ###### Dodano rozpoznawanie języka na podstawie geolokalizacji (MaxMind GeoLite2).
+    - ###### Każdy gracz może wybrać inny język.
+    - ###### Zmieniono nazwy katalogów.
+    - ###### Usunięto automatyczne odświeżanie pliku konfiguracyjnego.
+    - ###### Dodano opcję `DisableSpectateHUD` do pliku konfiguracyjnego, umożliwiającą wyłączenie HUD HTML dla martwych graczy.
+    - ###### Nazwa projektu została zmieniona z `jRandomSkills` na `!jRandomSkills`, aby umożliwić późniejsze ładowanie innych wtyczek do pamięci.
+    - ###### Dodano polecenie `!lang en`, aby zmienić język.
+    - ###### Dodano polecenie `!reload`, aby ponownie załadować tłumaczenia.
+- #### Poprawki mocy:
+    - ##### Zamiana Broni:
+        - ###### Naprawiono błąd związany z powielaniem bomby na HUD.
+    - ##### Złodziej:
+        - ###### Możliwość kradzieży umiejętności niedostępnych dla twojej drużyny została zablokowana.
+        - ###### Menu HTML jest wyłączone, gdy nie znaleziono żadnych graczy.
+    - ##### SzeliS:
+        - ###### Naprawiono wszystkie błędy i włączono tę umiejętność.
+    - ##### Druga Szansa:
+        - ###### Powrót do pierwotnego stanu zdrowia po wyłączeniu umiejętności.
+    - ##### Samowolka:
+        - ###### Zablokowano możliwość podkładania bomby podczas freezetime.
+    - ##### Stópkarz:
+        - ###### Dodano sprawdzanie "null".
+    - ##### Astronauta:
+        - ###### Naprawiono brak wyświetlania skali grawitacji w HTML.
+    - ##### Duplikator:
+        - ###### Menu HTML jest wyłączone, gdy nie znaleziono żadnych graczy.
+    - ##### Deaktywator:
+        - ###### Menu HTML jest wyłączone, gdy nie znaleziono żadnych graczy.
+- #### Nowe moce:
+    - ##### Granatnik:
+        - ###### Masz nieskończone granaty odłamkowe.
+    - ##### Doskok:
+        - ###### Wykonaj drugi skok, aby wykonać doskok.
+</details>
 
 <details>
 <summary><b>v1.1.4</b></summary>
@@ -287,6 +336,7 @@ Plugin korzysta z zawartości następujących projektów:
     - ###### Na początku rundy dodano opisy umiejętności wyświetlane za pomocą PrintToCenterHtml.
     - ###### Skrócono opisy umiejętności przy wyborze gracza.
     - ###### Naprawiono problem, w którym komendy css_setskill i css_setstaticskill nie mogły być wykonywane z serwera.
+    - ###### Parametry polecenia `!start` zostały zmienione.
 - #### Poprawki mocy:
     - ##### Beznogi:
         - ###### Umiejętność Beznogi całkowicie wyłącza umiejętność Królik.

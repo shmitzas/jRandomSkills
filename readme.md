@@ -38,119 +38,121 @@ Join the 3v3 test server and try out the jRandomSkills plugin:
 Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.html).
 
 
-## ✨ Current Skills (107)
+## ✨ Current Skills (109)
 <details>
 <summary>The table below lists all available skills in the game, along with their descriptions.</summary>
 
-| Name  | Description | Cooldown / Range |
+| Name | Description | Cooldown / Range |
 | - | - | - |
-| Aimbot | Every bullet you hit counts as a headshot  | - |
-| Anomaly  | You rewind a few seconds back in time  | 15 s |
+| Aimbot | Every bullet you hit counts as a headshot | - |
+| Anomaly | You rewind a few seconds back in time | 15 s |
 | Anti-Flash | You are immune to flashbangs, and your flashbangs last 7 seconds | - |
 | Iron Head | You take no damage from headshots | - |
-| Zone Reaper  | You can choose a bomb site to deactivate | - |
-| Armored  | You have a random damage taken multiplier  | (0.65 - 0.85)x |
+| Zone Reaper | You can choose a bomb site to deactivate | - |
+| Armored | You have a random damage taken multiplier | (0.65 - 0.85)x |
 | Assassin | You deal increased damage to enemies from behind | - |
-| Astronaut | You receive a random gravity value at the start of the round | (0.1 - 0.7)x  |
-| Bankrupt | Choose the player who will lose all their money  | - |
+| Astronaut | You receive a random gravity value at the start of the round | (0.1 - 0.7)x |
+| Bankrupt | Choose the player who will lose all their money | - |
 | Baseball Player | Your decoy bounces off walls and instantly kills an enemy on impact | - |
-| Enemy Spin | You have a random chance to turn an enemy 180° when hitting them | (20 - 40)%  |
-| Blademaster  | While holding a knife, you have a high chance to deflect a shot | - |
-| Bunny | You get auto "BunnyHop"  | - |
-| C4 Camouflage  | You are invisible while holding the bomb | - |
-| Catapult | You have a random chance to launch an enemy upwards | (20 - 40)%  |
-| Chicken  | You get a chicken model + 10% faster movement - 50 HP  | - |
-| Chillout | Planting the bomb takes significantly longer  | - |
+| Enemy Spin | You have a random chance to turn an enemy 180° when hitting them | (20 - 40)% |
+| Blademaster | While holding a knife, you have a high chance to deflect a shot | - |
+| Bunny | You get auto "BunnyHop" | - |
+| C4 Camouflage | You are invisible while holding the bomb | - |
+| Catapult | You have a random chance to launch an enemy upwards | (20 - 40)% |
+| Chicken | You get a chicken model + 10% faster movement - 50 HP | - |
+| Chillout | Planting the bomb takes significantly longer | - |
 | Cutter | Instant kill with a knife | - |
-| Darkness | Applies a darkness effect to a chosen enemy  | - |
-| Deactivator  | Choose a player whose skill you want to disable | - |
-| Deaf  | Choose a player to mute all sounds for  | - |
-| Disarmament  | You have a random chance to make an enemy drop their weapon on hit | (65 - 85)%  |
-| Rangefinder  | You can see the distance to the nearest enemy | - |
-| Dracula  | Hitting an enemy restores health equal to a percentage of the damage dealt | - |
+| Darkness | Applies a darkness effect to a chosen enemy | - |
+| Deactivator | Choose a player whose skill you want to disable | - |
+| Deaf | Choose a player to mute all sounds for | - |
+| Disarmament | You have a random chance to make an enemy drop their weapon on hit | (65 - 85)% |
+| Rangefinder | You can see the distance to the nearest enemy | - |
+| Dash | Perform a second jump to dash | - |
+| Dracula | Hitting an enemy restores health equal to a percentage of the damage dealt | - |
 | Duplicator | Choose a player to copy their skill | - |
-| Dwarf | Random character size at the start of the round | (60 - 95)%  |
-| Enemy Spawn  | Click [css_useSkill] to teleport to the enemy spawn | 15 s |
-| Explosive Shot | Random chance to fire an explosive bullet while shooting | (15 - 30)%  |
+| Dwarf | Random character size at the start of the round | (60 - 95)% |
+| Enemy Spawn | Click [css_useSkill] to teleport to the enemy spawn | 15 s |
+| Explosive Shot | Random chance to fire an explosive bullet while shooting | (15 - 30)% |
 | Falcon Eye | Click [css_useSkill] to activate a bird's-eye view camera| - |
 | Fastreload | Click [css_useSkill] to reload the weapon you are currently holding | - |
-| Flash | Random player speed at the beginning of the round | (1.2 - 3.0)x  |
-| Fortnite | Click [css_useSkill] to create a destructible barricade  | 2 s  |
+| Flash | Random player speed at the beginning of the round | (1.2 - 3.0)x |
+| Fortnite | Click [css_useSkill] to create a destructible barricade | 2 s |
 | Fragile Bomb | Shooting the bomb damages it | - |
-| Friendly Fire  | Shooting teammates heals them | - |
-| Freezing Decoy | Your decoy freezes all nearby players  | - |
-| Gambler | Select a skill from the list provided  | - |
-| Ghost | You are completely invisible  | - |
-| Glaz  | You can see through smoke grenades  | - |
-| Glitch | Disables the radar for a chosen enemy  | - |
-| Glue  | Your grenades stick to walls  | - |
+| Friendly Fire | Shooting teammates heals them | - |
+| Freezing Decoy | Your decoy freezes all nearby players | - |
+| Gambler | Select a skill from the list provided | - |
+| Ghost | You are completely invisible | - |
+| Glaz | You can see through smoke grenades | - |
+| Glitch | Disables the radar for a chosen enemy | - |
+| Glue | Your grenades stick to walls | - |
 | God Mode | Click [css_useSkill] to become immortal for a short time | 30 s |
-| Healing Smoke  | Your smoke grenades heal | - |
+| Grenadier | You have infinite hegranade | - |
+| Healing Smoke | Your smoke grenades heal | - |
 | Hermit | Killing restores ammo and a portion of health | - |
 | Holy Hand Grenade | Your HE grenades deal double damage and have double range| - |
-| Impostor | You start the round with an enemy player model  | - |
-| Infinite Ammo  | You receive infinite ammo for all your weapons  | - |
-| Tracker  | Choose a player who will leave a trail behind them  | - |
+| Impostor | You start the round with an enemy player model | - |
+| Infinite Ammo | You receive infinite ammo for all your weapons | - |
+| Tracker | Choose a player who will leave a trail behind them | - |
 | Jammer | Choose a player to disable their crosshair | - |
 | Jester | In jester mode, you cannot get or take any damage. This mode changes every few seconds | (10 - 25) s |
-| Legless  | Choose a player who cannot jump  | - |
+| Legless | Choose a player who cannot jump | - |
 | Jumping Jack | Jumping restores health | - |
 | Killer Flash | Anyone fully blinded by your flashbang dies (including you) | - |
 | Life Swap | Choose a player to swap health with | - |
 | Long Knife | A primary knife attack deals damage regardless of distance | - |
 | Long Zeus | Zeus deals damage regardless of distance | - |
 | Magnifier | Forces the enemy's screen to zoom in, reducing their field of view | - |
-| Medic | Click [css_useSkill] to use a healing charge that restores 50 health | 1 s  |
-| Taxman | Choose a player to swap money with  | - |
-| Muhammed | You explode upon death, killing nearby players  | - |
+| Medic | Click [css_useSkill] to use a healing charge that restores 50 health | 1 s |
+| Taxman | Choose a player to swap money with | - |
+| Muhammed | You explode upon death, killing nearby players | - |
 | Ninja | Standing still increases your invisibility by 33%, crouching by 33%, and holding a knife by 33% | - |
 | No-Nades | Grenades deal no damage to you | - |
 | Focus | No recoil while shooting | - |
 | NoClip | Click [css_useSkill] to enable noclip for a short time | 30 s |
-| One-Shot | Hitting an enemy instantly kills them  | - |
+| One-Shot | Hitting an enemy instantly kills them | - |
 | Head Only | You only take damage to the head | - |
 | Pawel Jumper | You get an extra jump | - |
-| Phoenix  | You have a random chance to respawn after death | (20 - 40)%  |
-| Psychic Defusing  | When you are near the bomb, you start defusing it | 10 s |
+| Phoenix | You have a random chance to respawn after death | (20 - 40)% |
+| Psychic Defusing | When you are near the bomb, you start defusing it | 10 s |
 | Pilot | Fly for a limited time. Hold [USE - E] to fly | - |
 | Free Planter | You can plant the bomb anywhere, with a detonation time of 60 seconds | - |
 | Poison | Choose a player who will take damage every few seconds | - |
-| No Rifles | Choose a player who cannot use rifles  | - |
+| No Rifles | Choose a player who cannot use rifles | - |
 | Prosthesis | Arms and legs are bulletproof | - |
 | Pusher | You have a random chance to push an enemy back when hitting them | 100% |
-| Pyro  | Molotov restores health | - |
-| Rapid Fire | All bullets are fired very quickly  | - |
+| Pyro | Molotov restores health | - |
+| Rapid Fire | All bullets are fired very quickly | - |
 | Radar Hack | Enemies are visible on the radar | - |
 | Rambo | You receive a random amount of health at the start of the round | +(50 - 501) HP |
-| Random Weapon  | Click [css_useSkill] to receive a random weapon | 15 s |
+| Random Weapon | Click [css_useSkill] to receive a random weapon | 15 s |
 | Re-Zombie | After death, you respawn as a zombie with increased health and no weapons | - |
 | Reactive Armor | Armor absorbs the first damage taken | 15 s |
 | Regeneration | You restore health every few seconds | - |
 | Replicator | Click [css_useSkill] to create a replica that deals damage on hit | 15 s |
-| Retreat  | Click [css_useSkill] to return to spawn | 15 s |
-| Return to Sender  | The first hit on an enemy sends them back to their spawn | - |
-| Rich Boy | You receive a random amount of money at the start of the round | (5000 - 15000)$  |
+| Retreat | Click [css_useSkill] to return to spawn | 15 s |
+| Return to Sender | The first hit on an enemy sends them back to their spawn | - |
+| Rich Boy | You receive a random amount of money at the start of the round | (5000 - 15000)$ |
 | Robin Hood | Dealing damage to an enemy steals their money | - |
 | Rubber Bullets | Your bullets significantly slow down players | - |
-| Sapper | You can plant and defuse bombs faster  | - |
-| Second Chance  | After death, you respawn with the same amount of health  | - |
-| Shade | You teleport behind the back of a hit enemy  | - |
+| Sapper | You can plant and defuse bombs faster | - |
+| Second Chance | After death, you respawn with the same amount of health | - |
+| Shade | You teleport behind the back of a hit enemy | - |
 | Short Fuse | The bomb explodes much faster | - |
-| Silent | Your footsteps and jumps are silent to other players  | - |
-| Sniper Elite | Click [css_useSkill] to swap your current weapon for an AWP | 0 s  |
-| Soldier  | You have a random damage multiplier | (1.15 - 1.35)x |
-| Soundmaker | Click [css_useSkill] to trigger a sound for every enemy  | 5 s  |
-| Spectator | Click [css_useSkill] to spectate a random enemy | 0 s  |
-| Position Swap  | Click [css_useSkill] to swap places with a random enemy  | 30 s |
-| Teleporter | You swap places with the hit enemy  | - |
+| Silent | Your footsteps and jumps are silent to other players | - |
+| Sniper Elite | Click [css_useSkill] to swap your current weapon for an AWP | 0 s |
+| Soldier | You have a random damage multiplier | (1.15 - 1.35)x |
+| Soundmaker | Click [css_useSkill] to trigger a sound for every enemy | 5 s |
+| Spectator | Click [css_useSkill] to spectate a random enemy | 0 s |
+| Position Swap | Click [css_useSkill] to swap places with a random enemy | 30 s |
+| Teleporter | You swap places with the hit enemy | - |
 | Thief | You can steal a skill from a chosen player | - |
-| Third Eye | Click [css_useSkill] to activate third-person view  | 0 s  |
+| Third Eye | Click [css_useSkill] to activate third-person view | 0 s |
 | Thorns | Your opponent will receive a portion of the damage that they inflicted on you | - |
-| Toxic Smoke  | Your smoke grenades deal damage  | - |
+| Toxic Smoke | Your smoke grenades deal damage | - |
 | Wallhack | You can see enemies through walls | - |
-| Watchmaker | Every grenade throw alters the round time  | - |
-| Weapon Swap  | Click [css_useSkill] to swap weapons with a random enemy | 30 s |
-| Zeus  | Zeus x27 instantly recharges  | - |
+| Watchmaker | Every grenade throw alters the round time | - |
+| Weapon Swap | Click [css_useSkill] to swap weapons with a random enemy | 30 s |
+| Zeus | Zeus x27 instantly recharges | - |
 
 </details>
 
@@ -189,10 +191,11 @@ Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.
 | Command | Example | Description | Permissions |
 | - | - | - | - |
 | `!setskill <playerName/steamID> <skill>` | `!setskill Juzlus Aimbot` | Giving skill to a player | `@jRandmosSkills/admin` |
+| `!lang <IsoCode>` | `!lang en` | Change the language | - |
 | `!skills` | `!skills` | List of skills | - |
 | `!map <mapName>` | `!map de_nuke` | Change map | `@jRandmosSkills/admin` |
 | `!map <mapWorkshopId>` | `!map 3332005394` | Change map from workshop | `@jRandmosSkills/admin` |
-| `!start` | `!start` | Start game with conditions: `mp_forcecamera 0, mp_freezetime 5, mp_overtime_enable 1, sv_cheats 0` | `@jRandmosSkills/admin` |
+| `!start` | `!start` | Start game with conditions: `mp_forcecamera 0, mp_freezetime 15, mp_overtime_enable 1, sv_cheats 0` | `@jRandmosSkills/admin` |
 | `!start sv` | `!start sv` | Start the game with conditions: `mp_forcecamera 0, mp_freezetime 0, mp_overtime_enable 1, sv_cheats 1` | `@jRandmosSkills/admin` |
 | `!console <command>` | `!console sv_cheats 1` | Run a command on the server | `@jRandmosSkills/root` |
 | `!swap` | `!swap` | Switch sides | `@jRandmosSkills/admin` |
@@ -202,6 +205,9 @@ Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.
 | `!setscore <CT> <TT>` | `!setscore 10 7` | Set the game score | `@jRandmosSkills/root` |
 | `!setstaticskill <playerName/steamID> <skill>` | `!setstaticskill Juzlus Aimbot` | Giving a player a permanent skill | `@jRandmosSkills/admin` |
 | `!setstaticskill <playerName/steamID> None` | `!setstaticskill Juzlus None` | Back to normal | `@jRandmosSkills/admin` |
+| `!reload` | `!reload` | Reload translations | - |
+
+_Most commands require permissions, which must be set in the file: `game/csgo/addons/counterstrikesharp/configs/admins.json`_
 </details>
 
 ## 🔑 Permissions
@@ -246,6 +252,9 @@ All skills can be customized in the **`Config.cfg`** file located in the **`game
         "SkillTimeBeforeStart": 7.0,    // How many seconds before freeze time ends should skills
                                         // drawing be completed? (freezetime - SkillTimeBeforeStart)
         "SkillDescriptionDuration": 7.0,// How long should the skill description be visible for?
+        "DisableSpectateHUD": false,    // Disable HTML HUD when spectating
+        "FlashingHtmlHudFix": true,     // Enable FlashingHtmlHudFix
+        "CS2TraceRayDebug": false,      // Enable trail visibility for LongKnife, LongZeus
         ...
     },
     "SkillsInfo": [
@@ -271,6 +280,8 @@ This plugin uses content from the following projects:
 - [CS2FlashingHtmlHudFix](https://github.com/girlglock/CS2FlashingHtmlHudFix) by [girlglock](https://github.com/girlglock) - a fix for window flickering
 - [ChaseMod](https://github.com/ipsvn/ChaseMod/blob/master/Utils/Memory/CCSMatch.cs) by [ipsvn](https://github.com/ipsvn) - round score management
 - [WASDMenuAPI](https://github.com/Interesting-exe/WASDMenuAPI) by [Interesting-exe](https://github.com/Interesting-exe) - API to easily create WASD menus
+- [GeoLocationLanguageManagerPlugin](https://github.com/aprox2/GeoLocationLanguageManagerPlugin) by [aprox2](https://github.com/aprox2) - geolocation language manager
+- [GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) by [MaxMind](https://www.maxmind.com/) - geolocation data
 
 ## 📋 Changelog
 
@@ -278,6 +289,7 @@ This plugin uses content from the following projects:
 <summary><b>v1.1.5</b></summary>
   
 - #### General:
+    - ###### Update the dependency to the latest version.
     - ###### Added language recognition based on geolocation (MaxMind GeoLite2).
     - ###### Each player can choose a different language. 
     - ###### Directory names have been changed.
@@ -288,17 +300,12 @@ This plugin uses content from the following projects:
     - ###### The name of the project has been changed from `jRandomSkills` to `!jRandomSkills` to allow other plugins to load into memory later.
     - ###### Added the command `!lang en` to change the language
     - ###### Added the `!reload` command to reload translations.
-    - ###### 
-    - ###### 
-    - ###### 
-    - ###### 
 - #### Skill improvements:
     - ##### Weapon Swap:
         - ###### Fixed a bug with bomb duplication on the HUD.
     - ##### Thief:
         - ###### The ability to steal skill that is unavailable to your team has been blocked.
-    - ##### Rich Boy:
-        - ###### The ability to steal skill that is unavailable to your team has been blocked.
+        - ###### The HTML Menu is disabled when no players are found.
     - ##### Sniper Elite:
         - ###### Fixed all bugs and enabled the skill.
     - ##### Second Chance:
@@ -313,9 +320,6 @@ This plugin uses content from the following projects:
         - ###### The HTML Menu is disabled when no players are found.
     - ##### Deactivator:
         - ###### The HTML Menu is disabled when no players are found.
-    - ##### Jackal:
-        - ###### The HTML Menu is disabled when no players are found.
-
 - #### New skills:
     - ##### Grenadier:
         - ###### You have infinite hegranade.
