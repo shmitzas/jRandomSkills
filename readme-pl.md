@@ -296,6 +296,7 @@ Plugin korzysta z zawartości następujących projektów:
     - ###### Nazwa projektu została zmieniona z `jRandomSkills` na `!jRandomSkills`, aby umożliwić późniejsze ładowanie innych wtyczek do pamięci.
     - ###### Dodano polecenie `!lang en`, aby zmienić język.
     - ###### Dodano polecenie `!reload`, aby ponownie załadować tłumaczenia.
+    - ###### Zniesiono ograniczenia dotyczące wiadomości powitalnych.
 - #### Poprawki mocy:
     - ##### Zamiana Broni:
         - ###### Naprawiono błąd związany z powielaniem bomby na HUD.

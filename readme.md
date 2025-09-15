@@ -300,6 +300,7 @@ This plugin uses content from the following projects:
     - ###### The name of the project has been changed from `jRandomSkills` to `!jRandomSkills` to allow other plugins to load into memory later.
     - ###### Added the command `!lang en` to change the language
     - ###### Added the `!reload` command to reload translations.
+    - ###### Restrictions on welcome messages removed.
 - #### Skill improvements:
     - ##### Weapon Swap:
         - ###### Fixed a bug with bomb duplication on the HUD.
