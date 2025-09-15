@@ -50,6 +50,8 @@ namespace jRandomSkills
         public static void DisableSkill(CCSPlayerController player)
         {
             secondLifePlayers.Remove(player.Handle);
+            if (player.PlayerPawn.Value == null) return;
+            SetHealth(player, Math.Min(player.PlayerPawn.Value.Health + secondLifeHealth, 100));
         }
 
         private static void SetHealth(CCSPlayerController player, int health)
@@ -58,9 +60,7 @@ namespace jRandomSkills
             if (pawn == null || !pawn.IsValid) return;
 
             pawn.Health = health;
-            pawn.MaxHealth = health;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
-            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
 
             pawn.ArmorValue = 0;
             Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");

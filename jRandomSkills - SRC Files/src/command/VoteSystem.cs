@@ -22,7 +22,7 @@ namespace jRandomSkills
             votes.Add(vote);
             string commandName = $"!{VoteTypeCommands.GetCommand(vote.Type)?.Replace("css_", "")}{(!string.IsNullOrEmpty(vote?.Args) ? $" {vote?.Args}" : "")}";
 
-            Server.PrintToChatAll($" {ChatColors.Lime}{Localization.GetTranslation("vote_started", commandName)}");
+            Localization.PrintTranslationToChatAll($" {ChatColors.Lime}{{0}}", ["vote_started"], [commandName]);
             foreach (var player in Utilities.GetPlayers())
                 player.EmitSound("UIPanorama.tab_mainmenu_news");
 
@@ -32,7 +32,7 @@ namespace jRandomSkills
                 if (!votes.Contains(vote) || !vote.GetActive()) return;
                 vote.SetActive(false);
                 vote.TimeToNextSameVoting = vote.TimeToNextVoting;
-                Server.PrintToChatAll($" {ChatColors.Red}{Localization.GetTranslation("vote_timeout", commandName)}");
+                Localization.PrintTranslationToChatAll($" {ChatColors.Red}{{0}}", ["vote_timeout"], [commandName]);
             });
 
             float[] times = [vote.TimeToVote, vote.TimeToVote + vote.TimeToNextVoting, vote.TimeToVote + vote.TimeToNextSameVoting];
@@ -51,12 +51,12 @@ namespace jRandomSkills
             {
                 if (votes.Any(v => v.NextVoting() > DateTime.Now))
                 {
-                    player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("vote_wait")}");
+                    player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("vote_wait")}");
                     return;
                 }
                 else if (votes.Any(v => v.Type == voteType && v.NextSameVoting() > DateTime.Now))
                 {
-                    player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("vote_same_wait")}");
+                    player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("vote_same_wait")}");
                     return;
                 }
 
@@ -65,12 +65,12 @@ namespace jRandomSkills
 
             if (vote == null)
             {
-                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("vote_not_enough_players")}");
+                player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("vote_not_enough_players")}");
                 return;
             }
 
             if (!vote.PlayersVoted.Add(player.SteamID))
-                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("vote_alredy_voted")}");
+                player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("vote_alredy_voted")}");
             else CheckVote(vote);
         }
 
@@ -86,7 +86,7 @@ namespace jRandomSkills
                 vote.SetActive(false);
             }
             else
-                Server.PrintToChatAll($" {ChatColors.Yellow}{Localization.GetTranslation("vote_vote")} '!{VoteTypeCommands.GetCommand(vote.Type)?.Replace("css_", "")}{(!string.IsNullOrEmpty(vote?.Args) ? $" {vote?.Args}" : "")}': {ChatColors.Green}{voted}/{playersNeeded}");
+                Localization.PrintTranslationToChatAll($" {ChatColors.Yellow}{{0}} '!{VoteTypeCommands.GetCommand(vote.Type)?.Replace("css_", "")}{(!string.IsNullOrEmpty(vote?.Args) ? $" {vote?.Args}" : "")}': {ChatColors.Green}{voted}/{playersNeeded}", ["vote_vote"]);
         }
     }
 

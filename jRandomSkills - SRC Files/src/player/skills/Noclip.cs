@@ -69,13 +69,13 @@ namespace jRandomSkills
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
             if (skillData == null) return;
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
+            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
+            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
             string remainingLine = cooldown != 0
                                     ? (
                                         flying != 0
-                                        ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("active_hud_info", $"<font color='#00FF00'>{Math.Round(flying / 100, 2)}</font>")}</font> <br>"
-                                        : $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>"
+                                        ? $"<font class='fontSize-m' color='#FFFFFF'>{player.GetTranslation("active_hud_info", $"<font color='#00FF00'>{Math.Round(flying / 100, 2)}</font>")}</font> <br>"
+                                        : $"<font class='fontSize-m' color='#FFFFFF'>{player.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>"
                                     ) : "";
 
             var hudContent = infoLine + skillLine + remainingLine;

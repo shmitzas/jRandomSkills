@@ -40,7 +40,7 @@ namespace jRandomSkills
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
             newChance = (float)Math.Round(newChance);
-            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("catapult")}{ChatColors.Lime}: " + Localization.GetTranslation("catapult_desc2", newChance), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetTranslation("catapult")}{ChatColors.Lime}: " + player.GetTranslation("catapult_desc2", newChance), false);
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FF4500", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .2f, float chanceTo = .4f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)

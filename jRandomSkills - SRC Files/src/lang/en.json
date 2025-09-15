@@ -93,6 +93,9 @@
   "distancer": "Rangefinder",
   "distancer_desc": "You can see the distance to the nearest enemy",
 
+  "dash": "Dash",
+  "dash_desc": "Perform a second jump to dash",
+
   "dracula": "Dracula",
   "dracula_desc": "Hitting an enemy restores health equal to a percentage of the damage dealt",
 
@@ -159,6 +162,9 @@
   "godmode_desc": "Click [css_useSkill] to become immortal for a short time",
   "godmode_off": "Immortality disabled",
   "godmode_on": "Immortality enabled",
+
+  "grenadier": "Grenadier",
+  "grenadier_desc": "You have infinite hegranade",
 
   "healingsmoke": "Healing Smoke",
   "healingsmoke_desc": "Your smoke grenades heal",
@@ -371,6 +377,7 @@
   "thief_enemy_info": "Your skill has been stolen.",
   "thief_player_info": "Player '{0}'s skill has been stolen.",
   "thief_select_info": "Steal a player's skill:",
+  "thief_incorrect_skill": "This skill cannot be selected!",
 
   "thirdeye": "Third Eye",
   "thirdeye_desc": "Click [css_useSkill] to activate third-person view",
@@ -428,6 +435,7 @@
   "unpause": "Match has been resumed.",
   "healed": "You have been healed.",
   "game_start": "Game started!",
+  "reload": "Languages and configs have been reloaded.",
 
   "vote_started": "Vote started: '{0}'",
   "vote_timeout": "Vote '{0}' timed out!",

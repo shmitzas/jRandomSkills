@@ -32,13 +32,13 @@ namespace jRandomSkills
 
             if (playerInfo.SkillChance == 1)
             {
-                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("areareaper_used_info")}");
+                player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("areareaper_used_info")}");
                 return;
             }
 
             int site = bombsiteA.Contains(commands[0]) ? 0 : bombsiteB.Contains(commands[0]) ? 1 : -1;
             if (site == -1) {
-                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("areareaper_incorrect_site")}");
+                player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("areareaper_incorrect_site")}");
                 return;
             }
             
@@ -47,10 +47,10 @@ namespace jRandomSkills
             {
                 bombTargets[site].AcceptInput("Disable");
                 playerInfo.SkillChance = 1;
-                player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("areareaper_site_disabled", (site == 0 ? 'A' : 'B'))}");
+                player.PrintToChat($" {ChatColors.Green}{player.GetTranslation("areareaper_site_disabled", (site == 0 ? 'A' : 'B'))}");
             }
             else
-                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("areareaper_no_site")}");
+                player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("areareaper_no_site")}");
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -59,7 +59,7 @@ namespace jRandomSkills
             if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
-            HashSet<(string, string)> menuItems = [(Localization.GetTranslation("bombsite_a"), "a"), (Localization.GetTranslation("bombsite_b"), "b")];
+            HashSet<(string, string)> menuItems = [(player.GetTranslation("bombsite_a"), "a"), (player.GetTranslation("bombsite_b"), "b")];
             SkillUtils.CreateMenu(player, menuItems);
         }
 

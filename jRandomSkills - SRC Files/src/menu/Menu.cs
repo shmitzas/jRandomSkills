@@ -11,20 +11,20 @@ namespace jRandomSkills
     {
         public static void DisplaySkillsList(CCSPlayerController player)
         {
-            CenterHtmlMenu menu = new($"[ ★ {Localization.GetTranslation("skills_menu")} ★ ]");
+            CenterHtmlMenu menu = new($"[ ★ {player.GetTranslation("skills_menu")} ★ ]");
             
             for (int i = 0; i < SkillData.Skills.Count; i++)
             {
                 var skill = SkillData.Skills[i];
-                string skillName = $"{skill.Name}";
+                string skillName = $"{player.GetSkillName(skill.Skill)}";
                 menu.AddMenuOption($" ★ {skillName}", (player, option) =>
                 {
                     string selectedSkillName = option.Text;
                     string pattern = "\\[/?color\\b[^\\]]*\\]";
                     string cleanSkillName = Regex.Replace(selectedSkillName, pattern, "");
                     string skillName = cleanSkillName.Replace($" ★ ", "");
-                    int intValue = Array.IndexOf(SkillData.Skills.Select(r => r.Name).ToArray(), skillName);
-                    string skillDesc = SkillData.Skills[intValue].Description;
+                    int intValue = Array.IndexOf(SkillData.Skills.Select(r => player.GetSkillName(r.Skill)).ToArray(), skillName);
+                    string skillDesc = player.GetSkillDescription(SkillData.Skills[intValue].Skill);
                     SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{skillName}{ChatColors.Lime}: {skillDesc}", false);
                     MenuManager.CloseActiveMenu(player);
                 });

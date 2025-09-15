@@ -93,6 +93,9 @@
   "distancer": "Odległościomierz",
   "distancer_desc": "Możesz zobaczyć odległość do najbliższego przeciwnika",
 
+  "dash": "Doskok",
+  "dash_desc": "Wykonaj drugi skok, aby wykonać doskok",
+
   "dracula": "Drakula",
   "dracula_desc": "Po trafieniu ofiary odzyskujesz zdrowie równe pewnemu procentowi zadanych obrażeń",
 
@@ -159,6 +162,9 @@
   "godmode_desc": "Kliknij [css_useSkill], aby stać się nieśmiertelnym na krótką chwilę",
   "godmode_off": "Nieśmiertelność wyłączona",
   "godmode_on": "Nieśmiertelność włączona",
+
+  "grenadier": "Granatnik",
+  "grenadier_desc": "Masz nieskończone granaty odłamkowe",
 
   "healingsmoke": "Leczący Dym",
   "healingsmoke_desc": "Twoje granaty dymne leczą",
@@ -371,6 +377,7 @@
   "thief_enemy_info": "Twoja supermoc została skradziona.",
   "thief_player_info": "Moc gracza '{0}' została skradziona.",
   "thief_select_info": "Ukradnij moc gracza:",
+  "thief_incorrect_skill": "Tej umiejętności nie można wybrać!",
 
   "thirdeye": "Trzecie Oko",
   "thirdeye_desc": "Kliknij [css_useSkill], aby aktywować trzecią osobę",
@@ -428,6 +435,7 @@
   "unpause": "Mecz został wznowiony.",
   "healed": "Zostałeś uleczony.",
   "game_start": "Gra rozpoczęta!",
+  "reload": "Tłumaczenia i konfigi zostały ponownie załadowane.",
 
   "vote_started": "Głosowanie rozpoczęte: '{0}'",
   "vote_timeout": "Głosowanie '{0}' przekroczyło limit czasu!",

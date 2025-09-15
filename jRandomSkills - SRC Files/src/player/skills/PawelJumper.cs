@@ -44,7 +44,7 @@ namespace jRandomSkills
 
             float extraJumps = (float)Instance.Random.Next(extraJumpsMin, extraJumpsMax + 1);
             playerInfo.SkillChance = extraJumps;
-            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("paweljumper")}{ChatColors.Lime}: " + Localization.GetTranslation("paweljumper_desc2", extraJumps), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetTranslation("paweljumper")}{ChatColors.Lime}: " + player.GetTranslation("paweljumper_desc2", extraJumps), false);
         }
 
         private static void GiveAdditionalJump(CCSPlayerController player)

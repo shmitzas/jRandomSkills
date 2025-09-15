@@ -47,9 +47,9 @@ namespace jRandomSkills
 
             Instance.GameRules.RoundTime += player.Team == CsTeam.Terrorist ? roundTime : -roundTime;
             if (player.Team == CsTeam.Terrorist)
-                Server.PrintToChatAll($" {ChatColors.Orange}{Localization.GetTranslation("watchmaker_tt", roundTime)}");
+                Localization.PrintTranslationToChatAll($" {ChatColors.Orange}{{0}}", ["watchmaker_tt"], [roundTime]);
             else
-                Server.PrintToChatAll($" {ChatColors.LightBlue}{Localization.GetTranslation("watchmaker_ct", roundTime)}");
+                Localization.PrintTranslationToChatAll($" {ChatColors.LightBlue}{{0}}", ["watchmaker_ct"], [roundTime]);
         }
 
         public static void OnTick()
@@ -70,8 +70,8 @@ namespace jRandomSkills
 
             int seconds = 1 + (int)(Instance.GameRules.RoundTime - (Server.CurrentTime - Instance.GameRules.RoundStartTime));
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
+            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
+            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
             string remainingLine = $"<font class='fontSize-m' color='#FFFFFF'>{SkillUtils.SecondsToTimer(seconds)}</font> <br>";
 
             var hudContent = infoLine + skillLine + remainingLine;

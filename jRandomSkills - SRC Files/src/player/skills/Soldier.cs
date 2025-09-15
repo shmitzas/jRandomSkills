@@ -23,7 +23,7 @@ namespace jRandomSkills
             float newScale = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
             playerInfo.SkillChance = newScale;
             newScale = (float)Math.Round(newScale, 2);
-            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("soldier")}{ChatColors.Lime}: " + Localization.GetTranslation("soldier_desc2", newScale), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetTranslation("soldier")}{ChatColors.Lime}: " + player.GetTranslation("soldier_desc2", newScale), false);
         }
 
         public static void OnTakeDamage(DynamicHook h)

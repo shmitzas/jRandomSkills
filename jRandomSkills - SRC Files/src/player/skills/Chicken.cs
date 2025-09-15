@@ -60,7 +60,7 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && playerPawn.IsValid)
             {
-                Event.enableTransmit = true;
+                SkillUtils.EnableTransmit();
                 playerPawn.VelocityModifier = 1.1f;
 
                 playerPawn.Health = 50;
@@ -176,9 +176,9 @@ namespace jRandomSkills
             var weapon = pawn.WeaponServices.ActiveWeapon.Value;
             if (weapon == null || !disabledWeapons.Contains(weapon.DesignerName)) return;
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("disabled_weapon")}</font> <br>";
+            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
+            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
+            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>{player.GetTranslation("disabled_weapon")}</font> <br>";
 
             var hudContent = infoLine + skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);

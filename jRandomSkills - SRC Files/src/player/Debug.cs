@@ -11,6 +11,7 @@ namespace jRandomSkills
     public static class Debug
     {
         private static string sessionId = "00000";
+        private static readonly string debugFolder = Path.Combine(Instance.ModuleDirectory, "logs");
 
         public static void Load()
         {
@@ -129,9 +130,7 @@ namespace jRandomSkills
             if (Config.LoadedConfig.Settings.DebugMode != true)
                 return;
 
-            string filename = $"Debug_{sessionId}.txt";
-            string pluginFolder = Path.Combine(Server.GameDirectory, "csgo", "addons", "counterstrikesharp", "plugins", "jRandomSkills");
-            string debugFolder = Path.Combine(pluginFolder, "Debug");
+            string filename = $"debug_{sessionId}.txt";
             string path = Path.Combine(debugFolder, filename);
 
             Directory.CreateDirectory(debugFolder);

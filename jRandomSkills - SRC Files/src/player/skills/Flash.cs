@@ -64,7 +64,7 @@ namespace jRandomSkills
 
             jumpedPlayers.TryAdd(player.SteamID, 0);
             playerPawn.VelocityModifier = newSpeed;
-            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("flash")}{ChatColors.Lime}: " + Localization.GetTranslation("flash_desc2", newSpeed), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetTranslation("flash")}{ChatColors.Lime}: " + player.GetTranslation("flash_desc2", newSpeed), false);
         }
 
         public static void DisableSkill(CCSPlayerController player)

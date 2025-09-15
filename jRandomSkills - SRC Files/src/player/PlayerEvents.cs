@@ -8,7 +8,6 @@ using CounterStrikeSharp.API.Modules.UserMessages;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
-using System.Text.RegularExpressions;
 using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
@@ -16,7 +15,7 @@ namespace jRandomSkills
 {
     public static partial class Event
     {
-        public static bool enableTransmit = false;
+        public static bool isTransmitRegistered = false;
         public static readonly jSkill_SkillInfo noneSkill = new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
 
         private static jSkill_SkillInfo ctSkill = noneSkill;
@@ -232,13 +231,7 @@ namespace jRandomSkills
                 SkillChance = 1,
             });
 
-            const string defaultWelcomeMsg = "Welcome {PLAYER}, to the {SERVER_NAME} server!\n"
-                + "The current version of the jRandomSkills: {VERSION} ({SKILLS_COUNT} skills).\n\n"
-                + "Original plugin created by:\n{AUTHOR1}\n"
-                + "Modified and improved by:\n{AUTHOR2}";
-            string langWelcomeMsg = Localization.GetTranslation("welcome_message", "welcome");
-            string welcomeMsg = MyRegex().IsMatch(langWelcomeMsg) && MyRegex1().IsMatch(langWelcomeMsg) ? langWelcomeMsg : defaultWelcomeMsg;
-
+            string welcomeMsg = player.GetTranslation("welcome_message", "welcome");
             foreach (string line in welcomeMsg.Split("\n"))
                 player.PrintToChat($" {ChatColors.Green}" + line.Replace("{PLAYER}", $" {ChatColors.Red}{player.PlayerName}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
                                         .Replace("{SERVER_NAME}", $" {ChatColors.Red}{ConVar.Find("hostname")?.StringValue ?? "Default Server"}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
@@ -246,7 +239,6 @@ namespace jRandomSkills
                                         .Replace("{SKILLS_COUNT}", $" {ChatColors.Red}{SkillData.Skills.Count - 1}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
                                         .Replace("{AUTHOR1}", $" {ChatColors.Red}Jakub Bartosik (D3X){ChatColors.Green} ({ChatColors.Red}https://github.com/jakubbartosik/dRandomSkills{ChatColors.Green})", StringComparison.OrdinalIgnoreCase)
                                         .Replace("{AUTHOR2}", $" {ChatColors.Red}Juzlus{ChatColors.Green} ({ChatColors.Red}https://github.com/Juzlus/jRandomSkills{ChatColors.Green})", StringComparison.OrdinalIgnoreCase));
-
             return HookResult.Continue;
         }
 
@@ -263,7 +255,7 @@ namespace jRandomSkills
 
         private static HookResult RoundStart(EventRoundStart @event, GameEventInfo info)
         {
-            enableTransmit = false;
+            isTransmitRegistered = false;
             Instance.AddTimer(.1f, () => DisableAll());
             foreach (var player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
             {
@@ -306,18 +298,18 @@ namespace jRandomSkills
                             var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == _playerSkill.Skill);
                             var specialSkillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == _playerSkill.SpecialSkill);
                             if (skillInfo == null) continue;
-                            skillsText += $" {ChatColors.DarkRed}{_player.PlayerName}{ChatColors.Lime}: {(_playerSkill.SpecialSkill == Skills.None || specialSkillInfo == null ? skillInfo.Name : $"{specialSkillInfo.Name} -> {skillInfo.Name}")}\n";
+                            skillsText += $" {ChatColors.DarkRed}{_player.PlayerName}{ChatColors.Lime}: {(_playerSkill.SpecialSkill == Skills.None || specialSkillInfo == null ? player.GetSkillName(skillInfo.Skill) : $"{player.GetSkillName(specialSkillInfo.Skill)} -> {player.GetSkillName(skillInfo.Skill)}")}\n";
                         }
                     }
 
                     if (Config.LoadedConfig.Settings.SummaryAfterTheRound && !string.IsNullOrEmpty(skillsText))
                     {
                         player.PrintToChat(" ");
-                        player.PrintToChat($" {ChatColors.Lime}{Localization.GetTranslation("summary_start")}");
+                        player.PrintToChat($" {ChatColors.Lime}{player.GetTranslation("summary_start")}");
                         foreach (string text in skillsText.Split("\n"))
                             if (!string.IsNullOrEmpty(text))
                                 player.PrintToChat(text);
-                        player.PrintToChat($" {ChatColors.Lime}{Localization.GetTranslation("summary_end")}");
+                        player.PrintToChat($" {ChatColors.Lime}{player.GetTranslation("summary_end")}");
                         player.PrintToChat(" \n");
                     }
                 });
@@ -348,10 +340,10 @@ namespace jRandomSkills
                     var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == attackerInfo.Skill);
                     var specialSkillData = SkillData.Skills.FirstOrDefault(s => s.Skill == attackerInfo.SpecialSkill);
                     if (skillData == null || specialSkillData == null) return HookResult.Continue;
-                    string skillDesc = skillData.Description;
+                    string skillDesc = victim.GetSkillDescription(skillData.Skill);
 
-                    SkillUtils.PrintToChat(victim, $"{Localization.GetTranslation("enemy_skill")} {ChatColors.DarkRed}{attacker.PlayerName}{ChatColors.Lime}:", false);
-                    SkillUtils.PrintToChat(victim, $"{ChatColors.DarkRed}{(attackerInfo.SpecialSkill == Skills.None ? skillData.Name : $"{specialSkillData.Name} -> {skillData.Name}")}{ChatColors.Lime} - {skillDesc}", false);
+                    SkillUtils.PrintToChat(victim, $"{victim.GetTranslation("enemy_skill")} {ChatColors.DarkRed}{attacker.PlayerName}{ChatColors.Lime}:", false);
+                    SkillUtils.PrintToChat(victim, $"{ChatColors.DarkRed}{(attackerInfo.SpecialSkill == Skills.None ? victim.GetSkillName(skillData.Skill) : $"{victim.GetSkillName(specialSkillData.Skill)} -> {victim.GetSkillName(skillData.Skill)}")}{ChatColors.Lime} - {skillDesc}", false);
                 }
             }
             return HookResult.Continue;
@@ -394,17 +386,17 @@ namespace jRandomSkills
             {
                 List<jSkill_SkillInfo> tSkills = new(SkillData.Skills);
                 tSkills.RemoveAll(s => s.Skill == tSkill.Skill || s.Skill == Skills.None || counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                tSkill = tSkills.Count == 0 ? new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false) : tSkills[Instance.Random.Next(tSkills.Count)];
+                tSkill = tSkills.Count == 0 ? noneSkill : tSkills[Instance.Random.Next(tSkills.Count)];
 
                 List<jSkill_SkillInfo> ctSkills = new(SkillData.Skills);
                 ctSkills.RemoveAll(s => s.Skill == ctSkill.Skill || s.Skill == Skills.None || terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                ctSkill = ctSkills.Count == 0 ? new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false) : ctSkills[Instance.Random.Next(ctSkills.Count)];
+                ctSkill = ctSkills.Count == 0 ? noneSkill : ctSkills[Instance.Random.Next(ctSkills.Count)];
             }
             else if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.SameSkills)
             {
                 List<jSkill_SkillInfo> allSkills = new(SkillData.Skills);
                 allSkills.RemoveAll(s => s.Skill == allSkill.Skill || s.Skill == Skills.None || !allTeamsSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                allSkill = allSkills.Count == 0 ? new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false) : allSkills[Instance.Random.Next(allSkills.Count)];
+                allSkill = allSkills.Count == 0 ? noneSkill : allSkills[Instance.Random.Next(allSkills.Count)];
             }
             else if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.Debug && debugSkills.Count == 0)
                 debugSkills = new(SkillData.Skills);
@@ -425,7 +417,7 @@ namespace jRandomSkills
                 }
 
                 skillPlayer.IsDrawing = false;
-                jSkill_SkillInfo randomSkill = new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
+                jSkill_SkillInfo randomSkill = noneSkill;
 
                 if (Instance?.GameRules != null && Instance?.GameRules.WarmupPeriod == false)
                 {
@@ -478,12 +470,12 @@ namespace jRandomSkills
                 }
 
                 if (randomSkill.Display)
-                    SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{randomSkill.Name}{ChatColors.Lime}: {randomSkill.Description}", false);
+                    SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(randomSkill.Skill)}{ChatColors.Lime}: {player.GetSkillDescription(randomSkill.Skill)}", false);
 
                 skillPlayer.Skill = randomSkill.Skill;
                 skillPlayer.SpecialSkill = Skills.None;
                 Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", new [] { player });
-                Debug.WriteToDebug($"Player {skillPlayer.PlayerName} has got the skill \"{randomSkill.Name}\".");
+                Debug.WriteToDebug($"Player {skillPlayer.PlayerName} has got the skill \"{player.GetSkillName(randomSkill.Skill)}\".");
                 skillPlayer.SkillDescriptionHudExpired = DateTime.Now.AddSeconds(Config.LoadedConfig.Settings.SkillDescriptionDuration);
 
                 if (Config.LoadedConfig.Settings.TeamMateSkillInfo)
@@ -496,13 +488,13 @@ namespace jRandomSkills
                             if (teammateSkill != null)
                             {
                                 var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == teammateSkill);
-                                teammateSkills += $" {ChatColors.DarkRed}{teammate.PlayerName}{ChatColors.Lime}: {(skillInfo == null ? Skills.None : skillInfo.Name)}\n";
+                                teammateSkills += $" {ChatColors.DarkRed}{teammate.PlayerName}{ChatColors.Lime}: {(skillInfo == null ? player.GetSkillName(Skills.None) : player.GetSkillName(skillInfo.Skill))}\n";
                             }
                         }
 
                         if (!string.IsNullOrEmpty(teammateSkills))
                         {
-                            SkillUtils.PrintToChat(player, $" {ChatColors.Lime}{Localization.GetTranslation("teammate_skills")}:", false);
+                            SkillUtils.PrintToChat(player, $" {ChatColors.Lime}{player.GetTranslation("teammate_skills")}:", false);
                             foreach (string text in teammateSkills.Split("\n"))
                                 if (!string.IsNullOrEmpty(text))
                                     player.PrintToChat(text);
@@ -510,8 +502,84 @@ namespace jRandomSkills
                     });
                 }
             }
-            if (enableTransmit)
-                Instance?.RegisterListener<CheckTransmit>(CheckTransmit);
+        }
+
+        public static void SetRandomSkill(CCSPlayerController player)
+        {
+            var validPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist).ToList();
+
+            if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.TeamSkills)
+            {
+                List<jSkill_SkillInfo> tSkills = new(SkillData.Skills);
+                tSkills.RemoveAll(s => s.Skill == tSkill.Skill || s.Skill == Skills.None || counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                tSkill = tSkills.Count == 0 ? noneSkill : tSkills[0];
+
+                List<jSkill_SkillInfo> ctSkills = new(SkillData.Skills);
+                ctSkills.RemoveAll(s => s.Skill == ctSkill.Skill || s.Skill == Skills.None || terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                ctSkill = ctSkills.Count == 0 ? noneSkill : ctSkills[0];
+            }
+
+            if (player == null) return;
+            var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (skillPlayer == null) return;
+
+            if (player.PlayerPawn.Value == null || !player.PlayerPawn.IsValid)
+            {
+                skillPlayer.Skill = Skills.None;
+                return;
+            }
+
+            jSkill_SkillInfo randomSkill = noneSkill;
+            if (Instance?.GameRules != null && Instance?.GameRules.WarmupPeriod == false)
+            {
+                Config.GameModes gameMode = (Config.GameModes)Config.LoadedConfig.Settings.GameMode;
+                if (staticSkills.TryGetValue(player.SteamID, out var staticSkill))
+                    randomSkill = staticSkill;
+                else if (gameMode == Config.GameModes.Normal || gameMode == Config.GameModes.NoRepeat)
+                {
+                    List<jSkill_SkillInfo> skillList = new(SkillData.Skills);
+                    skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
+
+                    if (validPlayers.Count(p => p.Team == player.Team) == 1)
+                    {
+                        Config.DefaultSkillInfo[] skillsNeedsTeammates = Config.LoadedConfig.SkillsInfo.Where(s => s.NeedsTeammates).ToArray();
+                        skillList.RemoveAll(s => skillsNeedsTeammates.Any(s2 => s2.Name == s.Skill.ToString()));
+                    }
+
+                    if (player.Team == CsTeam.Terrorist)
+                        skillList.RemoveAll(s => counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                    else
+                        skillList.RemoveAll(s => terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+
+                    if (gameMode == Config.GameModes.NoRepeat && playersSkills.TryGetValue(player.SteamID, out List<jSkill_SkillInfo>? skills))
+                    {
+                        skillList.RemoveAll(s => skills.Any(s2 => s2.Skill == s.Skill));
+                        if (skillList.Count == 0) skills.Clear();
+                    }
+
+                    randomSkill = skillList.Count == 0 ? noneSkill : skillList[Instance.Random.Next(skillList.Count)];
+                    if (gameMode == Config.GameModes.NoRepeat)
+                    {
+                        if (playersSkills.TryGetValue(player.SteamID, out List<jSkill_SkillInfo>? value))
+                            value.Add(randomSkill);
+                        else
+                            playersSkills.Add(player.SteamID, [randomSkill]);
+                    }
+                }
+                else if (gameMode == Config.GameModes.TeamSkills)
+                    randomSkill = player.Team == CsTeam.Terrorist ? tSkill : ctSkill;
+                else if (gameMode == Config.GameModes.Debug)
+                    return;
+            }
+
+            if (randomSkill.Display)
+                SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(randomSkill.Skill)}{ChatColors.Lime}: {player.GetSkillDescription(randomSkill.Skill)}", false);
+
+            skillPlayer.Skill = randomSkill.Skill;
+            skillPlayer.SpecialSkill = Skills.None;
+            Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", new[] { player });
+            Debug.WriteToDebug($"Player {skillPlayer.PlayerName} has got the skill \"{player.GetSkillName(randomSkill.Skill)}\".");
+            skillPlayer.SkillDescriptionHudExpired = DateTime.Now.AddSeconds(Config.LoadedConfig.Settings.SkillDescriptionDuration);
         }
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
@@ -533,22 +601,17 @@ namespace jRandomSkills
 
             var skillName = playerInfo.Skill.ToString().ToLower();
             var value = Math.Round((double)(playerInfo.SkillChance ?? 1), 2);
-            var desc2 = Localization.GetTranslation($"{skillName}_desc2", value);
+            var desc2 = player.GetTranslation($"{skillName}_desc2", value);
             var skilLDescription = desc2 == $"{skillName}_desc2"
-                ? Localization.GetTranslation($"{skillName}_desc")
+                ? player.GetTranslation($"{skillName}_desc")
                 : (desc2.Contains('%') ? desc2.Replace(value.ToString(), (value * 100).ToString()) : desc2);
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
+            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
+            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
             string remainingLine = $"<font size='0.2' color='#999999'>{skilLDescription} <br>";
 
             var hudContent = infoLine + skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
         }
-
-        [GeneratedRegex(@"\{AUTHOR1\}", RegexOptions.IgnoreCase, "pl-PL")]
-        private static partial Regex MyRegex();
-        [GeneratedRegex(@"\{AUTHOR2\}", RegexOptions.IgnoreCase, "pl-PL")]
-        private static partial Regex MyRegex1();
     }
 }

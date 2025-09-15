@@ -275,6 +275,55 @@ This plugin uses content from the following projects:
 ## 📋 Changelog
 
 <details>
+<summary><b>v1.1.5</b></summary>
+  
+- #### General:
+    - ###### Added language recognition based on geolocation (MaxMind GeoLite2).
+    - ###### Each player can choose a different language. 
+    - ###### Directory names have been changed.
+    - ###### Automatic config refresh has been removed.
+    - ###### Added the `FlashingHtmlHudFix` option to the config. 
+    - ###### Added the `CS2TraceRayDebug` option to the config, showing the "bullet" path for the LongKnife and LongZeus skills.
+    - ###### Added the `DisableSpectateHUD` option to the config, allowing the HTML HUD to be disabled for spectators.
+    - ###### The name of the project has been changed from `jRandomSkills` to `!jRandomSkills` to allow other plugins to load into memory later.
+    - ###### Added the command `!lang en` to change the language
+    - ###### Added the `!reload` command to reload translations.
+    - ###### 
+    - ###### 
+    - ###### 
+    - ###### 
+- #### Skill improvements:
+    - ##### Weapon Swap:
+        - ###### Fixed a bug with bomb duplication on the HUD.
+    - ##### Thief:
+        - ###### The ability to steal skill that is unavailable to your team has been blocked.
+    - ##### Rich Boy:
+        - ###### The ability to steal skill that is unavailable to your team has been blocked.
+    - ##### Sniper Elite:
+        - ###### Fixed all bugs and enabled the skill.
+    - ##### Second Chance:
+        - ###### Return to original health when skill are deactivated.
+    - ##### Planter:
+        - ###### Planting a bomb during freezing has been blocked.
+    - ##### Jackal:
+        - ###### Added 'null' check.
+    - ##### Astronaut:
+        - ###### Fixed gravity scale not showing on HTML.
+    - ##### Duplicator:
+        - ###### The HTML Menu is disabled when no players are found.
+    - ##### Deactivator:
+        - ###### The HTML Menu is disabled when no players are found.
+    - ##### Jackal:
+        - ###### The HTML Menu is disabled when no players are found.
+
+- #### New skills:
+    - ##### Grenadier:
+        - ###### You have infinite hegranade.
+    - ##### Dash:
+        - ###### Perform a second jump to dash.
+</details>
+
+<details>
 <summary><b>v1.1.4</b></summary>
   
 - #### General:
@@ -287,6 +336,7 @@ This plugin uses content from the following projects:
     - ###### Skill descriptions added at the start of the round using PrintToCenterHtml.
     - ###### Skill descriptions with player selection have been shortened.
     - ###### Fixed a problem where the css_setskill and css_setstaticskill commands could not be executed from the server.
+    - ###### The parameters of the `!start` command have been changed.
 - #### Skill improvements:
     - ##### Legless:
         - ###### Legless's skill completely disables Bunny's skill.

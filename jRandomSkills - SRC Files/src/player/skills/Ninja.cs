@@ -71,7 +71,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController _)
         {
-            Event.enableTransmit = true;
+            SkillUtils.EnableTransmit();
         }
         
         public static void DisableSkill(CCSPlayerController player)

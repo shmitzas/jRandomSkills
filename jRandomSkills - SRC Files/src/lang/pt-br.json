@@ -93,6 +93,9 @@
   "distancer": "Medidor de Distância",
   "distancer_desc": "Você pode ver a distância até o inimigo mais próximo",
 
+  "dash": "Dash",
+  "dash_desc": "Execute um segundo salto para dar um dash",
+
   "dracula": "Drácula",
   "dracula_desc": "Acertar um inimigo restaura saúde igual a uma porcentagem do dano causado",
 
@@ -159,6 +162,9 @@
   "godmode_desc": "Clique em [css_useSkill] para se tornar imortal por um curto período",
   "godmode_off": "Imortalidade desativada",
   "godmode_on": "Imortalidade ativada",
+
+  "grenadier": "Grenadier",
+  "grenadier_desc": "Você tem granadas HE infinitas",
 
   "healingsmoke": "Fumaça Curativa",
   "healingsmoke_desc": "Suas granadas de fumaça curam",
@@ -371,6 +377,7 @@
   "thief_enemy_info": "Sua habilidade foi roubada.",
   "thief_player_info": "A habilidade do jogador '{0}' foi roubada.",
   "thief_select_info": "Roubar skill do jogador:",
+  "thief_incorrect_skill": "Esta habilidade não pode ser selecionada!",
 
   "thirdeye": "Terceiro Olho",
   "thirdeye_desc": "Clique em [css_useSkill] para ativar a visão em terceira pessoa",
@@ -428,6 +435,7 @@
   "unpause": "Partida retomada.",
   "healed": "Você foi curado.",
   "game_start": "Jogo iniciado!",
+  "reload": "Os idiomas e as configurações foram recarregados.",
 
   "vote_started": "Votação iniciada: '{0}'",
   "vote_timeout": "Votação '{0}' expirou!",

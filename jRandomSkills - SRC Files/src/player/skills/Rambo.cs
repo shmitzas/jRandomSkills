@@ -9,8 +9,8 @@ namespace jRandomSkills
     public class Rambo : ISkill
     {
         private const Skills skillName = Skills.Rambo;
-        private static int minExtraHealth = Config.GetValue<int>(skillName, "minExtraHealth");
-        private static int maxExtraHealth = Config.GetValue<int>(skillName, "maxExtraHealth");
+        private static readonly int minExtraHealth = Config.GetValue<int>(skillName, "minExtraHealth");
+        private static readonly int maxExtraHealth = Config.GetValue<int>(skillName, "maxExtraHealth");
 
         public static void LoadSkill()
         {
@@ -52,15 +52,10 @@ namespace jRandomSkills
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#009905", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int minExtraHealth = 50, int maxExtraHealth = 501) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
-            public int MinExtraHealth { get; set; }
-            public int MaxExtraHealth { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#009905", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int minExtraHealth = 50, int maxExtraHealth = 501) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
-                MinExtraHealth = minExtraHealth;
-                MaxExtraHealth = maxExtraHealth;
-            }
+            public int MinExtraHealth { get; set; } = minExtraHealth;
+            public int MaxExtraHealth { get; set; } = maxExtraHealth;
         }
     }
 }

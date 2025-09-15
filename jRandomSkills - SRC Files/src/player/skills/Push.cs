@@ -42,7 +42,7 @@ namespace jRandomSkills
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
             newChance = (float)Math.Round(newChance);
-            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("push")}{ChatColors.Lime}: " + Localization.GetTranslation("push_desc2", newChance), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetTranslation("push")}{ChatColors.Lime}: " + player.GetTranslation("push_desc2", newChance), false);
         }
 
         private static void PushEnemy(CCSPlayerController player, QAngle attackerAngle)

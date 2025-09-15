@@ -65,7 +65,7 @@ namespace jRandomSkills
 
             if (playerInfo.SkillChance == 1)
             {
-                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("areareaper_used_info")}");
+                player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("areareaper_used_info")}");
                 return;
             }
 
@@ -74,14 +74,14 @@ namespace jRandomSkills
 
             if (enemy == null || !enemy.IsValid || enemy.PlayerPawn.Value == null || !enemy.PlayerPawn.Value.IsValid)
             {
-                player.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("selectplayerskill_incorrect_enemy_index"));
+                player.PrintToChat($" {ChatColors.Red}" + player.GetTranslation("selectplayerskill_incorrect_enemy_index"));
                 return;
             }
 
             bannedPlayers[enemy.PlayerPawn.Value] = 0;
             playerInfo.SkillChance = 1;
-            player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("jumpban_player_info", enemy.PlayerName));
-            enemy.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("jumpban_enemy_info"));
+            player.PrintToChat($" {ChatColors.Green}" + player.GetTranslation("jumpban_player_info", enemy.PlayerName));
+            enemy.PrintToChat($" {ChatColors.Red}" + player.GetTranslation("jumpban_enemy_info"));
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -97,7 +97,7 @@ namespace jRandomSkills
                 SkillUtils.CreateMenu(player, menuItems);
             }
             else
-                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
+                player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
         }
 
         public static void DisableSkill(CCSPlayerController player)

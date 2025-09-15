@@ -1,9 +1,12 @@
-﻿using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using CS2TraceRay.Class;
+using CS2TraceRay.Enum;
 using CS2TraceRay.Struct;
 using jRandomSkills.src.player;
+using System.Drawing;
 using System.Numerics;
 using static jRandomSkills.jRandomSkills;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
@@ -52,7 +55,22 @@ namespace jRandomSkills
 
             filter.m_nHierarchyIds[0] = pawn.GetHierarchyId();
             filter.m_nHierarchyIds[1] = 0;
-            CGameTrace trace = TraceRay.TraceHull(eyePos, endPos, filter, ray);
+            CGameTrace trace =  TraceRay.TraceHull(eyePos, endPos, filter, ray);
+
+            if (Config.LoadedConfig.Settings.CS2TraceRayDebug)
+            {
+                CreateLine(eyePos, endPos, Color.FromArgb(255, 255, 255, 0));
+                CreateLine(new Vector(trace.StartPos.X, trace.StartPos.Y, trace.StartPos.Z), new Vector(trace.EndPos.X, trace.EndPos.Y, trace.EndPos.Z), Color.FromArgb(255, 255, 0, 0));
+                CreateLine(new Vector(trace.StartPos.X, trace.StartPos.Y, trace.StartPos.Z), new Vector(trace.Position.X, trace.Position.Y, trace.Position.Z), Color.FromArgb(255, 0, 0, 255));
+
+                if (trace.DidHit())
+                {
+                    var val = Activator.CreateInstance(typeof(CBaseEntity), trace.HitEntity) as CBaseEntity;
+                    player.PrintToChat($"Hit: {trace.DidHit()}, Entity: {(val == null ? "null" : val.DesignerName)}, Solid: {trace.AllSolid}, Contents: {(Contents)trace.Contents}");
+                }
+                else
+                    player.PrintToChat($"Hit: {trace.DidHit()}, Entity: {trace.HitEntity}, Solid: {trace.AllSolid}, Contents: {(Contents)trace.Contents}");
+            }
 
             if (!trace.HitPlayer(out CCSPlayerController? target) || target == null)
                 return;
@@ -60,6 +78,24 @@ namespace jRandomSkills
             if (target.Handle == player.Handle || target.PlayerPawn.Value == null || !target.PlayerPawn.Value.IsValid || trace.Distance() <= 70) return;
             target.PlayerPawn.Value.EmitSound("Player.DamageBody.Onlooker");
             SkillUtils.TakeHealth(target.PlayerPawn.Value, Instance.Random.Next(21, 34));
+        }
+
+        private static void CreateLine(Vector start, Vector end, Color color)
+        {
+            CBeam beam = Utilities.CreateEntityByName<CBeam>("beam")!;
+            if (beam == null) return;
+
+            beam.Render = color;
+            beam.Width = 2.0f;
+            beam.EndWidth = 2.0f;
+            beam.Teleport(start);
+
+            beam.EndPos.X = end.X;
+            beam.EndPos.Y = end.Y;
+            beam.EndPos.Z = end.Z;
+
+            beam.DispatchSpawn();
+            beam.AcceptInput("FollowEntity", beam, null!, "");
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#c9f8ff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float maxDistance = 4096f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)

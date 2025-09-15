@@ -13,9 +13,7 @@ namespace jRandomSkills
     public partial class jRandomSkills : BasePlugin
 #pragma warning restore IDE1006 // Style nazewnictwa
     {
-#pragma warning disable CS8618 // Pole niedopuszczające wartości null musi zawierać wartość inną niż null podczas kończenia działania konstruktora. Rozważ zadeklarowanie pola jako dopuszczającego wartość null.
-        public static jRandomSkills Instance { get; private set; }
-#pragma warning restore CS8618 // Pole niedopuszczające wartości null musi zawierać wartość inną niż null podczas kończenia działania konstruktora. Rozważ zadeklarowanie pola jako dopuszczającego wartość null.
+       public static jRandomSkills Instance { get; private set; }
 
         public List<jSkill_PlayerInfo> SkillPlayer { get; } = [];
         public Random Random { get; } = new Random();
@@ -25,13 +23,13 @@ namespace jRandomSkills
         public override string ModuleName => "[CS2] [ jRandomSkills ]";
         public override string ModuleAuthor => "D3X, Juzlus";
         public override string ModuleDescription => "Plugin adds random skills every round for CS2 by D3X. Modified by Juzlus.";
-        public override string ModuleVersion => "1.1.4";
+        public override string ModuleVersion => "1.1.5";
 
         public override void Load(bool hotReload)
         {
             Instance = this;
 
-            Config.Initialize();
+            Config.LoadConfig();
             Localization.Load();
             Debug.Load();
             PlayerOnTick.Load();
@@ -115,10 +113,7 @@ namespace jRandomSkills
 #pragma warning restore IDE1006
     {
         public Skills Skill { get; } = skill;
-        public string Name { get; } = Localization.GetTranslation(skill.ToString().ToLower());
-        public string Description { get; } = Localization.GetTranslation($"{skill.ToString().ToLower()}_desc");
         public string Color { get; } = color;
-
         public bool Display { get; } = display;
 
         public static implicit operator Skills(jSkill_SkillInfo v)

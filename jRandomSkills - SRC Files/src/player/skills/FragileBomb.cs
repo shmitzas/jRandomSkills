@@ -107,7 +107,7 @@ namespace jRandomSkills
                 return;
             }
 
-            Server.PrintToChatAll($" {ChatColors.Gold}{Localization.GetTranslation("fragilebomb_bomb_health")}: {ChatColors.Red}{bombHealth}{ChatColors.Gold}/{ChatColors.Green}{maxBombHealth}");
+            Localization.PrintTranslationToChatAll($" {ChatColors.Gold}{{0}}: {ChatColors.Red}{bombHealth}{ChatColors.Gold}/{ChatColors.Green}{maxBombHealth}", ["fragilebomb_bomb_health"]);
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#5d00ff", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false, int maxBombHealth = 1000) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)

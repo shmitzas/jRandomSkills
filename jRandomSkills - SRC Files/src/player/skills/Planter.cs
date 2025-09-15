@@ -43,7 +43,7 @@ namespace jRandomSkills
                 if (!Instance.IsPlayerValid(player)) continue;
                 var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
 
-                if (playerInfo?.Skill == skillName)
+                if (playerInfo?.Skill == skillName && Instance?.GameRules?.FreezePeriod == false)
                     Schema.SetSchemaValue<bool>(player!.PlayerPawn.Value!.Handle, "CCSPlayerPawn", "m_bInBombZone", true);
             }
         }

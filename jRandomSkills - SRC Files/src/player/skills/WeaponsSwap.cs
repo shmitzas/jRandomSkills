@@ -77,17 +77,17 @@ namespace jRandomSkills
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
             if (skillData == null) return;
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
+            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
+            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
             string remainingLine = "";
 
             if (showInfo)
-                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>"
-                                : skillInfo != null && !skillInfo.FindedEnemy ? $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("hud_info_no_enemy")}</font> <br>"
-                                : skillInfo != null && !skillInfo.HaveWeapon ? $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("weaponsswap_hud_info2")}</font> <br>"
+                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{player.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>"
+                                : skillInfo != null && !skillInfo.FindedEnemy ? $"<font class='fontSize-m' color='#FF0000'>{player.GetTranslation("hud_info_no_enemy")}</font> <br>"
+                                : skillInfo != null && !skillInfo.HaveWeapon ? $"<font class='fontSize-m' color='#FF0000'>{player.GetTranslation("weaponsswap_hud_info2")}</font> <br>"
                                 : "";
             else
-                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>" : "";
+                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{player.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>" : "";
 
             var hudContent = infoLine + skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
@@ -127,10 +127,16 @@ namespace jRandomSkills
                     skillInfo.CanUse = false;
                     skillInfo.Cooldown = DateTime.Now;
 
-                    player.RemoveWeapons();
-                    enemy.RemoveWeapons();
-                    GiveWeapons(player, enemyWeapon, playerWeapon.Contains("weapon_c4"));
-                    GiveWeapons(enemy, playerWeapon, (enemyWeapon != null && enemyWeapon.Contains("weapon_c4")));
+                    RemoveC4(player);
+                    RemoveC4(enemy);
+
+                    Server.NextFrame(() =>
+                    {
+                        player.RemoveWeapons();
+                        enemy.RemoveWeapons();
+                        GiveWeapons(player, enemyWeapon, playerWeapon.Contains("weapon_c4"));
+                        GiveWeapons(enemy, playerWeapon, (enemyWeapon != null && enemyWeapon.Contains("weapon_c4")));
+                    });
                 }
                 else
                     skillInfo.LastClick = DateTime.Now;
@@ -165,6 +171,16 @@ namespace jRandomSkills
             CCSPlayerController[] enemies = [.. Utilities.GetPlayers().FindAll(e => e.Team != player.Team && e.PawnIsAlive)];
             if (enemies.Length == 0) return null;
             return enemies[Instance.Random.Next(enemies.Length)];
+        }
+
+        private static void RemoveC4(CCSPlayerController player)
+        {
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return;
+
+            foreach (var item in pawn.WeaponServices.MyWeapons)
+                if (item != null && item.IsValid && item.Value != null && item.Value.IsValid && item.Value.DesignerName == "weapon_c4")
+                    item.Value.AcceptInput("Kill");
         }
 
         public class PlayerSkillInfo

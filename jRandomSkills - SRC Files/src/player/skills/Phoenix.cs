@@ -27,7 +27,7 @@ namespace jRandomSkills
                 {
                     player.Respawn();
                     Instance.AddTimer(.2f, () => player.Respawn());
-                    SkillUtils.PrintToChat(player, Localization.GetTranslation("phoenix_respawn"), false); ;
+                    SkillUtils.PrintToChat(player, player.GetTranslation("phoenix_respawn"), false); ;
                 }
             }
         }
@@ -40,7 +40,7 @@ namespace jRandomSkills
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
             newChance = (float)Math.Round(newChance);
-            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("phoenix")}{ChatColors.Lime}: " + Localization.GetTranslation("phoenix_desc2", newChance), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetTranslation("phoenix")}{ChatColors.Lime}: " + player.GetTranslation("phoenix_desc2", newChance), false);
         }
 
         private static bool IsDeadPlayerValid(CCSPlayerController player)

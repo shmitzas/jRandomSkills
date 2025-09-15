@@ -48,8 +48,8 @@ namespace jRandomSkills
 
                 string distanceColor = closetDistance > 1500 ? "#00FF00" : closetDistance > 600 ? "#FFFF00" : "#FF0000";
 
-                string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
-                string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
+                string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
+                string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
                 string remainingLine = $"<font class='fontSize-m' color='#FFFFFF'>{closetEnemy}: <font color='{distanceColor}'>{closetDistance}</font></font> <br>";
 
                 var hudContent = infoLine + skillLine + remainingLine;

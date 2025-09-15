@@ -71,9 +71,9 @@ namespace jRandomSkills
             if (skillData == null) return;
 
             string fuelColor = GetFuelColor(pilotInfo.Fuel);
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#ffffff'>{Localization.GetTranslation("pilot_hud_info")}:</font> <font color='{fuelColor}'>{(pilotInfo.Fuel/maximumFuel)*100:F0}%</font> <br>";
+            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
+            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
+            string remainingLine = $"<font class='fontSize-m' color='#ffffff'>{player.GetTranslation("pilot_hud_info")}:</font> <font color='{fuelColor}'>{(pilotInfo.Fuel/maximumFuel)*100:F0}%</font> <br>";
 
             var hudContent = infoLine + skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);

@@ -46,7 +46,7 @@ namespace jRandomSkills
 
             if (playerInfo.SkillChance == 1)
             {
-                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("areareaper_used_info")}");
+                player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("areareaper_used_info")}");
                 return;
             }
 
@@ -55,14 +55,14 @@ namespace jRandomSkills
 
             if (enemy == null)
             {
-                player.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("selectplayerskill_incorrect_enemy_index"));
+                player.PrintToChat($" {ChatColors.Red}" + player.GetTranslation("selectplayerskill_incorrect_enemy_index"));
                 return;
             }
 
             SwapHealth(player, enemy);
             playerInfo.SkillChance = 1;
-            player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("lifeswap_player_info", enemy.PlayerName));
-            enemy.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("lifeswap_enemy_info"));
+            player.PrintToChat($" {ChatColors.Green}" + player.GetTranslation("lifeswap_player_info", enemy.PlayerName));
+            enemy.PrintToChat($" {ChatColors.Red}" + player.GetTranslation("lifeswap_enemy_info"));
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -78,7 +78,7 @@ namespace jRandomSkills
                 SkillUtils.CreateMenu(player, menuItems);
             }
             else
-                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
+                player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
         }
 
         private static void SwapHealth(CCSPlayerController player, CCSPlayerController enemy)

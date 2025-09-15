@@ -10,18 +10,13 @@ namespace jRandomSkills
 {
     public static class Config
     {
-        private static readonly string configPath = Path.Combine(Instance.ModuleDirectory, "Config.json");
+        private static readonly string configsFolder = Path.Combine(Instance.ModuleDirectory, "configs");
+        private static readonly string configPath = Path.Combine(configsFolder, "config.json");
         private static ConfigModel config = LoadConfig();
-        private static FileSystemWatcher? fileWatcher;
 
         public static ConfigModel LoadedConfig => config;
 
-        public static void Initialize()
-        {
-            SetupFileWatcher();
-        }
-
-        private static ConfigModel LoadConfig()
+        public static ConfigModel LoadConfig()
         {
             if (!File.Exists(configPath))
             {
@@ -64,6 +59,7 @@ namespace jRandomSkills
         {
             try
             {
+                Directory.CreateDirectory(configsFolder);
                 string json = JsonConvert.SerializeObject(config, Formatting.Indented);
                 File.WriteAllText(configPath, json);
             }
@@ -71,20 +67,6 @@ namespace jRandomSkills
             {
                 Instance.Logger.LogError("Error when saving the config file.");
             }
-        }
-
-        private static void SetupFileWatcher()
-        {
-            string? path = Path.GetDirectoryName(configPath);
-            if (string.IsNullOrEmpty(path)) return;
-            fileWatcher = new FileSystemWatcher(path)
-            {
-                Filter = Path.GetFileName(configPath),
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size
-            };
-
-            fileWatcher.Changed += (sender, e) => config = LoadConfig();
-            fileWatcher.EnableRaisingEvents = true;
         }
 
         public static T GetValue<T>(object skill, string key)
@@ -143,12 +125,18 @@ namespace jRandomSkills
             public string? AlternativeSkillButton { get; set; }
             public float SkillTimeBeforeStart { get; set; }
             public float SkillDescriptionDuration { get; set; }
+            public bool DisableSpectateHUD { get; set; }
+            public bool FlashingHtmlHudFix { get; set; }
+            public bool CS2TraceRayDebug { get; set; }
+
             public NormalCommand SetSkillCommands { get; set; }
             public NormalCommand SkillsListCommands { get; set; }
             public NormalCommand UseSkillCommands { get; set; }
             public NormalCommand HealCommands { get; set; }
             public NormalCommand ConsoleCommands { get; set; }
             public NormalCommand SetStaticSkillCommands { get; set; }
+            public NormalCommand ChangeLanguageCommands { get; set; }
+            public NormalCommand ReloadCommands { get; set; }
             public VotingCommand StartGameCommands { get; set; }
             public VotingCommand ChangeMapCommands { get; set; }
             public VotingCommand SwapCommands { get; set; }
@@ -167,6 +155,9 @@ namespace jRandomSkills
                 AlternativeSkillButton = null;
                 SkillTimeBeforeStart = 7;
                 SkillDescriptionDuration = 7;
+                FlashingHtmlHudFix = true;
+                CS2TraceRayDebug = false;
+                DisableSpectateHUD = false;
 
                 SetSkillCommands = new NormalCommand("ustawskill, ustaw_skill, setskill, set_skill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能", "@jRandmosSkills/admin");
                 SkillsListCommands = new NormalCommand("supermoc, skille, listamocy, supermoce, skills, listaHabilidades, habilidades, 技能列表, 超能力列表", "@jRandmosSkills/admin");
@@ -174,6 +165,8 @@ namespace jRandomSkills
                 HealCommands = new NormalCommand("heal, ulecz, curar, tratar, 治疗, 治愈", "@jRandmosSkills/admin");
                 ConsoleCommands = new NormalCommand("console, sv, 控制台, 服务器", "@jRandmosSkills/root");
                 SetStaticSkillCommands = new NormalCommand("ustawstatycznyskill, ustaw_statyczny_skill, setstaticskill, set_static_skill", "@jRandmosSkills/admin");
+                ChangeLanguageCommands = new NormalCommand("lang, language, changelang, change_lang, jezyk, język", "");
+                ReloadCommands = new NormalCommand("reload, refresh", "@jRandmosSkills/admin");
 
                 StartGameCommands = new VotingCommand(true, "start, go, começar, iniciar, 开始, 启动", "@jRandmosSkills/admin", 15, 60, 15, 500, 2);
                 ChangeMapCommands = new VotingCommand( true, "map, mapa, changemap, zmienmape, zmienmape, mudarMapa, trocarMapa, 更换地图, 更改地图", "@jRandmosSkills/admin", 25, 90, 15, 500, 2);

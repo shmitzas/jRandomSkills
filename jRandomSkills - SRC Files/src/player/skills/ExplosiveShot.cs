@@ -27,7 +27,7 @@ namespace jRandomSkills
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
             newChance = (float)Math.Round(newChance);
-            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("explosiveshot")}{ChatColors.Lime}: " + Localization.GetTranslation("explosiveshot_desc2", newChance), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetTranslation("explosiveshot")}{ChatColors.Lime}: " + player.GetTranslation("explosiveshot_desc2", newChance), false);
         }
 
         private static void SpawnExplosion(Vector vector)

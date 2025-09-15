@@ -1,7 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Cvars;
-using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
@@ -11,6 +10,7 @@ using jRandomSkills.src.utils;
 using System.Runtime.InteropServices;
 using WASDMenuAPI.Classes;
 using WASDSharedAPI;
+using static CounterStrikeSharp.API.Core.Listeners;
 
 namespace jRandomSkills
 {
@@ -111,8 +111,9 @@ namespace jRandomSkills
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
         }
 
-        public static string GetDesignerName(CBasePlayerWeapon weapon)
+        public static string GetDesignerName(CBasePlayerWeapon? weapon)
         {
+            if (weapon == null || !weapon.IsValid) return string.Empty;
             string designerName = weapon.DesignerName;
             ushort index = weapon.AttributeManager.Item.ItemDefinitionIndex;
 
@@ -126,6 +127,15 @@ namespace jRandomSkills
             };
 
             return designerName;
+        }
+
+        public static void EnableTransmit()
+        {
+            if (!Event.isTransmitRegistered)
+            {
+                jRandomSkills.Instance?.RegisterListener<CheckTransmit>(Event.CheckTransmit);
+                Event.isTransmitRegistered = true;
+            }
         }
 
         private static IWasdMenuManager? GetMenuManager()
@@ -180,9 +190,9 @@ namespace jRandomSkills
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == playerInfo.Skill);
             if (skillData == null) return;
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>"
-                + $"<font color='green'>{Localization.GetTranslation($"{playerInfo.Skill.ToString().ToLower()}_select_info")}</font>";
+            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
+            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>"
+                + $"<font color='green'>{player.GetTranslation($"{playerInfo.Skill.ToString().ToLower()}_select_info")}</font>";
 
             var manager = GetMenuManager();
             if (manager == null) return;

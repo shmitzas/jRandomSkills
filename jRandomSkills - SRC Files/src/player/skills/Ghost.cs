@@ -77,7 +77,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            Event.enableTransmit = true;
+            SkillUtils.EnableTransmit();
             SetPlayerVisibility(player, false);
             SetWeaponVisibility(player, false);
             SetWeaponAttack(player, true);
@@ -180,9 +180,9 @@ namespace jRandomSkills
             var weapon = pawn.WeaponServices.ActiveWeapon.Value;
             if (weapon == null || !weapon.IsValid || !disabledWeapons.Contains(weapon.DesignerName)) return;
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("disabled_weapon")}</font> <br>";
+            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
+            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
+            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>{player.GetTranslation("disabled_weapon")}</font> <br>";
 
             var hudContent = infoLine + skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);

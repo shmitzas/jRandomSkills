@@ -40,7 +40,7 @@ namespace jRandomSkills
         {
             if (Instance?.GameRules == null || Instance?.GameRules?.Handle == IntPtr.Zero)
                 InitializeGameRules();
-            else if (Instance != null)
+            else if (Instance != null && Config.LoadedConfig.Settings.FlashingHtmlHudFix)
                 Instance.GameRules.GameRestart = Instance.GameRules?.RestartRoundTime < Server.CurrentTime;
         }
 
@@ -55,14 +55,14 @@ namespace jRandomSkills
 
             if (SkillData.Skills.Count == 0)
             {
-                infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
-                skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("none")}</font> <br>";
+                infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
+                skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("none")}</font> <br>";
             }
             else if (skillPlayer.IsDrawing)
             {
                 var randomSkill = SkillData.Skills[Instance.Random.Next(SkillData.Skills.Count)];
-                infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("drawing_skill")}:</font> <br>";
-                skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{randomSkill.Color}'>{randomSkill.Name}</font> <br>";
+                infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("drawing_skill")}:</font> <br>";
+                skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{randomSkill.Color}'>{player.GetSkillName(randomSkill.Skill)}</font> <br>";
             }
             else if (!skillPlayer.IsDrawing)
             {
@@ -71,10 +71,10 @@ namespace jRandomSkills
                     var skillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == skillPlayer.Skill);
                     if (skillInfo != null)
                     {
-                        infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
-                        skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillInfo.Color}'>{skillInfo.Name}</font> <br>";
+                        infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
+                        skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillInfo.Color}'>{player.GetSkillName(skillInfo.Skill)}</font> <br>";
                     }
-                } else if (player?.IsValid == true)
+                } else if (player?.IsValid == true && Config.LoadedConfig.Settings.DisableSpectateHUD)
                 {
                     var pawn = player.Pawn.Value;
                     if (pawn == null) return;
@@ -94,8 +94,8 @@ namespace jRandomSkills
                     string pName = observeredPlayerSkill.PlayerName;
                     if (pName.Length > 18)
                         pName = $"{pName[..17]}...";
-                    infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("observer_skill")} {pName}:</font> <br>";
-                    skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{observeredPlayerSkillInfo.Color}'>{(observeredPlayerSkill.SpecialSkill == Skills.None ? observeredPlayerSkillInfo.Name : $"{observeredPlayerSpecialSkillInfo.Name}({observeredPlayerSkillInfo.Name})")}</font> <br>";
+                    infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("observer_skill")} {pName}:</font> <br>";
+                    skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{observeredPlayerSkillInfo.Color}'>{(observeredPlayerSkill.SpecialSkill == Skills.None ? player.GetSkillName(observeredPlayerSkillInfo.Skill) : $"{player.GetSkillName(observeredPlayerSpecialSkillInfo.Skill)}({player.GetSkillName(observeredPlayerSkillInfo.Skill)})")}</font> <br>";
                 }
             }
 

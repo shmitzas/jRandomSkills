@@ -62,7 +62,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            Event.enableTransmit = true;
+            SkillUtils.EnableTransmit();
             if (player == null || !player.IsValid) return;
             var playerPawn = player.PlayerPawn.Value;
 

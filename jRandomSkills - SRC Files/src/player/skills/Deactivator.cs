@@ -32,19 +32,17 @@ namespace jRandomSkills
 
                 if (playerInfo == null || playerInfo.Skill != skillName) continue;
                 var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
-                if (enemies.Length > 0)
+
+                HashSet<(string, string)> menuItems = [];
+                foreach (var enemy in enemies)
                 {
-                    HashSet<(string, string)> menuItems = [];
-                    foreach (var enemy in enemies)
-                    {
-                        var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
-                        if (enemyInfo == null) continue;
-                        var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
-                        if (skillData == null) continue;
-                        menuItems.Add(($"{enemy.PlayerName} : {skillData.Name}", enemy.Index.ToString()));
-                    }
-                    SkillUtils.CreateMenu(player, menuItems);
+                    var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
+                    if (enemyInfo == null) continue;
+                    var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
+                    if (skillData == null) continue;
+                    menuItems.Add(($"{enemy.PlayerName} : {player.GetSkillName(skillData.Skill)}", enemy.Index.ToString()));
                 }
+                SkillUtils.UpdateMenu(player, menuItems);
             }
         }
 
@@ -64,7 +62,7 @@ namespace jRandomSkills
 
             if (enemy == null)
             {
-                player.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("selectplayerskill_incorrect_enemy_index"));
+                player.PrintToChat($" {ChatColors.Red}" + player.GetTranslation("selectplayerskill_incorrect_enemy_index"));
                 return;
             }
 
@@ -83,12 +81,12 @@ namespace jRandomSkills
                     if (enemyInfo == null) continue;
                     var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
                     if (skillData == null) continue;
-                    menuItems.Add(($"{enemy.PlayerName} : {skillData.Name}", enemy.Index.ToString()));
+                    menuItems.Add(($"{enemy.PlayerName} : {player.GetSkillName(skillData.Skill)}", enemy.Index.ToString()));
                 }
                 SkillUtils.CreateMenu(player, menuItems);
             }
             else
-                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
+                player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
         }
 
         public static void DisableSkill(CCSPlayerController player)
@@ -108,7 +106,7 @@ namespace jRandomSkills
             {
                 playerInfo.Skill = Skills.None;
                 playerInfo.SpecialSkill = skillName;
-                player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("deactivator_player_info", enemy.PlayerName));
+                player.PrintToChat($" {ChatColors.Green}" + player.GetTranslation("deactivator_player_info", enemy.PlayerName));
             }
 
             if (enemyInfo != null)
@@ -116,7 +114,7 @@ namespace jRandomSkills
                 Instance.SkillAction(enemyInfo.Skill.ToString(), "DisableSkill", [enemy]);
                 enemyInfo.SpecialSkill = enemyInfo.Skill;
                 enemyInfo.Skill = Skills.None;
-                enemy.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("deactivator_enemy_info"));
+                enemy.PrintToChat($" {ChatColors.Red}" + player.GetTranslation("deactivator_enemy_info"));
             }
         }
 

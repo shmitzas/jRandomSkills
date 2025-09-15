@@ -31,6 +31,8 @@ namespace jRandomSkills
                 { SplitCommands(config.HealCommands.Alias), ("Heal", Command_Heal) },
                 { SplitCommands(config.SetScoreCommands.Alias), ("Set teams score", Command_SetScore) },
                 { SplitCommands(config.SetStaticSkillCommands.Alias), ("Set static skill", Command_SetStaticSkill) },
+                { SplitCommands(config.ChangeLanguageCommands.Alias), ("Change language", Command_ChangeLanguage) },
+                { SplitCommands(config.ReloadCommands.Alias), ("Reaload configs", Command_Reload) },
             };
 
             foreach (var commandPair in commands)
@@ -79,7 +81,7 @@ namespace jRandomSkills
                     return;
                 }
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                SkillUtils.PrintToChat(player, Localization.GetTranslation("correct_form_setskill"), true);
+                SkillUtils.PrintToChat(player, player.GetTranslation("correct_form_setskill"), true);
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
                 return;
             }
@@ -92,13 +94,13 @@ namespace jRandomSkills
                     return;
                 }
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                SkillUtils.PrintToChat(player, Localization.GetTranslation("player_not_found_setskill"), true);
+                SkillUtils.PrintToChat(player, player.GetTranslation("player_not_found_setskill"), true);
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
                 return;
             }
 
             var skillName = command.ArgCount > 3 ? $"{command.GetArg(2)} {command.GetArg(3)}" : command.GetArg(2);
-            var skill = SkillData.Skills.FirstOrDefault(s => s.Name.Equals(skillName, StringComparison.OrdinalIgnoreCase) || s.Skill.ToString().Equals(skillName, StringComparison.OrdinalIgnoreCase));
+            var skill = SkillData.Skills.FirstOrDefault(s => (player != null && player.GetSkillName(s.Skill).Equals(skillName, StringComparison.OrdinalIgnoreCase)) || s.Skill.ToString().Equals(skillName, StringComparison.OrdinalIgnoreCase));
 
             if (skill == null)
             {
@@ -108,7 +110,7 @@ namespace jRandomSkills
                     return;
                 }
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                SkillUtils.PrintToChat(player, Localization.GetTranslation("skill_not_found_setskill"), true);
+                SkillUtils.PrintToChat(player, player.GetTranslation("skill_not_found_setskill"), true);
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
                 return;
             }
@@ -129,10 +131,10 @@ namespace jRandomSkills
                 }
 
                 if (skill.Display)
-                    SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{skill.Name}{ChatColors.Lime}: {skill.Description}", false);
+                    SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(skill.Skill)}{ChatColors.Lime}: {player.GetSkillDescription(skill.Skill)}", false);
 
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                SkillUtils.PrintToChat(player, $"{Localization.GetTranslation("done_setskill")}: {ChatColors.LightRed}{skill.Name} {ChatColors.Lime}{Localization.GetTranslation("for_setskill")} {ChatColors.LightRed}{targetPlayer.PlayerName}", false);
+                SkillUtils.PrintToChat(player, $"{player.GetTranslation("done_setskill")}: {ChatColors.LightRed}{player.GetSkillName(skill.Skill)} {ChatColors.Lime}{player.GetTranslation("for_setskill")} {ChatColors.LightRed}{targetPlayer.PlayerName}", false);
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
             }
             else
@@ -144,7 +146,7 @@ namespace jRandomSkills
                 }
 
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                SkillUtils.PrintToChat(player, Localization.GetTranslation("error_setskill"), true);
+                SkillUtils.PrintToChat(player, player.GetTranslation("error_setskill"), true);
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
             }
         }
@@ -176,16 +178,16 @@ namespace jRandomSkills
 
             if (string.IsNullOrEmpty(map))
             {
-                command.ReplyToCommand($" {ChatColors.Red}{Localization.GetTranslation("invalid_map")}");
+                command.ReplyToCommand($" {ChatColors.Red}{command.CallingPlayer?.GetTranslation("invalid_map")}");
                 return;
             }
 
-            Server.PrintToChatAll($" {ChatColors.Yellow}{Localization.GetTranslation("loading_map")} ({ChatColors.Green}{map}{ChatColors.Yellow})...");
+            Localization.PrintTranslationToChatAll($" {ChatColors.Yellow}{{0}} ({ChatColors.Green}{map}{ChatColors.Yellow})...", ["loading_map"]);
 
             if (uint.TryParse(map, out _))
                 Server.ExecuteCommand($"host_workshop_map {map}");
             else if (!Server.IsMapValid(map))
-                command.ReplyToCommand($" {ChatColors.Red}{Localization.GetTranslation("invalid_map")}");
+                command.ReplyToCommand($" {ChatColors.Red}{command.CallingPlayer?.GetTranslation("invalid_map")}");
             else
                 Server.ExecuteCommand($"changelevel {map}");
         }
@@ -214,12 +216,12 @@ namespace jRandomSkills
             if (Instance?.GameRules?.WarmupPeriod == true)
             {
                 Server.ExecuteCommand("mp_warmup_end");
-                Server.PrintToChatAll($" {ChatColors.Green}{Localization.GetTranslation("game_start")}");
+                Localization.PrintTranslationToChatAll($" {ChatColors.Green}{{0}}", ["game_start"]);
             }
             else
             {
                 Server.ExecuteCommand("mp_restartgame 2");
-                Instance?.AddTimer(2.0f, () => Server.PrintToChatAll($" {ChatColors.Green}{Localization.GetTranslation("game_start")}"));
+                Instance?.AddTimer(2.0f, () => Localization.PrintTranslationToChatAll($" {ChatColors.Green}{{0}}", ["game_start"]));
             }
         }
 
@@ -285,7 +287,7 @@ namespace jRandomSkills
 
         private static void Pause()
         {
-            Server.PrintToChatAll($" {(gamePaused ? ChatColors.Green : ChatColors.Red)}{Localization.GetTranslation(gamePaused ? "unpause" : "pause")}");
+            Localization.PrintTranslationToChatAll($" {(gamePaused ? ChatColors.Green : ChatColors.Red)}{{0}}", [gamePaused ? "unpause" : "pause"]);
             Server.ExecuteCommand(gamePaused ? "mp_unpause_match" : "mp_pause_match");
             gamePaused = !gamePaused;
         }
@@ -297,7 +299,7 @@ namespace jRandomSkills
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid || player.LifeState != (byte)LifeState_t.LIFE_ALIVE) return;
             if (!AdminManager.PlayerHasPermissions(player, config.HealCommands.Permissions)) return;
             SkillUtils.AddHealth(player.PlayerPawn.Value, 100);
-            player.PrintToChat($" {ChatColors.Green}{Localization.GetTranslation("healed")}");
+            player.PrintToChat($" {ChatColors.Green}{player.GetTranslation("healed")}");
         }
 
         [CommandHelper(minArgs: 2, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
@@ -318,7 +320,7 @@ namespace jRandomSkills
             if (!int.TryParse(command.GetArg(1), out int ctScore) || !int.TryParse(command.GetArg(2), out int tScore))
             {
                 if (player != null && player.IsValid)
-                    SkillUtils.PrintToChat(player, Localization.GetTranslation("correct_form_setscore"), true);
+                    SkillUtils.PrintToChat(player, player.GetTranslation("correct_form_setscore"), true);
                 return;
             }
 
@@ -352,7 +354,7 @@ namespace jRandomSkills
                 }
 
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                SkillUtils.PrintToChat(player, Localization.GetTranslation("correct_form_setskill"), true);
+                SkillUtils.PrintToChat(player, player.GetTranslation("correct_form_setskill"), true);
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
                 return;
             }
@@ -366,13 +368,13 @@ namespace jRandomSkills
                 }
 
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                SkillUtils.PrintToChat(player, Localization.GetTranslation("player_not_found_setskill"), true);
+                SkillUtils.PrintToChat(player, player.GetTranslation("player_not_found_setskill"), true);
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
                 return;
             }
 
             var skillName = command.ArgCount > 3 ? $"{command.GetArg(2)} {command.GetArg(3)}" : command.GetArg(2);
-            var skill = SkillData.Skills.FirstOrDefault(s => s.Name.Equals(skillName, StringComparison.OrdinalIgnoreCase) || s.Skill.ToString().Equals(skillName, StringComparison.OrdinalIgnoreCase));
+            var skill = SkillData.Skills.FirstOrDefault(s => (player != null && player.GetSkillName(s.Skill).Equals(skillName, StringComparison.OrdinalIgnoreCase)) || s.Skill.ToString().Equals(skillName, StringComparison.OrdinalIgnoreCase));
 
             if (skill == null)
             {
@@ -383,7 +385,7 @@ namespace jRandomSkills
                 }
 
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                SkillUtils.PrintToChat(player, Localization.GetTranslation("skill_not_found_setskill"), true);
+                SkillUtils.PrintToChat(player, player.GetTranslation("skill_not_found_setskill"), true);
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
                 return;
             }
@@ -409,10 +411,10 @@ namespace jRandomSkills
                 }
 
                 if (skill.Display)
-                    SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{skill.Name}{ChatColors.Lime}: {skill.Description}", false);
+                    SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(skill.Skill)}{ChatColors.Lime}: {player.GetSkillDescription(skill.Skill)}", false);
 
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                SkillUtils.PrintToChat(player, $"{Localization.GetTranslation("done_setskill")}: {ChatColors.LightRed}{skill.Name} {ChatColors.Lime}{Localization.GetTranslation("for_setskill")} {ChatColors.LightRed}{targetPlayer.PlayerName}", false);
+                SkillUtils.PrintToChat(player, $"{player.GetTranslation("done_setskill")}: {ChatColors.LightRed}{player.GetSkillName(skill.Skill)} {ChatColors.Lime}{player.GetTranslation("for_setskill")} {ChatColors.LightRed}{targetPlayer.PlayerName}", false);
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
             }
             else
@@ -424,9 +426,41 @@ namespace jRandomSkills
                 }
 
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
-                SkillUtils.PrintToChat(player, Localization.GetTranslation("error_setskill"), true);
+                SkillUtils.PrintToChat(player, player.GetTranslation("error_setskill"), true);
                 player.PrintToChat($" {ChatColors.Green}―――――――――――{ChatColors.DarkRed}◥◣◆◢◤{ChatColors.Green}―――――――――――");
             }
+        }
+
+        [CommandHelper(minArgs: 1, whoCanExecute: CommandUsage.CLIENT_ONLY)]
+        private static void Command_ChangeLanguage(CCSPlayerController? player, CommandInfo command)
+        {
+            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_lang {command.ArgString} command.");
+            if (player == null || !player.IsValid) return;
+            if (!AdminManager.PlayerHasPermissions(player, config.ChangeLanguageCommands.Permissions)) return;
+
+            string newLangCode = command.GetArg(1);
+            if (Localization.portugalIsoCodes.Contains(newLangCode.ToUpper()))
+                newLangCode = "pt-br";
+            if (Localization.chinaIsoCodes.Contains(newLangCode.ToUpper()))
+                newLangCode = "zh";
+            newLangCode = newLangCode.ToLower();
+            if (!Localization.HasTranslation(newLangCode))
+                newLangCode = "en";
+            Localization.ChangePlayerLanguage(player, newLangCode);
+        }
+
+        [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+        private static void Command_Reload(CCSPlayerController? player, CommandInfo command)
+        {
+            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_lang {command.ArgString} command.");
+            if (!AdminManager.PlayerHasPermissions(player, config.ReloadCommands.Permissions)) return;
+
+            Config.LoadConfig();
+            Localization.Load();
+            if (player != null && player.IsValid)
+                player.PrintToChat($" {ChatColors.Green}{player.GetTranslation("reload")}");
+            else
+                Server.PrintToConsole($" {ChatColors.Green}{Localization.GetTranslation("reload")}");
         }
     }
 }

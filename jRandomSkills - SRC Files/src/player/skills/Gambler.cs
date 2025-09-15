@@ -31,14 +31,14 @@ namespace jRandomSkills
 
             if (playerInfo.SkillChance == 1)
             {
-                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("areareaper_used_info")}");
+                player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("areareaper_used_info")}");
                 return;
             }
 
-            var skill = SkillData.Skills.FirstOrDefault(s => s.Name.Equals(commands[0], StringComparison.OrdinalIgnoreCase) || s.Skill.ToString().Equals(commands[0], StringComparison.OrdinalIgnoreCase));
+            var skill = SkillData.Skills.FirstOrDefault(s => player.GetSkillName(s.Skill).Equals(commands[0], StringComparison.OrdinalIgnoreCase) || s.Skill.ToString().Equals(commands[0], StringComparison.OrdinalIgnoreCase));
             if (skill == null)
             {
-                player.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("skill_not_found_setskill"));
+                player.PrintToChat($" {ChatColors.Red}" + player.GetTranslation("skill_not_found_setskill"));
                 return;
             }
 
@@ -73,9 +73,9 @@ namespace jRandomSkills
             skills.Remove(firstSkill);
             var secondSkill = skills[Instance.Random.Next(skills.Count)];
 
-            HashSet<(string, string)> menuItems = [(firstSkill.Name, firstSkill.Skill.ToString()),
-                                                   (secondSkill.Name, secondSkill.Skill.ToString()),
-                                                    (Localization.GetTranslation("gambler_more", refreshPrice), skillName.ToString())];
+            HashSet<(string, string)> menuItems = [(player.GetSkillName(firstSkill.Skill), firstSkill.Skill.ToString()),
+                                                   (player.GetSkillName(secondSkill.Skill), secondSkill.Skill.ToString()),
+                                                    (player.GetTranslation("gambler_more", refreshPrice), skillName.ToString())];
             SkillUtils.CreateMenu(player, menuItems);
         }
 
