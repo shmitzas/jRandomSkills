@@ -54,7 +54,26 @@ namespace jRandomSkills
             {
                 J[player.Slot]++;
 
-                Vector newVelocity = SkillUtils.GetForwardVector(playerPawn.EyeAngles) * pushVelocity;
+                float moveX = 0;
+                float moveY = 0;
+
+                PlayerButtons playerButtons = player.Buttons;
+                if (playerButtons.HasFlag(PlayerButtons.Forward))
+                    moveY += 1;
+                if (playerButtons.HasFlag(PlayerButtons.Back))
+                    moveY -= 1;
+                if (playerButtons.HasFlag(PlayerButtons.Moveleft))
+                    moveX += 1;
+                if (playerButtons.HasFlag(PlayerButtons.Moveright))
+                    moveX -= 1;
+
+                if (moveX == 0 && moveY == 0)
+                    moveY = 1;
+
+                float moveAngle = MathF.Atan2(moveX, moveY) * (180f / MathF.PI);
+                QAngle dashAngles = new(0, playerPawn.EyeAngles.Y + moveAngle, 0);
+
+                Vector newVelocity = SkillUtils.GetForwardVector(dashAngles) * pushVelocity;
                 newVelocity.Z = playerPawn.AbsVelocity.Z + jumpVelocity;
 
                 playerPawn.AbsVelocity.X = newVelocity.X;

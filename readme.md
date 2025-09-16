@@ -23,6 +23,13 @@ jRandomSkills is a plugin for CounterStrike 2 that brings chaos and fun to gamep
 <img width="50px" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg/1920px-Flag_of_the_United_Kingdom_%281-2%29.svg.png">
 </a>
 
+## 💬 Available languages
+- **English**
+- **Polish**
+- **French** [by: felyjyn]
+- **Portuguese (Brazilian)** [GrokAI / ChatGPT]
+- **Simplified Chinese** [GrokAI / ChatGPT]
+
 ## 🖼️ Preview
 ![Preview](./preview.gif)
 ![Preview2](./preview2.gif)
@@ -284,6 +291,16 @@ This plugin uses content from the following projects:
 - [GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) by [MaxMind](https://www.maxmind.com/) - geolocation data
 
 ## 📋 Changelog
+
+<details>
+<summary><b>v1.1.6</b></summary>
+  
+- #### General:
+    - ###### Added French language (by @felyjyn).
+- #### Skill improvements:
+    - ##### Dash:
+        - ###### Added the ability to dash in any direction.
+</details>
 
 <details>
 <summary><b>v1.1.5</b></summary>

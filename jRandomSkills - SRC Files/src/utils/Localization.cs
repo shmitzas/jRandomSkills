@@ -19,6 +19,7 @@ namespace jRandomSkills.src.utils
         private static readonly string geoliteFilePath = Path.Combine(jRandomSkills.Instance.ModuleDirectory, "packages", "GeoLite2-Country.mmdb");
         public static readonly string[] chinaIsoCodes = ["CN", "TW", "HK", "MO", "SG"];
         public static readonly string[] portugalIsoCodes = ["PT", "BR", "AO", "CV", "GW", "MZ", "ST", "TL"];
+        public static readonly string[] frenchIsoCodes = ["FR", "MC", "HT"];
 
         private static string defaultLangCode = "en";
 
@@ -158,6 +159,8 @@ namespace jRandomSkills.src.utils
                         isoCode = "pt-br";
                     if (chinaIsoCodes.Contains(isoCode))
                         isoCode = "zh";
+                    if (frenchIsoCodes.Contains(isoCode))
+                        isoCode = "fr";
                     isoCode = isoCode.ToLower();
                     if (_translations.ContainsKey(isoCode))
                         return isoCode;

@@ -5,6 +5,7 @@ using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.utils;
+using System.Reflection.Metadata;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -443,6 +444,8 @@ namespace jRandomSkills
                 newLangCode = "pt-br";
             if (Localization.chinaIsoCodes.Contains(newLangCode.ToUpper()))
                 newLangCode = "zh";
+            if (Localization.frenchIsoCodes.Contains(newLangCode.ToUpper()))
+                newLangCode = "fr";
             newLangCode = newLangCode.ToLower();
             if (!Localization.HasTranslation(newLangCode))
                 newLangCode = "en";
