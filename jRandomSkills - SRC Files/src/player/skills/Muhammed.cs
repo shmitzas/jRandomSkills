@@ -1,23 +1,21 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
-using Microsoft.Extensions.Logging;
 using static jRandomSkills.jRandomSkills;
+using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 
 namespace jRandomSkills
 {
     public class Muhammed : ISkill
     {
         private const Skills skillName = Skills.Muhammed;
-        private static readonly float explosionRadius = Config.GetValue<float>(skillName, "explosionRadius");
-        private static readonly int explosionDamage = Config.GetValue<int>(skillName, "explosionDamage");
+        private static readonly QAngle angle = new(10, -5, 9);
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void PlayerDeath(EventPlayerDeath @event)
@@ -32,39 +30,50 @@ namespace jRandomSkills
 
         private static void SpawnExplosion(CCSPlayerController player)
         {
-            var heProjectile = Utilities.CreateEntityByName<CHEGrenadeProjectile>("hegrenade_projectile");
-            if (heProjectile == null || !heProjectile.IsValid) return;
-
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null) return;
 
             Vector pos = pawn.AbsOrigin;
             pos.Z += 10;
 
-            heProjectile.TicksAtZeroVelocity = 100;
-            heProjectile.TeamNum = player.TeamNum;
-            heProjectile.Damage = explosionDamage;
-            heProjectile.DmgRadius = (int)explosionRadius;
-            heProjectile.Teleport(pos, null, new Vector(0, 0, -10));
-            heProjectile.DispatchSpawn();
-            heProjectile.AcceptInput("InitializeSpawnFromWorld", player.PlayerPawn.Value, player.PlayerPawn.Value, "");
-            heProjectile.DetonateTime = 0;
-            Server.PrintToChatAll($" {ChatColors.DarkRed}► {ChatColors.Green}[{ChatColors.DarkRed} jRandomSkills {ChatColors.Green}] {ChatColors.DarkRed}{player.PlayerName}: {ChatColors.Lime}ALLAHU AKBAR!!!");
+            SkillUtils.CreateHEGrenadeProjectile(pos, angle, new Vector(0, 0, -10), player.TeamNum);
+           
+            foreach (var _p in Utilities.GetPlayers().Where(p => p.IsValid && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist && !p.IsBot))
+                SkillUtils.PrintToChat(_p, $"{ChatColors.DarkRed}{player.PlayerName}: {ChatColors.Lime}{_p.GetTranslation("muhammed_explosion")}", false);
 
             var fileNames = new[] { "radiobotfallback01", "radiobotfallback02", "radiobotfallback04" };
-            Instance.AddTimer(0.1f, () =>
+            var randomFile = fileNames[new Random().Next(fileNames.Length)];
+            player.ExecuteClientCommand($"play vo/agents/balkan/{randomFile}.vsnd");
+        }
+
+        public static void OnEntitySpawned(CEntityInstance entity)
+        {
+            if (entity.DesignerName != "hegrenade_projectile") return;
+
+            var heProjectile = entity.As<CBaseCSGrenadeProjectile>();
+            if (heProjectile == null || !heProjectile.IsValid || heProjectile.AbsRotation == null) return;
+
+            Server.NextFrame(() =>
             {
-                var randomFile = fileNames[new Random().Next(fileNames.Length)];
-                player.ExecuteClientCommand($"play vo/agents/balkan/{randomFile}.vsnd");
+                if (heProjectile == null || !heProjectile.IsValid) return;
+                if (!(NearlyEquals(angle.X, heProjectile.AbsRotation.X) && NearlyEquals(angle.Y, heProjectile.AbsRotation.Y) && NearlyEquals(angle.Z, heProjectile.AbsRotation.Z)))
+                    return;
+
+                heProjectile.TicksAtZeroVelocity = 100;
+                heProjectile.Damage = SkillsInfo.GetValue<int>(skillName, "explosionDamage");
+                heProjectile.DmgRadius = SkillsInfo.GetValue<float>(skillName, "explosionRadius");
+                heProjectile.DetonateTime = 0;
             });
         }
+
+        private static bool NearlyEquals(float a, float b, float epsilon = 0.001f) => Math.Abs(a - b) < epsilon;
 
         private static bool IsDeadPlayerValid(CCSPlayerController? player)
         {
             return player != null && player.IsValid && player.PlayerPawn?.Value != null;
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#F5CB42", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float explosionRadius = 500.0f, int explosionDamage = 999) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#F5CB42", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float explosionRadius = 500.0f, int explosionDamage = 999) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float ExplosionRadius { get; set; } = explosionRadius;
             public int ExplosionDamage { get; set; } = explosionDamage;

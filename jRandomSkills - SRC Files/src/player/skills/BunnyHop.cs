@@ -9,13 +9,10 @@ namespace jRandomSkills
     public class BunnyHop : ISkill
     {
         private const Skills skillName = Skills.BunnyHop;
-        private static readonly float maxSpeed = Config.GetValue<float>(skillName, "maxSpeed");
-        private static readonly float bunnyHopVelocity = Config.GetValue<float>(skillName, "jumpVelocity");
-        private static readonly float jumpBoost = Config.GetValue<float>(skillName, "jumpBoost");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void OnTick()
@@ -39,7 +36,8 @@ namespace jRandomSkills
 
             if (buttons.HasFlag(PlayerButtons.Jump) && flags.HasFlag(PlayerFlags.FL_ONGROUND) && !playerPawn.MoveType.HasFlag(MoveType_t.MOVETYPE_LADDER))
             {
-                playerPawn.AbsVelocity.Z = bunnyHopVelocity;
+                playerPawn.AbsVelocity.Z = SkillsInfo.GetValue<float>(skillName, "jumpVelocity");
+                var maxSpeed = SkillsInfo.GetValue<float>(skillName, "maxSpeed");
 
                 var vX = playerPawn.AbsVelocity.X;
                 var vY = playerPawn.AbsVelocity.Y;
@@ -48,7 +46,7 @@ namespace jRandomSkills
 
                 if (speed2D < maxSpeed)
                 {
-                    var newSpeed = Math.Min(speed2D * jumpBoost, maxSpeed);
+                    var newSpeed = Math.Min(speed2D * SkillsInfo.GetValue<float>(skillName, "jumpBoost"), maxSpeed);
                     scale = newSpeed / (speed2D == 0 ? 1 : speed2D);
                 }
                 else if (speed2D > maxSpeed)
@@ -59,7 +57,7 @@ namespace jRandomSkills
             }
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#d1430a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float maxSpeed = 500f, float jumpVelocity = 300f, float jumpBoost = 2f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#d1430a", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float maxSpeed = 500f, float jumpVelocity = 300f, float jumpBoost = 2f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float MaxSpeed { get; set; } = maxSpeed;
             public float JumpVelocity { get; set; } = jumpVelocity;

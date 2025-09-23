@@ -215,7 +215,7 @@
   "lifeswap_select_info": "Échanger la santé avec le joueur :",
 
   "longknife": "Couteau Long",
-  "longknife_desc": "Une attaque primaire au couteau inflige des dégâts quelle que soit la distance",
+  "longknife_desc": "Une attaque au couteau inflige des dégâts quelle que soit la distance",
 
   "longzeus": "Zeus Longue Portée",
   "longzeus_desc": "Le Zeus inflige des dégâts quelle que soit la distance",
@@ -237,6 +237,7 @@
 
   "muhammed": "Bombe",
   "muhammed_desc": "Vous explosez à votre mort, tuant les joueurs proches",
+  "muhammed_explosion": "ALLAHU AKBAR!!!",
 
   "ninja": "Ninja",
   "ninja_desc": "Rester immobile augmente votre invisibilité de 33%, s’accroupir de 33%, et tenir un couteau de 33%",
@@ -452,5 +453,7 @@
   "summary_start": "======RÉSUMÉ=DU=DERNIER=ROUND======",
   "summary_end": "===================================",
 
-  "menu_controlls": "<font class='fontSize-m' color='cyan'>W/S - Défilement</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>E - Sélectionner</font> <br>"
+  "menu_controlls_scroll": "W/S - Défilement",
+  "menu_controlls_padding": "   |   ",
+  "menu_controlls_select": "E - Sélectionner"
 }

@@ -4,27 +4,30 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class SwapPosition : ISkill
     {
         private const Skills skillName = Skills.SwapPosition;
-        private static readonly float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
-        private static readonly Dictionary<ulong, ZamianaMiejsc_PlayerInfo> SkillPlayerInfo = [];
+        private static readonly ConcurrentDictionary<ulong, ZamianaMiejsc_PlayerInfo> SkillPlayerInfo = [];
+        private static readonly object setLock = new();
         
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
         {
-            SkillPlayerInfo.Clear();
+            lock (setLock)
+                SkillPlayerInfo.Clear();
         }
 
         public static void OnTick()
         {
+            if (SkillUtils.IsFreezeTime()) return;
             foreach (var player in Utilities.GetPlayers())
             {
                 var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
@@ -39,19 +42,21 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo[player.SteamID] = new ZamianaMiejsc_PlayerInfo
+            var cooldownBeforeUse = SkillsInfo.GetValue<float>(skillName, "cooldownBeforeUse");
+            SkillPlayerInfo.TryAdd(player.SteamID, new ZamianaMiejsc_PlayerInfo
             {
                 SteamID = player.SteamID,
-                CanUse = true,
-                Cooldown = DateTime.MinValue,
+                CanUse = false,
+                Cooldown = cooldownBeforeUse <= 0 ? DateTime.MinValue : Event.freezeTimeEnd.AddSeconds(cooldownBeforeUse - SkillsInfo.GetValue<float>(skillName, "cooldown")),
                 LastClick = DateTime.MinValue,
                 FindedEnemy = false,
-            };
+            });
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.Remove(player.SteamID);
+            SkillPlayerInfo.TryRemove(player.SteamID, out _);
+            SkillUtils.ResetPrintHTML(player);
         }
 
         private static void UpdateHUD(CCSPlayerController player, ZamianaMiejsc_PlayerInfo skillInfo, bool showInfo)
@@ -59,29 +64,27 @@ namespace jRandomSkills
             float cooldown = 0;
             if (skillInfo != null)
             {
-                float time = (int)(skillInfo.Cooldown.AddSeconds(timerCooldown) - DateTime.Now).TotalSeconds;
+                float time = (int)Math.Ceiling((skillInfo.Cooldown.AddSeconds(SkillsInfo.GetValue<float>(skillName, "cooldown")) - DateTime.Now).TotalSeconds);
                 cooldown = Math.Max(time, 0);
 
                 if (cooldown == 0 && skillInfo?.CanUse == false)
                     skillInfo.CanUse = true;
             }
 
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(s => s.SteamID == player?.SteamID);
+            if (playerInfo == null) return;
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
-            string remainingLine = "";
+            if (cooldown == 0)
+            {
+                if (showInfo)
+                    playerInfo.PrintHTML = skillInfo != null && !skillInfo.FindedEnemy 
+                        ? $"<font color='#FF0000'>{player.GetTranslation("hud_info_no_enemy")}</font>" : null;
+                else
+                    SkillUtils.ResetPrintHTML(player);
+                return;
+            }
 
-            if (showInfo)
-                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{player.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>"
-                                : skillInfo != null && !skillInfo.FindedEnemy ? $"<font class='fontSize-m' color='#FF0000'>{player.GetTranslation("hud_info_no_enemy")}</font> <br>"
-                                : "";
-            else
-                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{player.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>" : "";
-
-            var hudContent = infoLine + skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            playerInfo.PrintHTML = $"{player.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}";
         }
 
         public static void UseSkill(CCSPlayerController player)
@@ -141,9 +144,10 @@ namespace jRandomSkills
             public bool FindedEnemy { get; set; }
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1466F5", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 30f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1466F5", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = true, bool needsTeammates = false, float cooldown = 30f, float cooldownBeforeUse = 10f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float Cooldown { get; set; } = cooldown;
+            public float CooldownBeforeUse { get; set; } = cooldownBeforeUse;
         }
     }
 }

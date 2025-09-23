@@ -4,22 +4,25 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class Glitch : ISkill
     {
         private const Skills skillName = Skills.Glitch;
-        private static readonly HashSet<CCSPlayerController> glitchedPlayers = [];
+        private static readonly ConcurrentDictionary<CCSPlayerController, byte> glitchedPlayers = [];
+        private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
         {
-            glitchedPlayers.Clear();
+            lock (setLock)
+                glitchedPlayers.Clear();
             foreach (var player in Utilities.GetPlayers())
             {
                 DisableSkill(player);
@@ -44,7 +47,7 @@ namespace jRandomSkills
                 if (playerInfo == null || playerInfo.Skill != skillName) continue;
                 var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
 
-                HashSet<(string, string)> menuItems = enemies.Select(e => (e.PlayerName, e.Index.ToString())).ToHashSet();
+                ConcurrentBag<(string, string)> menuItems = new(enemies.Select(e => (e.PlayerName, e.Index.ToString())));
                 SkillUtils.UpdateMenu(player, menuItems);
             }
         }
@@ -70,7 +73,7 @@ namespace jRandomSkills
                 return;
             }
 
-            glitchedPlayers.Add(enemy);
+            glitchedPlayers.TryAdd(enemy, 0);
             enemy.ReplicateConVar("sv_disable_radar", "1");
             playerInfo.SkillChance = 1;
             player.PrintToChat($" {ChatColors.Green}" + player.GetTranslation("glitch_player_info", enemy.PlayerName));
@@ -86,7 +89,7 @@ namespace jRandomSkills
             var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
             if (enemies.Length > 0)
             {
-                HashSet<(string, string)> menuItems = enemies.Select(e => (e.PlayerName, e.Index.ToString())).ToHashSet();
+                ConcurrentBag<(string, string)> menuItems = new(enemies.Select(e => (e.PlayerName, e.Index.ToString())));
                 SkillUtils.CreateMenu(player, menuItems);
             }
             else
@@ -96,11 +99,11 @@ namespace jRandomSkills
         public static void DisableSkill(CCSPlayerController player)
         {
             player.ReplicateConVar("sv_disable_radar", "0");
-            glitchedPlayers.Remove(player);
+            glitchedPlayers.TryRemove(player, out _);
             SkillUtils.CloseMenu(player);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#f542ef", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#f542ef", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
         }
     }

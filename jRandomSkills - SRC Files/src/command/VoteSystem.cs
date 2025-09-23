@@ -2,12 +2,13 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.utils;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public static class VoteSystem
     {
-        private static readonly HashSet<VoteData> votes = [];
+        private static readonly ConcurrentDictionary<VoteData, byte> votes = [];
 
         private static VoteData? CreateVote(VoteType voteType, string? args = null)
         {
@@ -19,7 +20,7 @@ namespace jRandomSkills
             if (vote.MinimumPlayersToStartVoting > Utilities.GetPlayers().Count(p => !p.IsBot))
                 return null;
 
-            votes.Add(vote);
+            votes.TryAdd(vote, 0);
             string commandName = $"!{VoteTypeCommands.GetCommand(vote.Type)?.Replace("css_", "")}{(!string.IsNullOrEmpty(vote?.Args) ? $" {vote?.Args}" : "")}";
 
             Localization.PrintTranslationToChatAll($" {ChatColors.Lime}{{0}}", ["vote_started"], [commandName]);
@@ -29,7 +30,7 @@ namespace jRandomSkills
             if (vote == null) return vote;
             jRandomSkills.Instance.AddTimer(vote.TimeToVote, () =>
             {
-                if (!votes.Contains(vote) || !vote.GetActive()) return;
+                if (!votes.ContainsKey(vote) || !vote.GetActive()) return;
                 vote.SetActive(false);
                 vote.TimeToNextSameVoting = vote.TimeToNextVoting;
                 Localization.PrintTranslationToChatAll($" {ChatColors.Red}{{0}}", ["vote_timeout"], [commandName]);
@@ -38,23 +39,23 @@ namespace jRandomSkills
             float[] times = [vote.TimeToVote, vote.TimeToVote + vote.TimeToNextVoting, vote.TimeToVote + vote.TimeToNextSameVoting];
             jRandomSkills.Instance.AddTimer(times.Max(), () =>
             {
-                if (!votes.Contains(vote)) return;
-                votes.Remove(vote);
+                if (!votes.ContainsKey(vote)) return;
+                votes.TryRemove(vote, out _);
             });
             return vote;
         }
 
         public static void Vote(this CCSPlayerController player, VoteType voteType, string? args = null)
         {
-            var vote = votes.FirstOrDefault(v => v.Type == voteType && v.Args == args && v.GetActive());
+            var vote = votes.Keys.FirstOrDefault(v => v.Type == voteType && v.Args == args && v.GetActive());
             if (vote == null)
             {
-                if (votes.Any(v => v.NextVoting() > DateTime.Now))
+                if (votes.Keys.Any(v => v.NextVoting() > DateTime.Now))
                 {
                     player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("vote_wait")}");
                     return;
                 }
-                else if (votes.Any(v => v.Type == voteType && v.NextSameVoting() > DateTime.Now))
+                else if (votes.Keys.Any(v => v.Type == voteType && v.NextSameVoting() > DateTime.Now))
                 {
                     player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("vote_same_wait")}");
                     return;
@@ -69,7 +70,7 @@ namespace jRandomSkills
                 return;
             }
 
-            if (!vote.PlayersVoted.Add(player.SteamID))
+            if (!vote.PlayersVoted.TryAdd(player.SteamID, 0))
                 player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("vote_alredy_voted")}");
             else CheckVote(vote);
         }
@@ -101,7 +102,7 @@ namespace jRandomSkills
         public int MinimumPlayersToStartVoting { get; set; } = minimumPlayersToStartVoting;
         public VoteType Type { get; set; } = type;
         public string? Args { get; set; } = args;
-        public HashSet<ulong> PlayersVoted { get; set; } = [];
+        public ConcurrentDictionary<ulong, byte> PlayersVoted { get; set; } = [];
 
         private DateTime CreatedTime { get; set; } = DateTime.Now;
 
@@ -138,15 +139,15 @@ namespace jRandomSkills
 
     public static class VoteTypeCommands
     {
-        private static readonly Dictionary<VoteType, string> names = new()
-        {
-            { VoteType.StartGame, "css_start" },
-            { VoteType.PauseGame, "css_pause" },
-            { VoteType.ShuffleTeam, "css_shuffle" },
-            { VoteType.SwapTeam, "css_swap" },
-            { VoteType.ChangeMap, "css_map" },
-            { VoteType.SetScore, "css_setscore" },
-        };
+        private static readonly ConcurrentDictionary<VoteType, string> names = new(
+        [
+            new KeyValuePair<VoteType, string>(VoteType.StartGame, "css_start"),
+            new KeyValuePair<VoteType, string>(VoteType.PauseGame, "css_pause"),
+            new KeyValuePair<VoteType, string>(VoteType.ShuffleTeam, "css_shuffle"),
+            new KeyValuePair<VoteType, string>(VoteType.SwapTeam, "css_swap"),
+            new KeyValuePair<VoteType, string>(VoteType.ChangeMap, "css_map"),
+            new KeyValuePair<VoteType, string>(VoteType.SetScore, "css_setscore"),
+        ]);
 
         public static string GetCommand(VoteType type) => names[type];
     }

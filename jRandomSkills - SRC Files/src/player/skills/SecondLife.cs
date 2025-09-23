@@ -3,18 +3,19 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class SecondLife : ISkill
     {
         private const Skills skillName = Skills.SecondLife;
-        private static readonly int secondLifeHealth = Config.GetValue<int>(skillName, "startHealth");
-        private static readonly HashSet<nint> secondLifePlayers = [];
+        private static readonly ConcurrentDictionary<nint, byte> secondLifePlayers = [];
+        private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
@@ -32,26 +33,29 @@ namespace jRandomSkills
             if (victimInfo == null || victimInfo.Skill != skillName) return;
 
             var victimPawn = victim!.PlayerPawn.Value;
-            if (victimPawn!.Health > 0 || secondLifePlayers.TryGetValue(victim.Handle, out _) == true)
+            if (victimPawn!.Health > 0 || secondLifePlayers.ContainsKey(victim.Handle))
                 return;
 
-            secondLifePlayers.Add(victim.Handle);
-            SetHealth(victim, secondLifeHealth);
-            var spawn = GetSpawnVector(victim);
-            if (spawn != null)
-                victimPawn.Teleport(spawn, victimPawn.AbsRotation, null);
+            lock (setLock)
+            {
+                secondLifePlayers.TryAdd(victim.Handle, 0);
+                SetHealth(victim, SkillsInfo.GetValue<int>(skillName, "startHealth"));
+                var spawn = GetSpawnVector(victim);
+                if (spawn != null)
+                    victimPawn.Teleport(spawn, victimPawn.AbsRotation, null);
+            }
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SetHealth(player, secondLifeHealth);
+            SetHealth(player, SkillsInfo.GetValue<int>(skillName, "startHealth"));
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            secondLifePlayers.Remove(player.Handle);
+            secondLifePlayers.TryRemove(player.Handle, out _);
             if (player.PlayerPawn.Value == null) return;
-            SetHealth(player, Math.Min(player.PlayerPawn.Value.Health + secondLifeHealth, 100));
+            SetHealth(player, Math.Min(player.PlayerPawn.Value.Health + SkillsInfo.GetValue<int>(skillName, "startHealth"), 100));
         }
 
         private static void SetHealth(CCSPlayerController player, int health)
@@ -81,7 +85,7 @@ namespace jRandomSkills
             return abs == null ? null : new Vector(abs.X, abs.Y, abs.Z);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#d41c1c", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int startHealth = 50) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#d41c1c", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, int startHealth = 50) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public int StartHealth { get; set; } = startHealth;
         }

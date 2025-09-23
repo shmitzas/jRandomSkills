@@ -1,9 +1,5 @@
-﻿using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Reflection;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -12,111 +8,67 @@ namespace jRandomSkills
     {
         private static readonly string configsFolder = Path.Combine(Instance.ModuleDirectory, "configs");
         private static readonly string configPath = Path.Combine(configsFolder, "config.json");
-        private static ConfigModel config = LoadConfig();
+        private static readonly object fileLock = new();
 
-        public static ConfigModel LoadedConfig => config;
+        private static SettingsModel config = LoadConfig();
+        public static SettingsModel LoadedConfig => config;
 
-        public static ConfigModel LoadConfig()
+        public static SettingsModel LoadConfig()
         {
-            if (!File.Exists(configPath))
+            lock (fileLock)
             {
-                Instance.Logger.LogInformation("Config file does not exist. Create a new config file...");
-                var defaultConfig = new ConfigModel();
-                SaveConfig(defaultConfig);
-                return defaultConfig;
-            }
+                var newConfig = new SettingsModel();
 
-            string json = File.ReadAllText(configPath);
-            var config = new ConfigModel();
+                if (!File.Exists(configPath))
+                {
+                    Instance.Logger.LogInformation("Config file does not exist. Create a new config file...");
+                    SaveConfig(newConfig);
+                    return config = newConfig;
+                }
 
-            try
-            {
-                var root = JsonConvert.DeserializeObject<JObject>(json);
-                if (root == null) return config;
+                try
+                {
+                    string json;
+                    using (var fs = new FileStream(configPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var sr = new StreamReader(fs))
+                        json = sr.ReadToEnd();
+                    newConfig = JsonConvert.DeserializeObject<SettingsModel>(json) ?? new SettingsModel();
+                }
+                catch
+                {
+                    Instance.Logger.LogError("Error when loading the config file.");
+                }
 
-                var settings = root["Settings"];
-                if (settings != null) JsonConvert.PopulateObject(settings.ToString(), config.Settings);
-
-                var skillsArray = (JArray?)root["SkillsInfo"];
-                if (skillsArray != null)
-                    foreach (var skillObj in skillsArray)
-                    {
-                        var name = skillObj["Name"];
-                        if (name == null) continue;
-                        var instance = config.SkillsInfo.FirstOrDefault(x => x.Name == name.ToString());
-                        if (instance != null) JsonConvert.PopulateObject(skillObj.ToString(), instance);
-                    }
-            }
-            catch
-            {
-                Instance.Logger.LogError("Error when loading the config file.");
-            }
-
-            return config;
-        }
-
-        public static void SaveConfig(ConfigModel config)
-        {
-            try
-            {
-                Directory.CreateDirectory(configsFolder);
-                string json = JsonConvert.SerializeObject(config, Formatting.Indented);
-                File.WriteAllText(configPath, json);
-            }
-            catch
-            {
-                Instance.Logger.LogError("Error when saving the config file.");
+                if (newConfig.DisplayAlwaysDescription)
+                    newConfig.SkillDescriptionDuration = 9999;
+                return config = newConfig;
             }
         }
 
-        public static T GetValue<T>(object skill, string key)
+        public static void SaveConfig(SettingsModel config)
         {
-            var skillConfig = config.SkillsInfo.FirstOrDefault(s => s.Name == skill.ToString());
-            if (skillConfig == null) return default!;
-
-            var prop = skillConfig.GetType().GetProperty(key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-            if (prop != null)
+            lock (fileLock)
             {
-                var value = prop.GetValue(skillConfig);
-                if (value == null) return default!;
-                else return (T)Convert.ChangeType(value, typeof(T));
-            }
+                try
+                {
+                    Directory.CreateDirectory(configsFolder);
+                    string json = JsonConvert.SerializeObject(config, Formatting.Indented);
 
-            var field = skillConfig.GetType().GetField(key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-            if (field != null)
-            {
-                var value = field.GetValue(skillConfig);
-                if (value == null) return default!;
-                else return (T)Convert.ChangeType(value, typeof(T));
-            }
+                    string tempPath = $"{configPath}.temp";
+                    File.WriteAllText(tempPath, json);
 
-            return default!;
-        }
-
-        public class ConfigModel
-        {
-            public Settings Settings { get; set; } = new Settings();
-            public DefaultSkillInfo[] SkillsInfo { get; set; }
-
-            public ConfigModel()
-            {
-                SkillsInfo = Assembly.GetExecutingAssembly().GetTypes()
-                    .Where(t => typeof(DefaultSkillInfo).IsAssignableFrom(t) && t.Name == "SkillConfig")
-                    .Select(t =>
-                    {
-                        var ctor = t.GetConstructors().FirstOrDefault(c => c.GetParameters().All(p => p.IsOptional));
-                        if (ctor == null) return null;
-                        var args = ctor.GetParameters().Select(p => Type.Missing).ToArray();
-                        return ctor.Invoke(args) as DefaultSkillInfo;
-                    })
-                    .Where(instance => instance != null)
-                    .ToArray()!;
+                    File.Copy(tempPath, configPath, overwrite: true);
+                    File.Delete(tempPath);
+                }
+                catch
+                {
+                    Instance.Logger.LogError("Error when saving the config file.");
+                }
             }
         }
 
-        public class Settings
+        public class SettingsModel
         {
-            public string LangCode { get; set; }
             public int GameMode { get; set; }
             public bool KillerSkillInfo { get; set; }
             public bool TeamMateSkillInfo { get; set; }
@@ -125,28 +77,17 @@ namespace jRandomSkills
             public string? AlternativeSkillButton { get; set; }
             public float SkillTimeBeforeStart { get; set; }
             public float SkillDescriptionDuration { get; set; }
+            public bool DisplayAlwaysDescription { get; set; }
             public bool DisableSpectateHUD { get; set; }
             public bool FlashingHtmlHudFix { get; set; }
             public bool CS2TraceRayDebug { get; set; }
+            public LanguageSystem LanguageSystem { get; set; }
+            public HtmlHudCustomisation HtmlHudCustomisation {  get; set; }
+            public NormalCommands NormalCommands { get; set; }
+            public VotingCommands VotingCommands { get; set; }
 
-            public NormalCommand SetSkillCommands { get; set; }
-            public NormalCommand SkillsListCommands { get; set; }
-            public NormalCommand UseSkillCommands { get; set; }
-            public NormalCommand HealCommands { get; set; }
-            public NormalCommand ConsoleCommands { get; set; }
-            public NormalCommand SetStaticSkillCommands { get; set; }
-            public NormalCommand ChangeLanguageCommands { get; set; }
-            public NormalCommand ReloadCommands { get; set; }
-            public VotingCommand StartGameCommands { get; set; }
-            public VotingCommand ChangeMapCommands { get; set; }
-            public VotingCommand SwapCommands { get; set; }
-            public VotingCommand ShuffleCommands { get; set; }
-            public VotingCommand PauseCommands { get; set; }
-            public VotingCommand SetScoreCommands { get; set; }
-
-            public Settings()
+            public SettingsModel()
             {
-                LangCode = "en";
                 GameMode = (int)GameModes.NoRepeat;
                 KillerSkillInfo = true;
                 TeamMateSkillInfo = true;
@@ -155,33 +96,118 @@ namespace jRandomSkills
                 AlternativeSkillButton = null;
                 SkillTimeBeforeStart = 7;
                 SkillDescriptionDuration = 7;
+                DisplayAlwaysDescription = false;
                 FlashingHtmlHudFix = true;
                 CS2TraceRayDebug = false;
                 DisableSpectateHUD = false;
 
-                SetSkillCommands = new NormalCommand("ustawskill, ustaw_skill, setskill, set_skill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能", "@jRandmosSkills/admin");
-                SkillsListCommands = new NormalCommand("supermoc, skille, listamocy, supermoce, skills, listaHabilidades, habilidades, 技能列表, 超能力列表", "@jRandmosSkills/admin");
-                UseSkillCommands = new NormalCommand("t, useSkill, usarHabilidade, 技能使用, 使用技能", "@jRandmosSkills/admin");
-                HealCommands = new NormalCommand("heal, ulecz, curar, tratar, 治疗, 治愈", "@jRandmosSkills/admin");
-                ConsoleCommands = new NormalCommand("console, sv, 控制台, 服务器", "@jRandmosSkills/root");
-                SetStaticSkillCommands = new NormalCommand("ustawstatycznyskill, ustaw_statyczny_skill, setstaticskill, set_static_skill", "@jRandmosSkills/admin");
-                ChangeLanguageCommands = new NormalCommand("lang, language, changelang, change_lang, jezyk, język", "");
-                ReloadCommands = new NormalCommand("reload, refresh", "@jRandmosSkills/admin");
+                LanguageSystem = new LanguageSystem
+                {
+                    DefaultLangCode = "en",
+                    DisableGeoLite = false,
+                    LanguageInfos =
+                    [
+                        new LanguageInfo("CN, TW, HK, MO, SG", "pt-br"),
+                        new LanguageInfo("PT, BR, AO, CV, GW, MZ, ST, TL", "zh"),
+                        new LanguageInfo("FR, MC, HT", "fr"),
+                        new LanguageInfo("PL", "pl"),
+                        new LanguageInfo("GB, US", "en")
+                    ]
+                };
 
-                StartGameCommands = new VotingCommand(true, "start, go, começar, iniciar, 开始, 启动", "@jRandmosSkills/admin", 15, 60, 15, 500, 2);
-                ChangeMapCommands = new VotingCommand( true, "map, mapa, changemap, zmienmape, zmienmape, mudarMapa, trocarMapa, 更换地图, 更改地图", "@jRandmosSkills/admin", 25, 90, 15, 500, 2);
-                SwapCommands = new VotingCommand(true, "swap, zmiana, trocar, 交换, 切换", "@jRandmosSkills/admin", 15, 90, 15, 20, 2);
-                ShuffleCommands = new VotingCommand(true, "shuffle, embaralhar, 随机排序, 洗牌", "@jRandmosSkills/admin", 15, 90, 15, 20, 2);
-                PauseCommands = new VotingCommand(true, "pause, unpause, pausar, despausar, 暂停, 恢复", "@jRandmosSkills/admin", 15, 60, 15, 2, 2);
-                SetScoreCommands = new VotingCommand(true, "setscore, wynik, definirPontuacao, configurarPontos, 设置分数, 调整分数", "@jRandmosSkills/root", 15, 90, 15, 90, 2);
+                HtmlHudCustomisation = new HtmlHudCustomisation
+                {
+                    HeaderLineColor = "#FFFFFF",
+                    HeaderLineSize = "ml",
+                    SkillLineSize = "l",
+                    InfoLineColor = "#FFFFFF",
+                    InfoLineSize = "sm",
+                    SkillDescriptionLineColor = "#999999",
+                    SkillDescriptionLineSize = "sm",
+                    WSADMenuSelectInfoLineColor = "#999999",
+                    WSADMenuSelectInfoLineSize = "sm",
+                    WSADMenuItemLineColor = "white",
+                    WSADMenuItemHoverLineColor = "orange",
+                    WSADMenuItemLineSize = "sm",
+                    WSADMenuControllsLineSize = "sm",
+                    WSADMenuControllsLineColor1 = "cyan",
+                    WSADMenuControllsLineColor2 = "white",
+                    WSADMenuControllsLineColor3 = "green",
+                };
+
+                NormalCommands = new NormalCommands
+                {
+                    SetSkillCommand = new NormalCommand("ustawskill, ustaw_skill, setskill, set_skill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能", "@jRandmosSkills/admin"),
+                    SkillsListCommand = new NormalCommand("supermoc, skille, listamocy, supermoce, skills, listaHabilidades, habilidades, 技能列表, 超能力列表", "@jRandmosSkills/admin"),
+                    UseSkillCommand = new NormalCommand("t, useSkill, usarHabilidade, 技能使用, 使用技能", "@jRandmosSkills/admin"),
+                    HealCommand = new NormalCommand("heal, ulecz, curar, tratar, 治疗, 治愈", "@jRandmosSkills/admin"),
+                    ConsoleCommand = new NormalCommand("console, sv, 控制台, 服务器", "@jRandmosSkills/root"),
+                    SetStaticSkillCommand = new NormalCommand("ustawstatycznyskill, ustaw_statyczny_skill, setstaticskill, set_static_skill", "@jRandmosSkills/admin"),
+                    ChangeLanguageCommand = new NormalCommand("lang, language, changelang, change_lang, jezyk, język", ""),
+                    ReloadCommand = new NormalCommand("reload, refresh", "@jRandmosSkills/admin"),
+                };
+
+                VotingCommands = new VotingCommands
+                {
+                    StartGameCommand = new StartGameCommand(true, "start, go, começar, iniciar, 开始, 启动", "@jRandmosSkills/admin", "mp_freezetime 15; mp_forcecamera 0; mp_overtime_enable 1; sv_cheats 0", "mp_freezetime 0; mp_forcecamera 0; mp_overtime_enable 1; sv_cheats 1", 15, 60, 15, 500, 2),
+                    ChangeMapCommand = new VotingCommand(true, "map, mapa, changemap, zmienmape, zmienmape, mudarMapa, trocarMapa, 更换地图, 更改地图", "@jRandmosSkills/admin", 25, 90, 15, 500, 2),
+                    SwapCommand = new VotingCommand(true, "swap, zmiana, trocar, 交换, 切换", "@jRandmosSkills/admin", 15, 90, 15, 20, 2),
+                    ShuffleCommand = new VotingCommand(true, "shuffle, embaralhar, 随机排序, 洗牌", "@jRandmosSkills/admin", 15, 90, 15, 20, 2),
+                    PauseCommand = new VotingCommand(true, "pause, unpause, pausar, despausar, 暂停, 恢复", "@jRandmosSkills/admin", 15, 60, 15, 2, 2),
+                    SetScoreCommand = new VotingCommand(true, "setscore, wynik, definirPontuacao, configurarPontos, 设置分数, 调整分数", "@jRandmosSkills/root", 15, 90, 15, 90, 2),
+                };
             }
+        }
 
+        public class HtmlHudCustomisation
+        {
+            public required string HeaderLineColor { get; set; }
+            public required string HeaderLineSize { get; set; }
+            public required string SkillLineSize { get; set; }
+            public required string InfoLineColor { get; set; }
+            public required string InfoLineSize { get; set; }
+            public required string SkillDescriptionLineColor { get; set; }
+            public required string SkillDescriptionLineSize { get; set; }
+            public required string WSADMenuSelectInfoLineColor { get; set; }
+            public required string WSADMenuSelectInfoLineSize { get; set; }
+            public required string WSADMenuItemLineColor { get; set; }
+            public required string WSADMenuItemHoverLineColor { get; set; }
+            public required string WSADMenuItemLineSize { get; set; }
+            public required string WSADMenuControllsLineSize { get; set; }
+            public required string WSADMenuControllsLineColor1 { get; set; }
+            public required string WSADMenuControllsLineColor2 { get; set; }
+            public required string WSADMenuControllsLineColor3 { get; set; }
+        }
+
+        public class LanguageSystem
+        {
+            public required string DefaultLangCode { get; set; }
+            public required bool DisableGeoLite { get; set; }
+            public required LanguageInfo[] LanguageInfos { get; set; }
+        }
+
+        public class LanguageInfo(string isoCodes, string fileName)
+        {
+            public string IsoCodes { get; set; } = isoCodes;
+            public string FileName { get; set; } = fileName;
         }
 
         public class NormalCommand(string alias, string permissions)
         {
             public string Alias { get; set; } = alias;
             public string Permissions { get; set; } = permissions;
+        }
+
+        public class NormalCommands
+        {
+            public required NormalCommand SetSkillCommand { get; set; }
+            public required NormalCommand SkillsListCommand { get; set; }
+            public required NormalCommand UseSkillCommand { get; set; }
+            public required NormalCommand HealCommand { get; set; }
+            public required NormalCommand ConsoleCommand { get; set; }
+            public required NormalCommand SetStaticSkillCommand { get; set; }
+            public required NormalCommand ChangeLanguageCommand { get; set; }
+            public required NormalCommand ReloadCommand { get; set; }
         }
 
         public class VotingCommand(bool enableVoting, string alias, string permissions, float timeToVote, float percentagesToSuccess, float timeToNextVoting, float timeToNextSameVoting, int minimumPlayersToStartVoting) : NormalCommand(alias, permissions)
@@ -194,13 +220,28 @@ namespace jRandomSkills
             public int MinimumPlayersToStartVoting { get; set; } = minimumPlayersToStartVoting;
         }
 
-        public class DefaultSkillInfo(Skills skill, bool active = true, string color = "#ffffff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false)
+        public class StartGameCommand(bool enableVoting, string alias, string permissions, string startParams, string svStartParams, float timeToVote, float percentagesToSuccess, float timeToNextVoting, float timeToNextSameVoting, int minimumPlayersToStartVoting)
         {
-            public bool NeedsTeammates { get; set; } = needsTeammates;
-            public int OnlyTeam { get; set; } = (int)onlyTeam;
-            public string Color { get; set; } = color;
-            public bool Active { get; set; } = active;
-            public string Name { get; set; } = skill.ToString();
+            public bool EnableVoting { get; set; } = enableVoting;
+            public string Alias { get; set; } = alias;
+            public string Permissions { get; set; } = permissions;
+            public string StartParams { get; set; } = startParams;
+            public string SVStartParams { get; set; } = svStartParams;
+            public float TimeToVote { get; set; } = timeToVote;
+            public float PercentagesToSuccess { get; set; } = percentagesToSuccess;
+            public float TimeToNextVoting { get; set; } = timeToNextVoting;
+            public float TimeToNextSameVoting { get; set; } = timeToNextSameVoting;
+            public int MinimumPlayersToStartVoting { get; set; } = minimumPlayersToStartVoting;
+        }
+
+        public class VotingCommands
+        {
+            public required StartGameCommand StartGameCommand { get; set; }
+            public required VotingCommand ChangeMapCommand { get; set; }
+            public required VotingCommand SwapCommand { get; set; }
+            public required VotingCommand ShuffleCommand { get; set; }
+            public required VotingCommand PauseCommand { get; set; }
+            public required VotingCommand SetScoreCommand { get; set; }
         }
 
         public enum GameModes

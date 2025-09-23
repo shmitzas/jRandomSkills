@@ -4,20 +4,18 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class Pilot : ISkill
     {
         private const Skills skillName = Skills.Pilot;
-        private static readonly float maximumFuel = Config.GetValue<float>(skillName, "maximumFuel");
-        private static readonly float fuelConsumption = Config.GetValue<float>(skillName, "fuelConsumption");
-        private static readonly float refuelling = Config.GetValue<float>(skillName, "refuelling");
-        private static readonly Dictionary<ulong, Pilot_PlayerInfo> PlayerPilotInfo = [];
+        private static readonly ConcurrentDictionary<ulong, Pilot_PlayerInfo> PlayerPilotInfo = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
@@ -37,24 +35,26 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            PlayerPilotInfo[player.SteamID] = new Pilot_PlayerInfo
+            PlayerPilotInfo.TryAdd(player.SteamID, new Pilot_PlayerInfo
             {
                 SteamID = player.SteamID,
-                Fuel = maximumFuel,
-            };
+                Fuel = SkillsInfo.GetValue<float>(skillName, "maximumFuel"),
+            });
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            PlayerPilotInfo.Remove(player.SteamID);
+            PlayerPilotInfo.TryRemove(player.SteamID, out _);
+            SkillUtils.ResetPrintHTML(player);
         }
 
         private static void HandlePilot(CCSPlayerController player)
         {
             var buttons = player.Buttons;
+            var maximumFuel = SkillsInfo.GetValue<float>(skillName, "maximumFuel");
             if (PlayerPilotInfo.TryGetValue(player.SteamID, out var pilotInfo))
             {
-                pilotInfo.Fuel = Math.Min(Math.Max(0, pilotInfo.Fuel - (buttons.HasFlag(PlayerButtons.Use) ? fuelConsumption : -refuelling)), maximumFuel);
+                pilotInfo.Fuel = Math.Min(Math.Max(0, pilotInfo.Fuel - (buttons.HasFlag(PlayerButtons.Use) ? SkillsInfo.GetValue<float>(skillName, "fuelConsumption") : -SkillsInfo.GetValue<float>(skillName, "refuelling"))), maximumFuel);
                 if (buttons.HasFlag(PlayerButtons.Use))
                     if (pilotInfo.Fuel > 0 && player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && !player.PlayerPawn.Value.IsDefusing)
                         ApplyPilotEffect(player);
@@ -64,23 +64,27 @@ namespace jRandomSkills
 
         private static void UpdateHUD(CCSPlayerController player, Pilot_PlayerInfo pilotInfo)
         {
+            if (pilotInfo == null) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(s => s.SteamID == player?.SteamID);
+            if (playerInfo == null) return;
+
+            var maximumFuel = SkillsInfo.GetValue<float>(skillName, "maximumFuel");
+            if (pilotInfo.Fuel == maximumFuel && playerInfo.SkillDescriptionHudExpired >= DateTime.Now)
+            {
+                playerInfo.PrintHTML = null;
+                return;
+            }
+
             var buttons = player.Buttons;
             float fuelPercentage = maximumFuel;
 
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
-
             string fuelColor = GetFuelColor(pilotInfo.Fuel);
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#ffffff'>{player.GetTranslation("pilot_hud_info")}:</font> <font color='{fuelColor}'>{(pilotInfo.Fuel/maximumFuel)*100:F0}%</font> <br>";
-
-            var hudContent = infoLine + skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            playerInfo.PrintHTML = $"{player.GetTranslation("pilot_hud_info")}: <font color='{fuelColor}'>{(pilotInfo.Fuel/maximumFuel)*100:F0}%</font>";
         }
 
         private static string GetFuelColor(float fuelPercentage)
         {
+            var maximumFuel = SkillsInfo.GetValue<float>(skillName, "maximumFuel");
             if (fuelPercentage > (maximumFuel/2f)) return "#00FF00";
             if (fuelPercentage > (maximumFuel/4f)) return "#FFFF00";
             return "#FF0000";
@@ -120,7 +124,7 @@ namespace jRandomSkills
             public float Fuel { get; set; }
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1466F5", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float maximumFuel = 150f, float fuelConsumption = .64f, float refuelling = .1f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1466F5", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = true, bool needsTeammates = false, float maximumFuel = 150f, float fuelConsumption = .64f, float refuelling = .1f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float MaximumFuel { get; set; } = maximumFuel;
             public float FuelConsumption { get; set; } = fuelConsumption;

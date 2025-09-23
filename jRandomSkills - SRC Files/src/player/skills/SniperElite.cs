@@ -3,14 +3,16 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class SniperElite : ISkill
     {
         private const Skills skillName = Skills.SniperElite;
-        private static readonly Dictionary<ulong, List<CEntityInstance>> playerAWPs = [];
-        private static readonly Dictionary<ulong, string> sniperElites = [];
+        private static readonly ConcurrentDictionary<ulong, List<CEntityInstance>> playerAWPs = [];
+        private static readonly ConcurrentDictionary<ulong, string> sniperElites = [];
+        private static readonly object setLock = new();
 
         private static readonly string[] rifles = [ "weapon_mp9", "weapon_mac10", "weapon_bizon", "weapon_mp7", "weapon_ump45", "weapon_p90",
         "weapon_mp5sd", "weapon_famas", "weapon_galilar", "weapon_m4a1", "weapon_m4a1_silencer", "weapon_ak47",
@@ -19,13 +21,17 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
         {
-            sniperElites.Clear();
-            playerAWPs.Clear();
+
+            lock (setLock)
+            {
+                sniperElites.Clear();
+                playerAWPs.Clear();
+            }
         }
 
         public static void PlayerDeath(EventPlayerDeath @event)
@@ -53,8 +59,8 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            sniperElites.Remove(player.SteamID);
-            playerAWPs.Remove(player.SteamID);
+            sniperElites.TryRemove(player.SteamID, out _);
+            playerAWPs.TryRemove(player.SteamID, out _);
         }
 
         public static void UseSkill(CCSPlayerController player)
@@ -79,7 +85,7 @@ namespace jRandomSkills
                 if (activeRifle != null && activeRifle.IsValid)
                     RemoveWeapon(player, activeRifle.DesignerName);
 
-                sniperElites[player.SteamID] = (activeRifle != null && activeRifle.IsValid) ? SkillUtils.GetDesignerName(activeRifle) : "weapon_awp";
+                sniperElites.TryAdd(player.SteamID, (activeRifle != null && activeRifle.IsValid) ? SkillUtils.GetDesignerName(activeRifle) : "weapon_awp");
                 Server.NextFrame(() => {
                     string weapon = holdedWeapon ?? "weapon_awp";
                     if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
@@ -90,7 +96,7 @@ namespace jRandomSkills
                         if (playerAWPs.TryGetValue(player.SteamID, out List<CEntityInstance>? value))
                             value.Add(createdWeapon);
                         else
-                            playerAWPs.Add(player.SteamID, [createdWeapon]);
+                            playerAWPs.TryAdd(player.SteamID, [createdWeapon]);
                     }
                     DeleteDroppedAWP(player);
                 });
@@ -149,7 +155,7 @@ namespace jRandomSkills
                     item.Value.AcceptInput("Kill");
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#e0873a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#e0873a", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
         }
     }

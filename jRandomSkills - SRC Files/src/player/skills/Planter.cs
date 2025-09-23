@@ -10,11 +10,10 @@ namespace jRandomSkills
     public class Planter : ISkill
     {
         private const Skills skillName = Skills.Planter;
-        private static readonly int extraC4BlowTime = Config.GetValue<int>(skillName, "extraC4BlowTime");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void BombPlanted(EventBombPlanted @event)
@@ -27,7 +26,7 @@ namespace jRandomSkills
 
             var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
             if (plantedBomb != null)
-                Server.NextFrame(() => plantedBomb.C4Blow = (float)Server.EngineTime + extraC4BlowTime);
+                Server.NextFrame(() => plantedBomb.C4Blow = (float)Server.EngineTime + SkillsInfo.GetValue<int>(skillName, "extraC4BlowTime"));
         }
 
         public static void DisableSkill(CCSPlayerController player)
@@ -43,12 +42,12 @@ namespace jRandomSkills
                 if (!Instance.IsPlayerValid(player)) continue;
                 var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
 
-                if (playerInfo?.Skill == skillName && Instance?.GameRules?.FreezePeriod == false)
+                if (playerInfo?.Skill == skillName)
                     Schema.SetSchemaValue<bool>(player!.PlayerPawn.Value!.Handle, "CCSPlayerPawn", "m_bInBombZone", true);
             }
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#7d7d7d", CsTeam onlyTeam = CsTeam.Terrorist, bool needsTeammates = false, int extraC4BlowTime = 60) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#7d7d7d", CsTeam onlyTeam = CsTeam.Terrorist, bool disableOnFreezeTime = true, bool needsTeammates = false, int extraC4BlowTime = 60) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public int ExtraC4BlowTime { get; set; } = extraC4BlowTime;
         }

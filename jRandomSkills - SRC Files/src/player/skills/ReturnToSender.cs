@@ -3,17 +3,18 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class ReturnToSender : ISkill
     {
         private const Skills skillName = Skills.ReturnToSender;
-        private static readonly HashSet<nint> playersToSender = [];
+        private static readonly ConcurrentDictionary<nint, byte> playersToSender = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
@@ -31,18 +32,18 @@ namespace jRandomSkills
             var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
             if (attackerInfo == null || attackerInfo.Skill != skillName) return;
 
-            if (playersToSender.TryGetValue(victim!.Handle, out _))
+            if (playersToSender.ContainsKey(victim!.Handle))
                 return;
 
             var spawn = GetSpawnVector(victim);
             if (spawn == null) return;
             victim!.PlayerPawn!.Value!.Teleport(spawn);
-            playersToSender.Add(victim.Handle);
+            playersToSender.TryAdd(victim.Handle, 0);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            playersToSender.Remove(player.Handle);
+            playersToSender.TryRemove(player.Handle, out _);
         }
 
         private static Vector? GetSpawnVector(CCSPlayerController player)
@@ -56,7 +57,7 @@ namespace jRandomSkills
             return null;
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#a68132", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#a68132", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
         }
     }

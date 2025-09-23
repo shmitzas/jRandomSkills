@@ -4,27 +4,30 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class PsychicDefusing : ISkill
     {
         private const Skills skillName = Skills.PsychicDefusing;
-        private static readonly Dictionary<CCSPlayerPawn, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static readonly ConcurrentDictionary<CCSPlayerPawn, PlayerSkillInfo> SkillPlayerInfo = [];
         private static Vector? bombLocation = null;
-        private static readonly float maxDefusingRange = Config.GetValue<float>(skillName, "maxDefusingRange");
-        private static readonly float defusingTime = Config.GetValue<float>(skillName, "defusingTime");
         private static readonly float tickRate = 64f;
+        private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
         {
-            SkillPlayerInfo.Clear();
-            bombLocation = null;
+            lock (setLock)
+            {
+                SkillPlayerInfo.Clear();
+                bombLocation = null;
+            }
         }
 
         public static void PlayerDeath(EventPlayerDeath @event)
@@ -37,7 +40,7 @@ namespace jRandomSkills
 
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill == skillName)
-                SkillPlayerInfo.Remove(pawn);
+                SkillPlayerInfo.TryRemove(pawn, out _);
         }
 
         public static void BombPlanted(EventBombPlanted _)
@@ -52,18 +55,25 @@ namespace jRandomSkills
             if (bombLocation == null) return;
             foreach (var skillInfo in SkillPlayerInfo)
             {
-                var player = skillInfo.Key;
+                var pawn = skillInfo.Key;
                 var info = skillInfo.Value;
 
-                if (player.AbsOrigin == null || SkillUtils.GetDistance(player.AbsOrigin, bombLocation) > maxDefusingRange)
+                var playerController = pawn.Controller.Value;
+                if (playerController == null || !pawn.Controller.IsValid) return;
+
+                var player = playerController.As<CCSPlayerController>();
+                if (player == null || !player.IsValid) return;
+
+                if (pawn.AbsOrigin == null || SkillUtils.GetDistance(pawn.AbsOrigin, bombLocation) > SkillsInfo.GetValue<float>(skillName, "maxDefusingRange"))
                 {
                     info.Defusing = false;
-                    info.DefusingTime = defusingTime;
+                    info.DefusingTime = SkillsInfo.GetValue<float>(skillName, "defusingTime");
+                    SkillUtils.ResetPrintHTML(player);
                     continue;
                 }
 
                 if (!info.Defusing)
-                    player.EmitSound("c4.disarmstart");
+                    pawn.EmitSound("c4.disarmstart");
                 info.Defusing = true;
                 info.DefusingTime -= (1f / tickRate);
 
@@ -75,13 +85,11 @@ namespace jRandomSkills
                         plantedBomb.AcceptInput("Kill");
                         SkillUtils.TerminateRound(CsTeam.CounterTerrorist);
                     }
-
+                    SkillUtils.ResetPrintHTML(player);
                     SkillPlayerInfo.Clear();
                 }
 
-                var playerController = player.Controller.Value;
-                if (playerController == null || !player.Controller.IsValid) return;
-                UpdateHUD(playerController.As<CCSPlayerController>(), info);
+                UpdateHUD(player, info);
             }
         }
 
@@ -89,35 +97,34 @@ namespace jRandomSkills
         {
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid) return;
-            SkillPlayerInfo[pawn] = new PlayerSkillInfo
+            SkillPlayerInfo.TryAdd(pawn, new PlayerSkillInfo
             {
                 SteamID = player.SteamID,
                 Defusing = false,
-                DefusingTime = defusingTime,
-            };
+                DefusingTime = SkillsInfo.GetValue<float>(skillName, "defusingTime"),
+            });
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
+            SkillUtils.ResetPrintHTML(player);
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid) return;
-            SkillPlayerInfo.Remove(pawn);
+            SkillPlayerInfo.TryRemove(pawn, out _);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
         {
             if (!skillInfo.Defusing) return;
-            int cooldown = (int)skillInfo.DefusingTime + 1;
+            int cooldown = (int)Math.Ceiling(skillInfo.DefusingTime);
 
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(s => s.SteamID == player?.SteamID);
+            if (playerInfo == null) return;
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
-            string remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{player.GetTranslation("psychicdefusing_hud_info", $"<font color='#00d5ff'>{cooldown}</font>")}</font> <br>" : "";
-
-            var hudContent = infoLine + skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            if (cooldown == 0)
+                playerInfo.PrintHTML = null;
+            else 
+                playerInfo.PrintHTML = $"{player.GetTranslation("psychicdefusing_hud_info", $"<font color='#00d5ff'>{cooldown}</font>")}";
         }
         public class PlayerSkillInfo
         {
@@ -126,7 +133,7 @@ namespace jRandomSkills
             public float DefusingTime { get; set; }
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#507529", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false, float maxDefusingRange = 80f, float defusingTime = 10f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#507529", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool disableOnFreezeTime = false, bool needsTeammates = false, float maxDefusingRange = 80f, float defusingTime = 10f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float MaxDefusingRange { get; set; } = maxDefusingRange;
             public float DefusingTime { get; set; } = defusingTime;

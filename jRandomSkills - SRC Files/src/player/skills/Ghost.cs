@@ -7,6 +7,7 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
@@ -25,14 +26,14 @@ namespace jRandomSkills
             "weapon_g3sg1", "weapon_nova", "weapon_xm1014", "weapon_mag7",
             "weapon_sawedoff", "weapon_m249", "weapon_negev"
         ];
-        private static readonly Dictionary<ulong, List<uint>> invisibleEntities = [];
+        private static readonly ConcurrentDictionary<ulong, List<uint>> invisibleEntities = [];
 
         public static void LoadSkill()
         {
-            if (Config.LoadedConfig.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
+            if (SkillsInfo.LoadedConfig.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
                 return;
 
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
@@ -85,10 +86,11 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
+            SkillUtils.ResetPrintHTML(player);
             SetPlayerVisibility(player, true);
             SetWeaponVisibility(player, true);
             SetWeaponAttack(player, false);
-            invisibleEntities.Remove(player.SteamID);
+            invisibleEntities.TryRemove(player.SteamID, out _);
         }
 
         public static void OnTick()
@@ -98,6 +100,9 @@ namespace jRandomSkills
                 var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                     UpdateHUD(player);
+                if (!player.PawnIsAlive)
+                    if (invisibleEntities.ContainsKey(player.SteamID))
+                        invisibleEntities.TryRemove(player.SteamID, out _);
             }
         }
 
@@ -121,10 +126,7 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn.Value!;
             if (playerPawn.WeaponServices == null) return;
 
-            // var color = visible ? Color.FromArgb(255, 255, 255, 255) : Color.FromArgb(0, 255, 255, 255);
-            // var shadowStrength = visible ? 1.0f : 0.0f;
-
-            invisibleEntities.Remove(player.SteamID);
+            invisibleEntities.TryRemove(player.SteamID, out _);
             foreach (var weapon in playerPawn.WeaponServices.MyWeapons)
             {
                 if (weapon != null && weapon.IsValid && weapon.Value != null && weapon.Value.IsValid)
@@ -137,17 +139,13 @@ namespace jRandomSkills
                                 items.Add(weapon.Index);
                         }
                         else
-                            invisibleEntities.Add(player.SteamID, [weapon.Index]);
+                            invisibleEntities.TryAdd(player.SteamID, [weapon.Index]);
                     }
-                    /*
-                    weapon.Value.Render = color;
-                    weapon.Value.ShadowStrength = shadowStrength;
-                    Utilities.SetStateChanged(weapon.Value, "CBaseModelEntity", "m_clrRender");*/
                 }
             }
 
             if (visible)
-                invisibleEntities.Remove(player.SteamID);
+                invisibleEntities.TryRemove(player.SteamID, out _);
         }
 
         private static void SetWeaponAttack(CCSPlayerController player, bool disableWeapon)
@@ -174,21 +172,20 @@ namespace jRandomSkills
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return;
 
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(s => s.SteamID == player?.SteamID);
+            if (playerInfo == null) return;
 
             var weapon = pawn.WeaponServices.ActiveWeapon.Value;
-            if (weapon == null || !weapon.IsValid || !disabledWeapons.Contains(weapon.DesignerName)) return;
+            if (weapon == null || !weapon.IsValid || !disabledWeapons.Contains(weapon.DesignerName))
+            {
+                playerInfo.PrintHTML = null;
+                return;
+            }
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>{player.GetTranslation("disabled_weapon")}</font> <br>";
-
-            var hudContent = infoLine + skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            playerInfo.PrintHTML = $"<font color='#FF0000'>{player.GetTranslation("disabled_weapon")}</font>";
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FFFFFF", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FFFFFF", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
         }
     }

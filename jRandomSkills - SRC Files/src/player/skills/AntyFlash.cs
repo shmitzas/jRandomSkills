@@ -12,7 +12,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void PlayerBlind(EventPlayerBlind @event)
@@ -31,7 +31,7 @@ namespace jRandomSkills
             if (playerInfo?.Skill == skillName)
                 playerPawn.FlashDuration = 0.0f;
             else if (attackerInfo?.Skill == skillName)
-                playerPawn.FlashDuration = 7.0f;
+                playerPawn.FlashDuration = SkillsInfo.GetValue<float>(skillName, "flashDuration");
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -39,8 +39,9 @@ namespace jRandomSkills
             SkillUtils.TryGiveWeapon(player, CsItem.FlashbangGrenade);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#D6E6FF", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#D6E6FF", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float flashDuration = 7f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
+            public float FlashDuration { get; set; } = flashDuration;
         }
     }
 }

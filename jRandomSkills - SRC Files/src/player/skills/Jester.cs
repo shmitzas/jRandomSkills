@@ -13,17 +13,20 @@ namespace jRandomSkills
         private const Skills skillName = Skills.Jester;
         private static bool jesterMode = false;
         private static bool jesterStarted = false;
-        private static readonly float minTime = Config.GetValue<float>(skillName, "minTime");
-        private static readonly float maxTime = Config.GetValue<float>(skillName, "maxTime");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
         {
             jesterStarted = false;
+        }
+
+        public static void DisableSkill(CCSPlayerController player)
+        {
+            SkillUtils.ResetPrintHTML(player);
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -57,6 +60,8 @@ namespace jRandomSkills
         {
             if (!jesterStarted)
             {
+                var minTime = SkillsInfo.GetValue<float>(skillName, "minTime");
+                var maxTime = SkillsInfo.GetValue<float>(skillName, "maxTime");
                 float wait = (float)Instance.Random.NextDouble() * (maxTime - minTime) + minTime;
                 Instance.AddTimer(wait, ChangeMode);
                 jesterStarted = true;
@@ -78,6 +83,8 @@ namespace jRandomSkills
                         player.ExecuteClientCommand("play sounds/weapons/taser/taser_charge_ready");
                     }
                 }
+                var minTime = SkillsInfo.GetValue<float>(skillName, "minTime");
+                var maxTime = SkillsInfo.GetValue<float>(skillName, "maxTime");
                 float wait = (float)Instance.Random.NextDouble() * (maxTime - minTime) + minTime;
                 Instance.AddTimer(wait, ChangeMode);
             }
@@ -92,6 +99,7 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
+            if (SkillUtils.IsFreezeTime()) return;
             foreach (var player in Utilities.GetPlayers().Where(p => !p.IsBot && p.PawnIsAlive))
             {
                 if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) continue;
@@ -103,18 +111,12 @@ namespace jRandomSkills
 
         private static void UpdateHUD(CCSPlayerController player)
         {
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
-
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#FFFFFF'>{player.GetTranslation("jester_mode")}: <font color='{(jesterMode ? "#00ff00" : "#ff0000")}'>{player.GetTranslation(jesterMode ? "jester_on" : "jester_off")}</font></font> <br>";
-
-            var hudContent = infoLine + skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(s => s.SteamID == player?.SteamID);
+            if (playerInfo == null) return;
+            playerInfo.PrintHTML = $"{player.GetTranslation("jester_mode")}: <font color='{(jesterMode ? "#00ff00" : "#ff0000")}'>{player.GetTranslation(jesterMode ? "jester_on" : "jester_off")}</font>";
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#8f108f", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float minTime = 10f, float maxTime = 25f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#8f108f", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float minTime = 10f, float maxTime = 25f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float MinTime { get; set; } = minTime;
             public float MaxTime { get; set; } = maxTime;

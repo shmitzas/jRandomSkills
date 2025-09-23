@@ -1,6 +1,7 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
+using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using CS2TraceRay.Class;
 using CS2TraceRay.Enum;
@@ -16,14 +17,63 @@ namespace jRandomSkills
     public class LongKnife : ISkill
     {
         private const Skills skillName = Skills.LongKnife;
-        private static readonly float maxDistance = Config.GetValue<float>(skillName, "maxDistance");
+
+        private static bool hooked = false;
+        private const int actionCode = 503;
+        private static readonly MemoryFunctionVoid<IntPtr, short> Shoot_Secondary = new(GameData.GetSignature("Shoot_Secondary"));
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
-        public unsafe static void WeaponFire(EventWeaponFire @event)
+        public static void NewRound()
+        {
+            Shoot_Secondary.Unhook(ShootSecondary, HookMode.Pre);
+        }
+
+        public static void EnableSkill(CCSPlayerController _)
+        {
+            if (hooked) return;
+            hooked = true;
+            Shoot_Secondary.Hook(ShootSecondary, HookMode.Pre);
+        }
+
+        public static void DisableSkill(CCSPlayerController player)
+        {
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
+
+            playerInfo.Skill = Skills.None;
+            if (!Instance.SkillPlayer.Any(p => p.Skill == skillName))
+            {
+                Shoot_Secondary.Unhook(ShootSecondary, HookMode.Pre);
+                hooked = false;
+            }
+        }
+
+        public static HookResult ShootSecondary(DynamicHook hook)
+        {
+            var weapon = hook.GetParam<CBasePlayerWeapon>(0);
+            var action = hook.GetParam<short>(1);
+
+            if (action != actionCode || weapon?.DesignerName != "weapon_knife") return HookResult.Continue;
+            if (weapon.OwnerEntity.Value == null || !weapon.OwnerEntity.Value.IsValid) return HookResult.Continue;
+
+            var pawn = weapon.OwnerEntity.Value.As<CCSPlayerPawn>();
+            if (pawn == null || !pawn.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return HookResult.Continue;
+
+            var player = pawn.Controller.Value.As<CCSPlayerController>();
+            if (player == null || !player.IsValid) return HookResult.Continue;
+
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null || playerInfo.Skill != skillName) return HookResult.Continue;
+
+            KnifeHit(player, true);
+            return HookResult.Continue;
+        }
+
+        public static void WeaponFire(EventWeaponFire @event)
         {
             var player = @event.Userid;
             if (!Instance.IsPlayerValid(player)) return;
@@ -37,8 +87,16 @@ namespace jRandomSkills
             var activeWeapon = pawn.WeaponServices.ActiveWeapon.Value;
             if (activeWeapon == null || !activeWeapon.IsValid || activeWeapon.DesignerName != "weapon_knife") return;
 
+            KnifeHit(player, false);
+        }
+
+        private unsafe static void KnifeHit(CCSPlayerController player, bool heavyHit)
+        {
+            var pawn = player!.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null) return;
+
             Vector eyePos = new(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + pawn.ViewOffset.Z);
-            Vector endPos = eyePos + SkillUtils.GetForwardVector(pawn.EyeAngles) * maxDistance;
+            Vector endPos = eyePos + SkillUtils.GetForwardVector(pawn.EyeAngles) * SkillsInfo.GetValue<float>(skillName, "maxDistance");
 
             Ray ray = new(Vector3.Zero);
             CTraceFilter filter = new(pawn.Index, pawn.Index)
@@ -55,9 +113,9 @@ namespace jRandomSkills
 
             filter.m_nHierarchyIds[0] = pawn.GetHierarchyId();
             filter.m_nHierarchyIds[1] = 0;
-            CGameTrace trace =  TraceRay.TraceHull(eyePos, endPos, filter, ray);
+            CGameTrace trace = TraceRay.TraceHull(eyePos, endPos, filter, ray);
 
-            if (Config.LoadedConfig.Settings.CS2TraceRayDebug)
+            if (Config.LoadedConfig.CS2TraceRayDebug)
             {
                 CreateLine(eyePos, endPos, Color.FromArgb(255, 255, 255, 0));
                 CreateLine(new Vector(trace.StartPos.X, trace.StartPos.Y, trace.StartPos.Z), new Vector(trace.EndPos.X, trace.EndPos.Y, trace.EndPos.Z), Color.FromArgb(255, 255, 0, 0));
@@ -77,7 +135,7 @@ namespace jRandomSkills
 
             if (target.Handle == player.Handle || target.PlayerPawn.Value == null || !target.PlayerPawn.Value.IsValid || trace.Distance() <= 70) return;
             target.PlayerPawn.Value.EmitSound("Player.DamageBody.Onlooker");
-            SkillUtils.TakeHealth(target.PlayerPawn.Value, Instance.Random.Next(21, 34));
+            SkillUtils.TakeHealth(target.PlayerPawn.Value, heavyHit ? Instance.Random.Next(45, 55) : Instance.Random.Next(21, 34));
         }
 
         private static void CreateLine(Vector start, Vector end, Color color)
@@ -98,7 +156,7 @@ namespace jRandomSkills
             beam.AcceptInput("FollowEntity", beam, null!, "");
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#c9f8ff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float maxDistance = 4096f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#c9f8ff", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float maxDistance = 4096f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float MaxDistance { get; set; } = maxDistance;
         }

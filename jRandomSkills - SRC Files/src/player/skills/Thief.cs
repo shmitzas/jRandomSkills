@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
@@ -13,7 +14,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"), false);
         }
 
         public static void OnTick()
@@ -27,7 +28,7 @@ namespace jRandomSkills
                 if (playerInfo == null || playerInfo.Skill != skillName) continue;
                 var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
 
-                HashSet<(string, string)> menuItems = [];
+                ConcurrentBag<(string, string)> menuItems = [];
                 foreach (var enemy in enemies)
                 {
                     var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
@@ -75,7 +76,7 @@ namespace jRandomSkills
             if (enemies.Length > 0)
             {
                 List<string> skills = [];
-                HashSet<(string, string)> menuItems = [];
+                ConcurrentBag<(string, string)> menuItems = [];
                 foreach (var enemy in enemies)
                 {
                     var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
@@ -137,6 +138,14 @@ namespace jRandomSkills
                 SkillUtils.CloseMenu(player);
                 Instance.SkillAction(enemySkill.ToString(), "EnableSkill", [player]);
                 player.PrintToChat($" {ChatColors.Green}" + player.GetTranslation("thief_player_info", enemy.PlayerName));
+
+                if (SkillsInfo.GetValue<bool>(enemySkill, "disableOnFreezeTime") && SkillUtils.IsFreezeTime())
+                    Instance?.AddTimer(Math.Max((float)(Event.freezeTimeEnd - DateTime.Now).TotalSeconds, 0), () => {
+                        if (Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID && p.Skill == enemySkill) == null) return;
+                        Instance?.SkillAction(enemySkill.ToString(), "EnableSkill", new[] { player });
+                    });
+                else
+                    Instance?.SkillAction(enemySkill.ToString(), "EnableSkill", new[] { player });
             });
 
             Instance.AddTimer(.1f, () =>
@@ -148,7 +157,7 @@ namespace jRandomSkills
             });
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#adaec7", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#adaec7", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
         }
     }

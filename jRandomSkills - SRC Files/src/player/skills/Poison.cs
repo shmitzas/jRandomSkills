@@ -4,35 +4,36 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class Poison : ISkill
     {
         private const Skills skillName = Skills.Poison;
-        private static readonly float cooldown = Config.GetValue<float>(skillName, "Cooldown");
-        private static readonly int healthToDamage = Config.GetValue<int>(skillName, "Damage");
-        private static readonly HashSet<CCSPlayerController> poisonedPlayers = [];
+        private static readonly ConcurrentDictionary<CCSPlayerController, byte> poisonedPlayers = [];
+        private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"), false);
         }
 
         public static void NewRound()
         {
-            poisonedPlayers.Clear();
+            lock (setLock)
+                poisonedPlayers.Clear();
         }
 
         public static void OnTick()
         {
-            if (Server.TickCount % (int)(64 * cooldown) == 0)
+            if (Server.TickCount % (int)(64 * SkillsInfo.GetValue<float>(skillName, "Cooldown")) == 0)
             {
-                foreach (var player in poisonedPlayers)
+                foreach (var player in poisonedPlayers.Keys)
                 {
                     var pawn = player.PlayerPawn.Value;
                     if (pawn == null || !pawn.IsValid) continue;
-                    SkillUtils.TakeHealth(pawn, healthToDamage);
+                    SkillUtils.TakeHealth(pawn, SkillsInfo.GetValue<int>(skillName, "Damage"));
                 }
             }
 
@@ -45,7 +46,7 @@ namespace jRandomSkills
                 if (playerInfo == null || playerInfo.Skill != skillName) continue;
                 var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
 
-                HashSet<(string, string)> menuItems = enemies.Select(e => (e.PlayerName, e.Index.ToString())).ToHashSet();
+                ConcurrentBag<(string, string)> menuItems = new(enemies.Select(e => (e.PlayerName, e.Index.ToString())));
                 SkillUtils.UpdateMenu(player, menuItems);
             }
         }
@@ -71,7 +72,7 @@ namespace jRandomSkills
                 return;
             }
 
-            poisonedPlayers.Add(enemy);
+            poisonedPlayers.TryAdd(enemy, 0);
             playerInfo.SkillChance = 1;
             player.PrintToChat($" {ChatColors.Green}" + player.GetTranslation("poison_player_info", enemy.PlayerName));
             enemy.PrintToChat($" {ChatColors.Red}" + player.GetTranslation("poison_enemy_info"));
@@ -86,7 +87,7 @@ namespace jRandomSkills
             var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
             if (enemies.Length > 0)
             {
-                HashSet<(string, string)> menuItems = enemies.Select(e => (e.PlayerName, e.Index.ToString())).ToHashSet();
+                ConcurrentBag<(string, string)> menuItems = new(enemies.Select(e => (e.PlayerName, e.Index.ToString())));
                 SkillUtils.CreateMenu(player, menuItems);
             }
             else
@@ -95,11 +96,11 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            poisonedPlayers.Remove(player);
+            poisonedPlayers.TryRemove(player, out _);
             SkillUtils.CloseMenu(player);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#902eff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 1, int damage = 1) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#902eff", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = true, bool needsTeammates = false, float cooldown = 1, int damage = 1) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public int Damage { get; set; } = damage;
             public float Cooldown { get; set; } = cooldown;

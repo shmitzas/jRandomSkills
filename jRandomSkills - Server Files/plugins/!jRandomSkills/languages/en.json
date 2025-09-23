@@ -215,7 +215,7 @@
   "lifeswap_select_info": "Swap health with player:",
 
   "longknife": "Long Knife",
-  "longknife_desc": "A primary knife attack deals damage regardless of distance",
+  "longknife_desc": "A knife attack deals damage regardless of distance",
 
   "longzeus": "Long Zeus",
   "longzeus_desc": "Zeus deals damage regardless of distance",
@@ -237,6 +237,7 @@
 
   "muhammed": "Muhammed",
   "muhammed_desc": "You explode upon death, killing nearby players",
+  "muhammed_explosion": "ALLAHU AKBAR!!!",
 
   "ninja": "Ninja",
   "ninja_desc": "Standing still increases your invisibility by 33%, crouching by 33%, and holding a knife by 33%",
@@ -452,5 +453,7 @@
   "summary_start": "======SUMMARY=OF=THE=LAST=ROUND======",
   "summary_end": "=======================================",
 
-  "menu_controlls": "<font class='fontSize-m' color='cyan'>W/S - Scroll</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>E - Select</font> <br>"
+  "menu_controlls_scroll": "W/S - Scroll",
+  "menu_controlls_padding": "   |   ",
+  "menu_controlls_select": "E - Select"
 }

@@ -5,21 +5,20 @@ using jRandomSkills.src.player;
 using MaxMind.Db;
 using Newtonsoft.Json;
 using System.Net;
+using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 
 namespace jRandomSkills.src.utils
 {
     public static class Localization
     {
         private static readonly string languagesFolderPath = Path.Combine(jRandomSkills.Instance.ModuleDirectory, "languages");
-        private static readonly Dictionary<string, Dictionary<string, string>> _translations = [];
+        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, string>> _translations = [];
 
         private static readonly string playersLanguageFileName = "playersLanguage.json";
         private static readonly string configsFolderPath = Path.Combine(jRandomSkills.Instance.ModuleDirectory, "configs");
-        private static Dictionary<ulong, string> _playersLanguage = [];
+        private static ConcurrentDictionary<ulong, string> _playersLanguage = [];
         private static readonly string geoliteFilePath = Path.Combine(jRandomSkills.Instance.ModuleDirectory, "packages", "GeoLite2-Country.mmdb");
-        public static readonly string[] chinaIsoCodes = ["CN", "TW", "HK", "MO", "SG"];
-        public static readonly string[] portugalIsoCodes = ["PT", "BR", "AO", "CV", "GW", "MZ", "ST", "TL"];
-        public static readonly string[] frenchIsoCodes = ["FR", "MC", "HT"];
 
         private static string defaultLangCode = "en";
 
@@ -34,7 +33,7 @@ namespace jRandomSkills.src.utils
         
         private static void SetLangCode()
         {
-            defaultLangCode = Config.LoadedConfig.Settings.LangCode;
+            defaultLangCode = Config.LoadedConfig.LanguageSystem.DefaultLangCode;
         }
 
         private static void LoadAllLanguages()
@@ -51,29 +50,67 @@ namespace jRandomSkills.src.utils
             if (!File.Exists(langPath))
                 return;
 
-            var code = Path.GetFileNameWithoutExtension(langPath);
+            var code = Path.GetFileNameWithoutExtension(langPath).ToLower();
             var jsonText = File.ReadAllText(langPath);
-            var translations = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonText);
+            var translations = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(jsonText);
 
             if (translations != null)
-                _translations[code] = translations;
+                _translations.AddOrUpdate(code, translations, (k, v) => translations);
         }
 
         public static bool HasTranslation(string code)
         {
-            return _translations.ContainsKey(code);
+            return _translations.ContainsKey(code.ToLower());
         }
 
-        public static string GetSkillName(this CCSPlayerController player, Skills skill)
+        public static string GetSkillName(this CCSPlayerController player, Skills skill, float? chance = null)
         {
             string langCode = GetLangCode(player);
-            return GetTranslation(skill.ToString().ToLower(), langCode);
+            if (chance == null)
+            {
+                var translation = GetTranslation(skill.ToString().ToLower(), langCode);
+                if (!translation.Contains("{0}"))
+                    return translation;
+                
+                if (!translation.Contains(' '))
+                    return translation.Replace("{0}", "").Trim();
+                
+                var parts = translation.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var filtered = parts.Where(p => !p.Contains("{0}"));
+                return string.Join(' ', filtered);
+            }
+
+            var value = Math.Round((double)(chance ?? 1), 2);
+            var skillNameText = GetTranslation(skill.ToString().ToLower(), langCode, value);
+            if (skillNameText.Contains('%')) skillNameText = skillNameText.Replace(value.ToString(), Math.Round(value * 100, 0).ToString());
+            return skillNameText;
         }
 
-        public static string GetSkillDescription(this CCSPlayerController player, Skills skill)
+        public static string GetSkillDescription(this CCSPlayerController player, Skills skill, float? chance = null)
         {
             string langCode = GetLangCode(player);
-            return GetTranslation($"{skill.ToString().ToLower()}_desc", langCode);
+            if (chance == null)
+            {
+                var translation = GetTranslation($"{skill.ToString().ToLower()}_desc", langCode);
+                if (!translation.Contains("{0}"))
+                    return translation;
+
+                if (!translation.Contains(' '))
+                    return translation.Replace("{0}", "").Trim();
+
+                var parts = translation.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var filtered = parts.Where(p => !p.Contains("{0}"));
+                return string.Join(' ', filtered);
+            }
+
+            var skillName = $"{skill.ToString().ToLower()}_desc2";
+            var value = Math.Round((double)(chance ?? 1), 2);
+            var desc2 = GetTranslation(skillName, langCode, value);
+
+            var skilLDescription = desc2 == skillName
+                ? player.GetTranslation($"{skill.ToString().ToLower()}_desc")
+                : (desc2.Contains('%') ? desc2.Replace(value.ToString(), Math.Round(value * 100, 0).ToString()) : desc2);
+            return skilLDescription;
         }
 
         public static void PrintTranslationToChatAll(string message, string[]? key, params object[][]? args)
@@ -112,9 +149,10 @@ namespace jRandomSkills.src.utils
                     return translation;
                 else
                 {
-                    string output = string.Format(translation, args).Replace("CHATCOLORS.RED", ChatColors.Red.ToString());
-                    if (Config.LoadedConfig.Settings.AlternativeSkillButton != null)
-                        output = output.Replace("css_useSkill", $"css_useSkill/{Config.LoadedConfig.Settings.AlternativeSkillButton}");
+                    string output = args.Length == 0 ? translation : string.Format(translation, args);
+                    output = output.Replace("CHATCOLORS.RED", ChatColors.Red.ToString());
+                    if (Config.LoadedConfig.AlternativeSkillButton != null)
+                        output = output.Replace("css_useSkill", $"css_useSkill/{Config.LoadedConfig.AlternativeSkillButton}");
                     return output;
                 }
 
@@ -128,6 +166,9 @@ namespace jRandomSkills.src.utils
             string? fileLangCode = GetLangCodeFromFile(player.SteamID);
             if (!string.IsNullOrEmpty(fileLangCode))
                 return fileLangCode;
+
+            if (Config.LoadedConfig.LanguageSystem.DisableGeoLite == true)
+                return defaultLangCode;
 
             string? geoliteLandCode = GetLangCodeFromDatabase(GetPlayerIP(player)) ?? defaultLangCode;
             ChangePlayerLanguage(player, geoliteLandCode);
@@ -149,21 +190,18 @@ namespace jRandomSkills.src.utils
             if (!File.Exists(geoliteFilePath)) return null;
             using var reader = new Reader(geoliteFilePath);
             var ip = IPAddress.Parse(playerIP);
-            var data = reader.Find<Dictionary<string, object>>(ip);
-            if (data == null || data.Count == 0) return null;
+            var data = reader.Find<ConcurrentDictionary<string, object>>(ip);
+            if (data == null || data.IsEmpty) return null;
 
-            if (data.TryGetValue("country", out var _country) && _country is Dictionary<string, object> country)
+            if (data.TryGetValue("country", out var _country) && _country is ConcurrentDictionary<string, object> country)
                 if (country.TryGetValue("iso_code", out var _isoCode) && _isoCode is string isoCode)
                 {
-                    if (portugalIsoCodes.Contains(isoCode))
-                        isoCode = "pt-br";
-                    if (chinaIsoCodes.Contains(isoCode))
-                        isoCode = "zh";
-                    if (frenchIsoCodes.Contains(isoCode))
-                        isoCode = "fr";
-                    isoCode = isoCode.ToLower();
-                    if (_translations.ContainsKey(isoCode))
-                        return isoCode;
+                    string fileName = Config.LoadedConfig.LanguageSystem.DefaultLangCode;
+                    foreach (var langInfo in Config.LoadedConfig.LanguageSystem.LanguageInfos)
+                        if (langInfo.IsoCodes.Contains(isoCode))
+                            fileName = langInfo.FileName;
+                    if (_translations.ContainsKey(fileName))
+                        return fileName;
                 }
             return null;
         }
@@ -175,7 +213,7 @@ namespace jRandomSkills.src.utils
                 return;
 
             var jsonText = File.ReadAllText(filePath);
-            _playersLanguage = JsonConvert.DeserializeObject<Dictionary<ulong, string>>(jsonText) ?? [];
+            _playersLanguage = JsonConvert.DeserializeObject<ConcurrentDictionary<ulong, string>>(jsonText) ?? [];
         }
 
         private static void SavePlayersLanguage()
@@ -198,7 +236,7 @@ namespace jRandomSkills.src.utils
         public static void ChangePlayerLanguage(CCSPlayerController? player, string language)
         {
             if (player == null || !player.IsValid) return;
-            _playersLanguage[player.SteamID] = language;
+            _playersLanguage.AddOrUpdate(player.SteamID, language, (k,v) => language);
             SavePlayersLanguage();
         }
     }

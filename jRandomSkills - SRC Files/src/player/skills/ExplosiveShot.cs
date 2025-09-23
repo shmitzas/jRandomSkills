@@ -5,49 +5,66 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
+using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 
 namespace jRandomSkills
 {
     public class ExplosiveShot : ISkill
     {
         private const Skills skillName = Skills.ExplosiveShot;
-        private static readonly float damage = Config.GetValue<float>(skillName, "damage");
-        private static readonly float damageRadius = Config.GetValue<float>(skillName, "damageRadius");
+
+        private static readonly QAngle angle = new(5, 10, -4);
+        private static int lastTick = 0;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"), false);
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
-            float newChance = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
+            float newChance = (float)Instance.Random.NextDouble() * (SkillsInfo.GetValue<float>(skillName, "ChanceTo") - SkillsInfo.GetValue<float>(skillName, "ChanceFrom")) + SkillsInfo.GetValue<float>(skillName, "ChanceFrom");
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
             newChance = (float)Math.Round(newChance);
-            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetTranslation("explosiveshot")}{ChatColors.Lime}: " + player.GetTranslation("explosiveshot_desc2", newChance), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(skillName)}{ChatColors.Lime}: {player.GetSkillDescription(skillName, newChance)}", false);
         }
 
         private static void SpawnExplosion(Vector vector)
         {
-            var heProjectile = Utilities.CreateEntityByName<CHEGrenadeProjectile>("hegrenade_projectile");
-            if (heProjectile == null || !heProjectile.IsValid) return;
-
-            Vector pos = vector;
-            heProjectile.TicksAtZeroVelocity = 100;
-            heProjectile.TeamNum = (byte)CsTeam.None;
-            heProjectile.Damage = damage;
-            heProjectile.DmgRadius = damageRadius;
-            heProjectile.Teleport(pos, null, new Vector(0, 0, -10));
-            heProjectile.DispatchSpawn();
-            heProjectile.AcceptInput("InitializeSpawnFromWorld", null, null, "");
-            heProjectile.DetonateTime = 0;
+            lastTick = Server.TickCount;
+            SkillUtils.CreateHEGrenadeProjectile(vector, angle, new Vector(0, 0, 0), 0);
         }
+
+        public static void OnEntitySpawned(CEntityInstance entity)
+        {
+            if (entity.DesignerName != "hegrenade_projectile") return;
+
+            var heProjectile = entity.As<CBaseCSGrenadeProjectile>();
+            if (heProjectile == null || !heProjectile.IsValid || heProjectile.AbsRotation == null) return;
+
+            Server.NextFrame(() =>
+            {
+                if (heProjectile == null || !heProjectile.IsValid) return;
+                if (!(NearlyEquals(angle.X, heProjectile.AbsRotation.X) && NearlyEquals(angle.Y, heProjectile.AbsRotation.Y) && NearlyEquals(angle.Z, heProjectile.AbsRotation.Z)))
+                    return;
+
+                heProjectile.TicksAtZeroVelocity = 100;
+                heProjectile.TeamNum = (byte)CsTeam.None;
+                heProjectile.Damage = SkillsInfo.GetValue<float>(skillName, "damage");
+                heProjectile.DmgRadius = SkillsInfo.GetValue<float>(skillName, "damageRadius");
+                heProjectile.DetonateTime = 0;
+            });
+        }
+
+        private static bool NearlyEquals(float a, float b, float epsilon = 0.001f) => Math.Abs(a -b) < epsilon;
 
         public static void OnTakeDamage(DynamicHook h)
         {
+            if (lastTick == Server.TickCount) return;
+
             CEntityInstance param = h.GetParam<CEntityInstance>(0);
             CTakeDamageInfo param2 = h.GetParam<CTakeDamageInfo>(1);
 
@@ -69,7 +86,7 @@ namespace jRandomSkills
                 SpawnExplosion(param2.DamagePosition);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#9c0000", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float damage = 25f, float damageRadius = 210f, float chanceFrom = .15f, float chanceTo = .3f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#9c0000", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float damage = 25f, float damageRadius = 210f, float chanceFrom = .15f, float chanceTo = .3f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float Damage { get; set; } = damage;
             public float DamageRadius { get; set; } = damageRadius;

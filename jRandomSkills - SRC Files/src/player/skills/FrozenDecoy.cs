@@ -10,13 +10,11 @@ namespace jRandomSkills
     public class FrozenDecoy : ISkill
     {
         private const Skills skillName = Skills.FrozenDecoy;
-        private static readonly float decoyRadius = Config.GetValue<float>(skillName, "triggerRadius");
-        private static readonly int slownessMultiplier = Config.GetValue<int>(skillName, "slownessMultiplier");
         private static readonly List<Vector> decoys = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
@@ -47,13 +45,14 @@ namespace jRandomSkills
             foreach (Vector decoyPos in decoys)
                 foreach (var player in Utilities.GetPlayers().Where(p => p.Team == CsTeam.Terrorist || p.Team == CsTeam.CounterTerrorist))
                 {
+                    var decoyRadius = SkillsInfo.GetValue<float>(skillName, "triggerRadius");
                     var pawn = player.PlayerPawn.Value;
                     if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null) return;
                     double distance = SkillUtils.GetDistance(decoyPos, pawn.AbsOrigin);
                     if (distance <= decoyRadius)
                     {
                         double modifier = Math.Clamp(distance / decoyRadius, 0f, 1f);
-                        pawn.VelocityModifier = (float)Math.Pow(modifier, slownessMultiplier);
+                        pawn.VelocityModifier = (float)Math.Pow(modifier, SkillsInfo.GetValue<int>(skillName, "slownessMultiplier"));
                     }
                 }
         }
@@ -63,7 +62,7 @@ namespace jRandomSkills
             SkillUtils.TryGiveWeapon(player, CsItem.DecoyGrenade);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#00eaff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float triggerRadius = 180, int slownessMultiplier = 5) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#00eaff", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float triggerRadius = 180, int slownessMultiplier = 5) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float TriggerRadius { get; set; } = triggerRadius;
             public int SlownessMultiplier { get; set; } = slownessMultiplier;

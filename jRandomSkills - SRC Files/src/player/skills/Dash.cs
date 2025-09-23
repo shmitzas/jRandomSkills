@@ -13,12 +13,9 @@ namespace jRandomSkills
         private static readonly int?[] J = new int?[64];
         private static readonly PlayerButtons[] LB = new PlayerButtons[64];
 
-        private static readonly float jumpVelocity = Config.GetValue<float>(skillName, "jumpVelocity");
-        private static readonly float pushVelocity = Config.GetValue<float>(skillName, "pushVelocity");
-
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void OnTick()
@@ -28,11 +25,11 @@ namespace jRandomSkills
                 if (!Instance.IsPlayerValid(player)) return;
                 var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                    GiveAdditionalJump(player);
+                    HandleDash(player);
             }
         }
 
-        private static void GiveAdditionalJump(CCSPlayerController player)
+        private static void HandleDash(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;
@@ -73,8 +70,8 @@ namespace jRandomSkills
                 float moveAngle = MathF.Atan2(moveX, moveY) * (180f / MathF.PI);
                 QAngle dashAngles = new(0, playerPawn.EyeAngles.Y + moveAngle, 0);
 
-                Vector newVelocity = SkillUtils.GetForwardVector(dashAngles) * pushVelocity;
-                newVelocity.Z = playerPawn.AbsVelocity.Z + jumpVelocity;
+                Vector newVelocity = SkillUtils.GetForwardVector(dashAngles) * SkillsInfo.GetValue<float>(skillName, "pushVelocity");
+                newVelocity.Z = playerPawn.AbsVelocity.Z + SkillsInfo.GetValue<float>(skillName, "jumpVelocity");
 
                 playerPawn.AbsVelocity.X = newVelocity.X;
                 playerPawn.AbsVelocity.Y = newVelocity.Y;
@@ -85,7 +82,7 @@ namespace jRandomSkills
             LB[player.Slot] = buttons;
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#42bbfc", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float jumpVelocity = 150f, float pushVelocity = 600f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#42bbfc", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float jumpVelocity = 150f, float pushVelocity = 600f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float JumpVelocity { get; set; } = jumpVelocity;
             public float PushVelocity { get; set; } = pushVelocity;

@@ -10,11 +10,10 @@ namespace jRandomSkills
     public class Pyro : ISkill
     {
         private const Skills skillName = Skills.Pyro;
-        private static readonly float regenerationMultiplier = Config.GetValue<float>(skillName, "regenerationMultiplier");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -27,7 +26,7 @@ namespace jRandomSkills
             var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
             if (victimInfo == null || victimInfo.Skill != skillName) return ;
 
-            RestoreHealth(victim!, damage * regenerationMultiplier);
+            RestoreHealth(victim!, damage * SkillsInfo.GetValue<float>(skillName, "regenerationMultiplier"));
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -48,7 +47,7 @@ namespace jRandomSkills
             Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#3c47de", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float regenerationMultiplier = 1.5f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#3c47de", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float regenerationMultiplier = 1.5f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float RegenerationMultiplier { get; set; } = regenerationMultiplier;
         }

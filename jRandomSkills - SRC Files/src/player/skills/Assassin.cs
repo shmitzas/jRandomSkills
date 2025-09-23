@@ -8,13 +8,11 @@ namespace jRandomSkills
     public class Assassin : ISkill
     {
         private const Skills skillName = Skills.Assassin;
-        private static readonly float damageMultiplier = Config.GetValue<float>(skillName, "damageMultiplier");
-        private static readonly float toleranceDeg = Config.GetValue<float>(skillName, "toleranceDeg");
         private static readonly string[] nades = ["inferno", "flashbang", "smokegrenade", "decoy", "hegrenade"];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -32,7 +30,7 @@ namespace jRandomSkills
             if (playerInfo?.Skill != skillName) return;
 
             if (IsBehind(attacker!, victim!))
-                SkillUtils.TakeHealth(victim!.PlayerPawn.Value, (int)(damage * (damageMultiplier - 1f)));
+                SkillUtils.TakeHealth(victim!.PlayerPawn.Value, (int)(damage * (SkillsInfo.GetValue<float>(skillName, "damageMultiplier") - 1f)));
         }
 
         private static bool IsBehind(CCSPlayerController attacker, CCSPlayerController victim)
@@ -47,6 +45,7 @@ namespace jRandomSkills
 
         private static (float, float) GetAngleRange(float angle)
         {
+            var toleranceDeg = SkillsInfo.GetValue<float>(skillName, "toleranceDeg");
             float min = angle - toleranceDeg;
             float max = angle + toleranceDeg;
 
@@ -63,7 +62,7 @@ namespace jRandomSkills
             return (target >= a || target <= b);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#d9d9d9", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float damageMultiplier = 2f, float toleranceDeg = 45f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#d9d9d9", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float damageMultiplier = 2f, float toleranceDeg = 45f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float DamageMultiplier { get; set; } = damageMultiplier;
             public float ToleranceDeg { get; set; } = toleranceDeg;

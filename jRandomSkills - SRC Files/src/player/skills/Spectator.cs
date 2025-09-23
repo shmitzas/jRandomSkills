@@ -4,18 +4,18 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Drawing;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class Spectator : ISkill
     {
         private const Skills skillName = Skills.Spectator;
-        private static readonly float distance = Config.GetValue<float>(skillName, "distance");
-        private static readonly Dictionary<ulong, (uint, CDynamicProp, CCSPlayerPawn)> cameras = [];
+        private static readonly ConcurrentDictionary<ulong, (uint, CDynamicProp, CCSPlayerPawn)> cameras = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
@@ -58,14 +58,7 @@ namespace jRandomSkills
                 {
                     var pawn = cameraInfo.Item3;
                     if (pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE)
-                    {
                         ChangeCamera(player, true);
-                        continue;
-                    }
-                    if (pawn.AbsOrigin == null) continue;
-                    var pos = pawn.AbsOrigin - SkillUtils.GetForwardVector(pawn.EyeAngles) * distance;
-                    pos.Z += pawn.ViewOffset.Z;
-                    cameraInfo.Item2.Teleport(pos, pawn.V_angle);
                 }
         }
 
@@ -106,15 +99,20 @@ namespace jRandomSkills
             var enemy = enemies[Instance.Random.Next(enemies.Count)];
 
             var pawn = enemy.PlayerPawn.Value;
-            if (pawn == null || !pawn.IsValid || pawn.CameraServices == null) return 0;
+            if (pawn == null || !pawn.IsValid || pawn.CameraServices == null || pawn.AbsOrigin == null) return 0;
+
+            var pos = pawn.AbsOrigin - SkillUtils.GetForwardVector(pawn.EyeAngles) * SkillsInfo.GetValue<float>(skillName, "distance");
+            pos.Z += pawn.ViewOffset.Z;
 
             camera.Render = Color.FromArgb(0, 255, 255, 255);
-            camera.Teleport(pawn!.AbsOrigin, pawn.EyeAngles);
+            camera.Teleport(pos, new QAngle(0, pawn.EyeAngles.Y, 0));
             camera.DispatchSpawn();
+            camera.AcceptInput("SetParent", pawn, pawn, "!activator");
+
             if (cameras.TryGetValue(player.SteamID, out var cameraInfo))
-                cameras[player.SteamID] = (cameraInfo.Item1, camera, pawn);
+                cameras.AddOrUpdate(player.SteamID, (cameraInfo.Item1, camera, pawn), (k, v) => (cameraInfo.Item1, camera, pawn));
             else
-                cameras[player.SteamID] = (pawn.CameraServices.ViewEntity.Raw, camera, pawn);
+                cameras.AddOrUpdate(player.SteamID, (pawn.CameraServices.ViewEntity.Raw, camera, pawn), (k, v) => (pawn.CameraServices.ViewEntity.Raw, camera, pawn));
             return camera.EntityHandle.Raw;
         }
 
@@ -135,7 +133,7 @@ namespace jRandomSkills
                 }
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#42f5da", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float distance = 100f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#42f5da", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float distance = 100f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float Distance { get; set; } = distance;
         }

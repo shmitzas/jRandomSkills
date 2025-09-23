@@ -10,17 +10,21 @@ namespace jRandomSkills
     public class Watchmaker : ISkill
     {
         private const Skills skillName = Skills.Watchmaker;
-        private static readonly int roundTime = Config.GetValue<int>(skillName, "changeRoundTime");
         private static bool bombPlanted = false;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
         {
             bombPlanted = false;
+        }
+
+        public static void DisableSkill(CCSPlayerController player)
+        {
+            SkillUtils.ResetPrintHTML(player);
         }
 
         public static void BombPlanted(EventBombPlanted _)
@@ -45,6 +49,7 @@ namespace jRandomSkills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName || Instance.GameRules == null) return;
 
+            var roundTime = SkillsInfo.GetValue<int>(skillName, "changeRoundTime");
             Instance.GameRules.RoundTime += player.Team == CsTeam.Terrorist ? roundTime : -roundTime;
             if (player.Team == CsTeam.Terrorist)
                 Localization.PrintTranslationToChatAll($" {ChatColors.Orange}{{0}}", ["watchmaker_tt"], [roundTime]);
@@ -55,6 +60,7 @@ namespace jRandomSkills
         public static void OnTick()
         {
             if (bombPlanted) return;
+            if (SkillUtils.IsFreezeTime()) return;
             foreach (var player in Utilities.GetPlayers())
             {
                 var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
@@ -69,16 +75,13 @@ namespace jRandomSkills
             if (skillData == null || Instance?.GameRules == null || Instance?.GameRules?.RoundTime == null || Instance.GameRules?.RoundStartTime == null) return;
 
             int seconds = 1 + (int)(Instance.GameRules.RoundTime - (Server.CurrentTime - Instance.GameRules.RoundStartTime));
-
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#FFFFFF'>{SkillUtils.SecondsToTimer(seconds)}</font> <br>";
-
-            var hudContent = infoLine + skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(s => s.SteamID == player?.SteamID);
+            if (playerInfo == null) return;
+            playerInfo.PrintHTML = SkillUtils.SecondsToTimer(seconds);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff462e", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int changeRoundTime = 10) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff462e", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, int changeRoundTime = 10) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public int ChangeRoundTime { get; set; } = changeRoundTime;
         }

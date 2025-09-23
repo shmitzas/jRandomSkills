@@ -6,29 +6,30 @@ using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class Fortnite : ISkill
     {
         private const Skills skillName = Skills.Fortnite;
-        private static readonly float timerCooldown = Config.GetValue<float>(skillName, "cooldown");
-        private static readonly int barricadeHealth = Config.GetValue<int>(skillName, "barricadeHealth");
-        private static readonly string propModel = Config.GetValue<string>(skillName, "propModel");
-
-        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
-        private static readonly Dictionary<ulong, int> barricades = [];
+        private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static readonly ConcurrentDictionary<ulong, int> barricades = [];
+        private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
-            Instance.RegisterListener<OnServerPrecacheResources>((ResourceManifest manifest) => manifest.AddResource(propModel));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"), false);
+            Instance.RegisterListener<OnServerPrecacheResources>((ResourceManifest manifest) => manifest.AddResource(SkillsInfo.GetValue<string>(skillName, "propModel")));
         }
 
         public static void NewRound()
         {
-            SkillPlayerInfo.Clear();
-            barricades.Clear();
+            lock (setLock)
+            {
+                SkillPlayerInfo.Clear();
+                barricades.Clear();
+            }
         }
 
         public static void OnTick()
@@ -44,17 +45,18 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo[player.SteamID] = new PlayerSkillInfo
+            SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
             {
                 SteamID = player.SteamID,
                 CanUse = true,
                 Cooldown = DateTime.MinValue,
-            };
+            });
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-              SkillPlayerInfo.Remove(player.SteamID);
+            SkillPlayerInfo.TryRemove(player.SteamID, out _);
+            SkillUtils.ResetPrintHTML(player);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
@@ -62,22 +64,20 @@ namespace jRandomSkills
             float cooldown = 0;
             if (skillInfo != null)
             {
-                float time = (int)(skillInfo.Cooldown.AddSeconds(timerCooldown) - DateTime.Now).TotalSeconds;
+                float time = (int)Math.Ceiling((skillInfo.Cooldown.AddSeconds(SkillsInfo.GetValue<float>(skillName, "cooldown")) - DateTime.Now).TotalSeconds);
                 cooldown = Math.Max(time, 0);
 
                 if (cooldown == 0 && skillInfo?.CanUse == false)
                     skillInfo.CanUse = true;
             }
 
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(s => s.SteamID == player?.SteamID);
+            if (playerInfo == null) return;
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
-            string remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{player.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>" : "";
-
-            var hudContent = infoLine + skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            if (cooldown == 0)
+                playerInfo.PrintHTML = null;
+            else
+                playerInfo.PrintHTML = $"{player.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}";
         }
 
         public static void UseSkill(CCSPlayerController player)
@@ -111,10 +111,10 @@ namespace jRandomSkills
             box.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
             box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             box.DispatchSpawn();
-            barricades.Add(box.Index, barricadeHealth);
+            barricades.TryAdd(box.Index, SkillsInfo.GetValue<int>(skillName, "barricadeHealth"));
             Server.NextFrame(() =>
             {
-                box.SetModel(propModel);
+                box.SetModel(SkillsInfo.GetValue<string>(skillName, "propModel"));
                 box.Teleport(pos, angle, null);
             });
         }
@@ -137,7 +137,7 @@ namespace jRandomSkills
             if (barricades.TryGetValue(box.Index, out int health))
             {
                 health -= (int)param2.Damage;
-                barricades[box.Index] = health;
+                barricades.AddOrUpdate(box.Index, health, (k, v) => health);
                 if (health <= 0) box.AcceptInput("Kill");
             }
             else box.AcceptInput("Kill");
@@ -150,7 +150,7 @@ namespace jRandomSkills
             public DateTime Cooldown { get; set; }
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1b04cc", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float cooldown = 2f, int barricadeHealth = 115, string propModel = "models/props/de_aztec/hr_aztec/aztec_scaffolding/aztec_scaffold_wall_support_128.vmdl") : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1b04cc", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = true, bool needsTeammates = false, float cooldown = 2f, int barricadeHealth = 115, string propModel = "models/props/de_aztec/hr_aztec/aztec_scaffolding/aztec_scaffold_wall_support_128.vmdl") : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float Cooldown { get; set; } = cooldown;
             public int BarricadeHealth { get; set; } = barricadeHealth;

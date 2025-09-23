@@ -215,7 +215,7 @@
   "lifeswap_select_info": "选择你想与之交换生命值的玩家：",
 
   "longknife": "长刀",
-  "longknife_desc": "近战刀具攻击无论距离远近均可造成伤害",
+  "longknife_desc": "刀具攻击造成的伤害与距离无关",
 
   "longzeus": "长宙斯",
   "longzeus_desc": "宙斯电击枪无论距离多远都能造成伤害",
@@ -237,6 +237,7 @@
 
   "muhammed": "穆罕默德",
   "muhammed_desc": "你死亡时会爆炸，杀死附近的玩家",
+  "muhammed_explosion": "真主至大！！！",
 
   "ninja": "忍者",
   "ninja_desc": "站立不动增加33%隐形，蹲下增加33%，持刀增加33%",
@@ -452,5 +453,7 @@
   "summary_start": "=============上一回合总结==============",
   "summary_end": "=======================================",
 
-  "menu_controlls": "<font class='fontSize-m' color='cyan'>W/S - 滚动</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>E - 选择</font> <br>"
+  "menu_controlls_scroll": "W/S - 滚动",
+  "menu_controlls_padding": "   |   ",
+  "menu_controlls_select": "E - 选择"
 }

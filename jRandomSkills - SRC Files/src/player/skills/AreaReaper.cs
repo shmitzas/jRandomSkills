@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
@@ -15,7 +16,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
@@ -59,7 +60,7 @@ namespace jRandomSkills
             if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
-            HashSet<(string, string)> menuItems = [(player.GetTranslation("bombsite_a"), "a"), (player.GetTranslation("bombsite_b"), "b")];
+            ConcurrentBag<(string, string)> menuItems = [(player.GetTranslation("bombsite_a"), "a"), (player.GetTranslation("bombsite_b"), "b")];
             SkillUtils.CreateMenu(player, menuItems);
         }
 
@@ -78,7 +79,7 @@ namespace jRandomSkills
                 bombTarget.AcceptInput("Enable");
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#edf5b5", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#edf5b5", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool disableOnFreezeTime = false, bool needsTeammates = false) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
         }
     }

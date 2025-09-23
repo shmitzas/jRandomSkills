@@ -15,7 +15,7 @@ public interface IWasdMenuManager
     //open menu as submenu
     public void OpenSubMenu(CCSPlayerController? player, IWasdMenu? menu);
     //create new menu object
-    public IWasdMenu CreateMenu(string title = "", string ControlText = "");
+    public IWasdMenu CreateMenu(string title, string itemText, string itemHoverText, string ControlText);
     public bool HasMenu(CCSPlayerController? player);
     public void UpdateActiveMenu(CCSPlayerController? player, Dictionary<string, Action<CCSPlayerController, IWasdMenuOption>> list);
 }

@@ -4,29 +4,30 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Drawing;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class ReZombie : ISkill
     {
         private const Skills skillName = Skills.ReZombie;
-        private static readonly int zombieHealth = Config.GetValue<int>(skillName, "zombieHealth");
-        private static readonly HashSet<CCSPlayerController> zombies = [];
+        private static readonly ConcurrentDictionary<CCSPlayerController, byte> zombies = [];
+        private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            zombies.Remove(player);
+            zombies.TryRemove(player, out _);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
-            zombies.Remove(player);
+            zombies.TryRemove(player, out _);
             SetPlayerColor(player.PlayerPawn.Value, true);
         }
 
@@ -35,13 +36,13 @@ namespace jRandomSkills
             var player = @event.Userid;
             var weapon = @event.Item;
             if (player == null || !player.IsValid) return;
-            if (!zombies.Contains(player) || weapon == "c4") return;
+            if (!zombies.ContainsKey(player) || weapon == "c4") return;
             player.ExecuteClientCommand("slot3");
         }
 
         public static void NewRound()
         {
-            foreach (var player in zombies)
+            foreach (var player in zombies.Keys)
                 DisableSkill(player);
             zombies.Clear();
         }
@@ -49,7 +50,7 @@ namespace jRandomSkills
         public static void PlayerDeath(EventPlayerDeath @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid || zombies.Contains(player)) return;
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid || zombies.ContainsKey(player)) return;
 
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
@@ -61,13 +62,17 @@ namespace jRandomSkills
 
             player.Respawn();
             Instance.AddTimer(.2f, () => {
-                player.Respawn();
-                zombies.Add(player);
-                SetPlayerColor(pawn, false);
-                SkillUtils.AddHealth(pawn, zombieHealth - 100, zombieHealth);
-                pawn.Teleport(deadPosition, deadRotation);
-                player.ExecuteClientCommand("slot3");
-                Instance.AddTimer(1, () => player.ExecuteClientCommand("slot3"));
+                lock (setLock)
+                {
+                    var zombieHealth = SkillsInfo.GetValue<int>(skillName, "zombieHealth");
+                    player.Respawn();
+                    zombies.TryAdd(player, 0);
+                    SetPlayerColor(pawn, false);
+                    SkillUtils.AddHealth(pawn, zombieHealth - 100, zombieHealth);
+                    pawn.Teleport(deadPosition, deadRotation);
+                    player.ExecuteClientCommand("slot3");
+                    Instance.AddTimer(1, () => player.ExecuteClientCommand("slot3"));
+                }
             });
         }
 
@@ -78,7 +83,7 @@ namespace jRandomSkills
             Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_clrRender");
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff5C0A", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int zombieHealth = 200) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff5C0A", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, int zombieHealth = 200) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public int ZombieHealth { get; set; } = zombieHealth;
         }

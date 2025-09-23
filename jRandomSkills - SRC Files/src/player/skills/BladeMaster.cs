@@ -10,12 +10,31 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.BladeMaster;
         private static readonly string[] noReflectionWeapon = ["inferno", "flashbang", "smokegrenade", "decoy", "hegrenade", "knife", "taser"];
-        private static readonly float torseReflectionChance = Config.GetValue<float>(skillName, "torseReflectionChance") * 100;
-        private static readonly float legReflectionChance = Config.GetValue<float>(skillName, "legReflectionChance") * 100;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
+        }
+
+        public static void OnTick()
+        {
+            foreach (var player in Utilities.GetPlayers())
+            {
+                if (!Instance.IsPlayerValid(player)) continue;
+
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill != skillName) continue;
+
+                var playerPawn = player.PlayerPawn?.Value;
+                if (playerPawn == null || !playerPawn.IsValid || playerPawn.VelocityModifier == 0) continue;
+
+                var weaponServices = playerPawn.WeaponServices;
+                if (weaponServices == null) return;
+                if (weaponServices.ActiveWeapon == null || !weaponServices.ActiveWeapon.IsValid || weaponServices.ActiveWeapon.Value == null || !weaponServices.ActiveWeapon.Value.IsValid || weaponServices.ActiveWeapon.Value.DesignerName != "weapon_knife")
+                    return;
+
+                playerPawn.VelocityModifier = SkillsInfo.GetValue<float>(skillName, "velocityModifier");
+            }
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -32,11 +51,11 @@ namespace jRandomSkills
             int chance = Instance.Random.Next(0, 101);
             if (hitGroup == HitGroup_t.HITGROUP_LEFTLEG || hitGroup == HitGroup_t.HITGROUP_RIGHTLEG)
             {
-                if (chance > legReflectionChance)
+                if (chance > SkillsInfo.GetValue<float>(skillName, "legReflectionChance") * 100)
                     return;
             }
             else
-                if (chance > torseReflectionChance)
+                if (chance > SkillsInfo.GetValue<float>(skillName, "torseReflectionChance") * 100)
                     return;
 
             var pawn = victim!.PlayerPawn.Value;
@@ -63,10 +82,11 @@ namespace jRandomSkills
             Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#cc7504", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float torseReflectionChance = .95f, float legReflectionChance = .80f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#cc7504", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float torseReflectionChance = .95f, float legReflectionChance = .80f, float velocityModifier = .85f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float TorseReflectionChance { get; set; } = torseReflectionChance;
             public float LegReflectionChance { get; set; } = legReflectionChance;
+            public float VelocityModifier { get; set; } = velocityModifier;
         }
     }
 }

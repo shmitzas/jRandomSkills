@@ -4,17 +4,17 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class Gambler : ISkill
     {
         private const Skills skillName = Skills.Gambler;
-        private static readonly int refreshPrice = Config.GetValue<int>(skillName, "refreshPrice");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
@@ -50,7 +50,14 @@ namespace jRandomSkills
                 if (skill.Skill != skillName)
                     playerInfo.SpecialSkill = skillName;
                 playerInfo.SkillChance = 1;
-                Instance.SkillAction(skill.Skill.ToString(), "EnableSkill", [player]);
+
+                if (SkillsInfo.GetValue<bool>(skill.Skill, "disableOnFreezeTime") && SkillUtils.IsFreezeTime())
+                    Instance?.AddTimer(Math.Max((float)(Event.freezeTimeEnd - DateTime.Now).TotalSeconds, 0), () => {
+                        if (Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID && p.Skill == skill.Skill) == null) return;
+                        Instance?.SkillAction(skill.Skill.ToString(), "EnableSkill", new[] { player });
+                    });
+                else
+                    Instance?.SkillAction(skill.Skill.ToString(), "EnableSkill", new[] { player });
             });
         }
 
@@ -58,7 +65,7 @@ namespace jRandomSkills
         {
             if (player == null || !player.IsValid || player.InGameMoneyServices == null) return;
             var account = player.InGameMoneyServices.Account;
-            player.InGameMoneyServices.Account = Math.Max(0, account - refreshPrice);
+            player.InGameMoneyServices.Account = Math.Max(0, account - SkillsInfo.GetValue<int>(skillName, "refreshPrice"));
             Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
         }
 
@@ -73,10 +80,9 @@ namespace jRandomSkills
             skills.Remove(firstSkill);
             var secondSkill = skills[Instance.Random.Next(skills.Count)];
 
-            HashSet<(string, string)> menuItems = [(player.GetSkillName(firstSkill.Skill), firstSkill.Skill.ToString()),
-                                                   (player.GetSkillName(secondSkill.Skill), secondSkill.Skill.ToString()),
-                                                    (player.GetTranslation("gambler_more", refreshPrice), skillName.ToString())];
-            SkillUtils.CreateMenu(player, menuItems);
+            ConcurrentBag<(string, string)> menuItems = [(player.GetSkillName(firstSkill.Skill), firstSkill.Skill.ToString()),
+                                                   (player.GetSkillName(secondSkill.Skill), secondSkill.Skill.ToString())];
+            SkillUtils.CreateMenu(player, menuItems, (player.GetTranslation("gambler_more", SkillsInfo.GetValue<int>(skillName, "refreshPrice")), skillName.ToString()));
         }
 
         public static void DisableSkill(CCSPlayerController player)
@@ -94,7 +100,7 @@ namespace jRandomSkills
 
             if (Utilities.GetPlayers().FindAll(p => p.Team == player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).Count == 1)
             {
-                Config.DefaultSkillInfo[] skillsNeedsTeammates = Config.LoadedConfig.SkillsInfo.Where(s => s.NeedsTeammates).ToArray();
+                SkillsInfo.DefaultSkillInfo[] skillsNeedsTeammates = SkillsInfo.LoadedConfig.Where(s => s.NeedsTeammates).ToArray();
                 skillList.RemoveAll(s => skillsNeedsTeammates.Any(s2 => s2.Name == s.Skill.ToString()));
             }
 
@@ -106,7 +112,7 @@ namespace jRandomSkills
             return skillList.Count == 0 ? [Event.noneSkill] : skillList;
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#7eff47", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int refreshPrice = 150) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#7eff47", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, int refreshPrice = 150) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public int RefreshPrice { get; set; } = refreshPrice;
         }

@@ -9,19 +9,17 @@ namespace jRandomSkills
     public class RichBoy : ISkill
     {
         private const Skills skillName = Skills.RichBoy;
-        private static readonly int minMoney = Config.GetValue<int>(skillName, "minMoney");
-        private static readonly int maxMoney = Config.GetValue<int>(skillName, "maxMoney");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
-            int moneyBonus = Instance.Random.Next(minMoney, maxMoney);
+            int moneyBonus = Instance.Random.Next(SkillsInfo.GetValue<int>(skillName, "minMoney"), SkillsInfo.GetValue<int>(skillName, "maxMoney"));
             playerInfo.SkillChance = moneyBonus;
             AddMoney(player, moneyBonus);
         }
@@ -44,7 +42,7 @@ namespace jRandomSkills
             Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#D4AF37", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int minMoney = 5000, int maxMoney = 15000) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#D4AF37", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, int minMoney = 5000, int maxMoney = 15000) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public int MinMoney { get; set; } = minMoney;
             public int MaxMoney { get; set; } = maxMoney;

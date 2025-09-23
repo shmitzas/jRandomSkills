@@ -9,11 +9,10 @@ namespace jRandomSkills
     public class Dracula : ISkill
     {
         private const Skills skillName = Skills.Dracula;
-        private static readonly float healthRegainScale = Config.GetValue<float>(skillName, "healthRegainScale");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -33,7 +32,7 @@ namespace jRandomSkills
             var attackerPawn = attacker.PlayerPawn.Value;
             if (attackerPawn == null) return;
 
-            int newHealth = (int)(attackerPawn.Health + (damage * healthRegainScale));
+            int newHealth = (int)(attackerPawn.Health + (damage * SkillsInfo.GetValue<float>(skillName, "healthRegainScale")));
 
             attackerPawn.MaxHealth = Math.Max(newHealth, 100);
             Utilities.SetStateChanged(attackerPawn, "CBaseEntity", "m_iMaxHealth");
@@ -42,7 +41,7 @@ namespace jRandomSkills
             Utilities.SetStateChanged(attackerPawn, "CBaseEntity", "m_iHealth");
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FA050D", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float healthRegainScale = .3f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FA050D", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float healthRegainScale = .3f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float HealthRegainScale { get; set; } = healthRegainScale;
         }

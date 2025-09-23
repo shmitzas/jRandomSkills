@@ -104,9 +104,9 @@
   "duplicator_player_info": "Moc gracza '{0}' została skopiowana.",
   "duplicator_select_info": "Skopiuj moc gracza:",
 
-  "dwarf": "Mini Majk",
+  "dwarf": "Mini Majk ({0}%)",
   "dwarf_desc": "Losowa wielkość postaci na początku rundy",
-  "dwarf_desc2": "Twój mnożnik wielkości to {0}x",
+  "dwarf_desc2": "Twój mnożnik wielkości to {0}%",
 
   "enemyspawn": "Resp Wroga",
   "enemyspawn_desc": "Kliknij [css_useSkill], aby teleportować się na resp wroga",
@@ -215,7 +215,7 @@
   "lifeswap_select_info": "Zamień się zdrowiem z graczem:",
 
   "longknife": "Długi Nóż",
-  "longknife_desc": "Atak nożem zadaje obrażenia niezależnie od odległości",
+  "longknife_desc": "Podstawowy atak nożem zadaje obrażenia niezależnie od odległości",
 
   "longzeus": "Długi Zeus",
   "longzeus_desc": "Zeus zadaje obrażenia niezależnie od odległości",
@@ -237,7 +237,6 @@
 
   "muhammed": "Muhammed",
   "muhammed_desc": "Po śmierci eksplodujesz i zabijasz graczy znajdujących się w zasięgu",
-  "muhammed_explosion": "ALLAHU AKBAR!!!",
 
   "ninja": "Ninja",
   "ninja_desc": "Stojąc nieruchomo zwiększasz swoją niewidzialność o 33%, kucając o 33%, a trzymając nóż o 33%",
@@ -357,9 +356,9 @@
   "sniperelite": "SzeliS",
   "sniperelite_desc": "Kliknij [css_useSkill], aby zamienić aktualną broń na AWP",
 
-  "soldier": "Żołnierz",
+  "soldier": "Żołnierz {0}%",
   "soldier_desc": "Masz losowy mnożnik obrażeń",
-  "soldier_desc2": "Twój mnożnik obrażeń wynosi: {0}x",
+  "soldier_desc2": "A AAAAAAAAAAAAAAAAAAAAAA",
 
   "soundmaker": "Dźwiękowiec",
   "soundmaker_desc": "Kliknij [css_useSkill], aby wywołać dzwięk u każdego przeciwnika",
@@ -404,11 +403,11 @@
   "zeus": "Zeus",
   "zeus_desc": "Zeus x27 natychmiastowo się odnawia",
 
-  "your_skill": "Twoja aktualna moc",
+  "your_skill": "",
   "enemy_skill": "Supermoc przeciwnika",
   "observer_skill": "Moc gracza",
   "welcome_message": "Witaj {PLAYER} na serwerze {SERVER_NAME}!\nAktualna wersja jRandomSkills: {VERSION} ({SKILLS_COUNT} supermocy).\n\nPierwotnie plugin stworzona przez:\n{AUTHOR1}\nZmodyfikowany i ulepszony przez:\n{AUTHOR2}\nOficjalny discord: https://discord.gg/9H8EZYBpPF",
-  "drawing_skill": "Losowanie mocy",
+  "drawing_skill": "",
   "disabled_weapon": "Nie możesz używać tej broni",
 
   "hud_info": "Poczekaj jeszcze {0} sekund",
@@ -453,7 +452,7 @@
   "summary_start": "======PODSUMOWANIE=Z=OSTATNIEJ=RUNDY======",
   "summary_end": "============================================",
 
-  "menu_controlls_scroll": "W/S – Przewijanie",
+  "menu_controlls_scroll": "W/S - Scroll",
   "menu_controlls_padding": "   |   ",
-  "menu_controlls_select": "E - Wybierz"
+  "menu_controlls_select": "E - Select"
 }

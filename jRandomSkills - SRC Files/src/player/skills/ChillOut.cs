@@ -9,11 +9,10 @@ namespace jRandomSkills
     public class ChillOut : ISkill
     {
         private const Skills skillName = Skills.ChillOut;
-        private static readonly float bombArmedTime = Config.GetValue<float>(skillName, "bombArmedTime");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void BombBeginplant(EventBombBeginplant @event)
@@ -29,12 +28,12 @@ namespace jRandomSkills
                 {
                     var bomb = bombEntities.FirstOrDefault();
                     if (bomb != null)
-                        bomb.ArmedTime = Server.CurrentTime + bombArmedTime;
+                        bomb.ArmedTime = Server.CurrentTime + SkillsInfo.GetValue<float>(skillName, "bombArmedTime");
                 }
             }
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#343deb", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false, float bombArmedTime = 10f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#343deb", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool disableOnFreezeTime = false, bool needsTeammates = false, float bombArmedTime = 10f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float BombArmedTime { get; set; } = bombArmedTime;
         }

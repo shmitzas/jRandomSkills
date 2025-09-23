@@ -10,13 +10,11 @@ namespace jRandomSkills
     public class HealingSmoke : ISkill
     {
         private const Skills skillName = Skills.HealingSmoke;
-        private static readonly int smokeHeal = Config.GetValue<int>(skillName, "smokeHeal");
-        private static readonly float smokeRadius = Config.GetValue<float>(skillName, "smokeRadius");
         private static readonly List<Vector> smokes = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
@@ -74,8 +72,8 @@ namespace jRandomSkills
                 foreach (var player in Utilities.GetPlayers())
                     if (Server.TickCount % 17 == 0)
                         if (player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && player.PlayerPawn.Value.AbsOrigin != null)
-                            if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= smokeRadius)
-                                AddHealth(player.PlayerPawn.Value, smokeHeal);
+                            if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= SkillsInfo.GetValue<float>(skillName, "smokeRadius"))
+                                AddHealth(player.PlayerPawn.Value, SkillsInfo.GetValue<int>(skillName, "smokeHeal"));
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -95,7 +93,7 @@ namespace jRandomSkills
             Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1fe070", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int smokeHeal = 1, float smokeRadius = 180) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1fe070", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, int smokeHeal = 1, float smokeRadius = 180) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public int SmokeHeal { get; set; } = smokeHeal;
             public float SmokeRadius { get; set; } = smokeRadius;

@@ -4,17 +4,18 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Runtime.InteropServices;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class Aimbot : ISkill
     {
         private const Skills skillName = Skills.Aimbot;
-        private static readonly Dictionary<nint, int> hitGroups = [];
+        private static readonly ConcurrentDictionary<nint, int> hitGroups = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void OnTakeDamage(DynamicHook h)
@@ -66,7 +67,7 @@ namespace jRandomSkills
                 Marshal.WriteInt32(hit.Key, 56, hit.Value);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff0000", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff0000", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
         }
     }

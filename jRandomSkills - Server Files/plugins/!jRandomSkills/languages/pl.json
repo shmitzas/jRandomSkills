@@ -215,7 +215,7 @@
   "lifeswap_select_info": "Zamień się zdrowiem z graczem:",
 
   "longknife": "Długi Nóż",
-  "longknife_desc": "Podstawowy atak nożem zadaje obrażenia niezależnie od odległości",
+  "longknife_desc": "Atak nożem zadaje obrażenia niezależnie od odległości",
 
   "longzeus": "Długi Zeus",
   "longzeus_desc": "Zeus zadaje obrażenia niezależnie od odległości",
@@ -237,6 +237,7 @@
 
   "muhammed": "Muhammed",
   "muhammed_desc": "Po śmierci eksplodujesz i zabijasz graczy znajdujących się w zasięgu",
+  "muhammed_explosion": "ALLAHU AKBAR!!!",
 
   "ninja": "Ninja",
   "ninja_desc": "Stojąc nieruchomo zwiększasz swoją niewidzialność o 33%, kucając o 33%, a trzymając nóż o 33%",
@@ -452,5 +453,7 @@
   "summary_start": "======PODSUMOWANIE=Z=OSTATNIEJ=RUNDY======",
   "summary_end": "============================================",
 
-  "menu_controlls": "<font class='fontSize-m' color='cyan'>W/S – Przewijanie</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>E - Wybierz</font> <br>"
+  "menu_controlls_scroll": "W/S – Przewijanie",
+  "menu_controlls_padding": "   |   ",
+  "menu_controlls_select": "E - Wybierz"
 }

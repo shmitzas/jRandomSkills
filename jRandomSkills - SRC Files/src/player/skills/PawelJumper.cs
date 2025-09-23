@@ -10,16 +10,13 @@ namespace jRandomSkills
     public class PawelJumper : ISkill
     {
         private const Skills skillName = Skills.PawelJumper;
-        private static readonly int extraJumpsMin = Config.GetValue<int>(skillName, "extraJumpsMin");
-        private static readonly int extraJumpsMax = Config.GetValue<int>(skillName, "extraJumpsMax");
-
         private static readonly PlayerFlags[] LF = new PlayerFlags[64];
         private static readonly int?[] J = new int?[64];
         private static readonly PlayerButtons[] LB = new PlayerButtons[64];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"), false);
         }
 
         public static void OnTick()
@@ -39,12 +36,12 @@ namespace jRandomSkills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerPawn == null || playerInfo == null) return;
 
-            var skillConfig = Config.LoadedConfig.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString());
+            var skillConfig = SkillsInfo.LoadedConfig.FirstOrDefault(s => s.Name == skillName.ToString());
             if (skillConfig == null) return;
 
-            float extraJumps = (float)Instance.Random.Next(extraJumpsMin, extraJumpsMax + 1);
+            float extraJumps = (float)Instance.Random.Next(SkillsInfo.GetValue<int>(skillName, "extraJumpsMin"), SkillsInfo.GetValue<int>(skillName, "extraJumpsMax") + 1);
             playerInfo.SkillChance = extraJumps;
-            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetTranslation("paweljumper")}{ChatColors.Lime}: " + player.GetTranslation("paweljumper_desc2", extraJumps), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(skillName)}{ChatColors.Lime}: {player.GetSkillDescription(skillName, extraJumps)}", false);
         }
 
         private static void GiveAdditionalJump(CCSPlayerController player)
@@ -76,7 +73,7 @@ namespace jRandomSkills
             LB[player.Slot] = buttons;
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FFA500", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int extraJumpsMin = 1, int extraJumpsMax = 4) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FFA500", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, int extraJumpsMin = 1, int extraJumpsMax = 4) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public int ExtraJumpsMin { get; set; } = extraJumpsMin;
             public int ExtraJumpsMax { get; set; } = extraJumpsMax;

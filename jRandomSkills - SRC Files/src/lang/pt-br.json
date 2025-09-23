@@ -215,7 +215,7 @@
   "lifeswap_select_info": "Trocar vida com jogador:",
 
   "longknife": "Faca Longa",
-  "longknife_desc": "Um ataque com faca primária causa dano independentemente da distância",
+  "longknife_desc": "Um ataque com faca causa danos independentemente da distância",
 
   "longzeus": "Zeus Longo",
   "longzeus_desc": "Zeus causa dano independentemente da distância",
@@ -237,6 +237,7 @@
 
   "muhammed": "Muhammed",
   "muhammed_desc": "Você explode ao morrer, matando jogadores próximos",
+  "muhammed_explosion": "ALLAHU AKBAR!!!",
 
   "ninja": "Ninja",
   "ninja_desc": "Ficar parado aumenta sua invisibilidade em 33%, agachar em 33%, e segurar uma faca em 33%",
@@ -452,5 +453,7 @@
   "summary_start": "=======RESUMO=DA=ÚLTIMA=RODADA=======",
   "summary_end": "=======================================",
 
-  "menu_controlls": "<font class='fontSize-m' color='cyan'>W/S - Rolar</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>E - Selecionar</font> <br>"
+  "menu_controlls_scroll": "W/S - Rolar",
+  "menu_controlls_padding": "   |   ",
+  "menu_controlls_select": "E - Selecionar"
 }

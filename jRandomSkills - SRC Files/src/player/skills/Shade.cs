@@ -9,18 +9,18 @@ using jRandomSkills.src.utils;
 using System.Numerics;
 using static jRandomSkills.jRandomSkills;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class Shade : ISkill
     {
         private const Skills skillName = Skills.Shade;
-        private static readonly float teleportDistance = Config.GetValue<float>(skillName, "teleportDistance");
-        private static readonly Dictionary<CCSPlayerController, float> noSpace = [];
+        private static readonly ConcurrentDictionary<CCSPlayerController, float> noSpace = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
@@ -44,7 +44,8 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            noSpace.Remove(player);
+            noSpace.TryRemove(player, out _);
+            SkillUtils.ResetPrintHTML(player);
         }
 
         public static void OnTick()
@@ -56,14 +57,9 @@ namespace jRandomSkills
 
         private static void UpdateHUD(CCSPlayerController player)
         {
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
-
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>{player.GetTranslation("shade_nospace")}</font> <br>";
-            var hudContent = infoLine + skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(s => s.SteamID == player?.SteamID);
+            if (playerInfo == null) return;
+            playerInfo.PrintHTML = $"{player.GetTranslation("shade_nospace")}";
         }
 
         private unsafe static bool CheckTeleport(CCSPlayerController player, Vector startPos, Vector endPos)
@@ -104,17 +100,17 @@ namespace jRandomSkills
             foreach (int extraAngle in angles)
             {
                 QAngle newAngle = new(victimAngles.X, victimAngles.Y + extraAngle, victimAngles.Z);
-                Vector behindPosition = victimEyePos - SkillUtils.GetForwardVector(newAngle) * teleportDistance;
+                Vector behindPosition = victimEyePos - SkillUtils.GetForwardVector(newAngle) * SkillsInfo.GetValue<float>(skillName, "teleportDistance");
                 if (!CheckTeleport(victim, victimEyePos, behindPosition)) continue;
                 attackerPawn.Teleport(behindPosition, newAngle, new(0, 0, 0));
                 teleported = true;
                 break;
             }
             if (!teleported)
-                noSpace[attacker] = Server.TickCount + (64 * 2);
+                noSpace.AddOrUpdate(attacker, Server.TickCount + (64 * 2), (k, v) => Server.TickCount + (64 * 2));
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#4d4d4d", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float teleportDistance = 100f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#4d4d4d", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float teleportDistance = 100f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float TeleportDistance { get; set; } = teleportDistance;
         }

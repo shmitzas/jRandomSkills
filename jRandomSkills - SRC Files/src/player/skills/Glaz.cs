@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
+using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -11,26 +12,28 @@ namespace jRandomSkills
     public class Glaz : ISkill
     {
         private const Skills skillName = Skills.Glaz;
-        private readonly static List<int> smokes = [];
+        private readonly static ConcurrentDictionary<int, byte> smokes = [];
+        private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
         {
-            smokes.Clear();
+            lock (setLock)
+                smokes.Clear();
         }
 
         public static void SmokegrenadeDetonate(EventSmokegrenadeDetonate @event)
         {
-            smokes.Add(@event.Entityid);
+            smokes.TryAdd(@event.Entityid, 0);
         }
 
         public static void SmokegrenadeExpired(EventSmokegrenadeExpired @event)
         {
-            smokes.Remove(@event.Entityid);
+            smokes.TryRemove(@event.Entityid, out _);
         }
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
@@ -44,7 +47,7 @@ namespace jRandomSkills
                 var observerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
 
                 if (playerInfo?.Skill != skillName && observerInfo?.Skill != skillName) continue;
-                foreach (var smoke in smokes)
+                foreach (var smoke in smokes.Keys)
                     info.TransmitEntities.Remove(smoke);
             }
         }
@@ -55,7 +58,7 @@ namespace jRandomSkills
             SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#5d00ff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#5d00ff", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
         }
     }

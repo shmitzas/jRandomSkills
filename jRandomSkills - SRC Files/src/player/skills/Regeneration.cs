@@ -8,17 +8,15 @@ namespace jRandomSkills
     public class Regeneration : ISkill
     {
         private const Skills skillName = Skills.Regeneration;
-        private static float cooldown = Config.GetValue<float>(skillName, "cooldown");
-        private static int healthToAdd = Config.GetValue<int>(skillName, "healthToAdd");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void OnTick()
         {
-            if (Server.TickCount % (int)(64 * cooldown) != 0) return;
+            if (Server.TickCount % (int)(64 * SkillsInfo.GetValue<float>(skillName, "cooldown")) != 0) return;
             foreach (var player in Utilities.GetPlayers())
             {
                 var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
@@ -26,15 +24,15 @@ namespace jRandomSkills
 
                 var pawn = player.PlayerPawn.Value;
                 if (pawn == null || !pawn.IsValid) continue;
-                SkillUtils.AddHealth(pawn, healthToAdd);
+                SkillUtils.AddHealth(pawn, SkillsInfo.GetValue<int>(skillName, "healthToAdd"));
             }
         }
 
-        public class SkillConfig : Config.DefaultSkillInfo
+        public class SkillConfig : SkillsInfo.DefaultSkillInfo
         {
             public int HealthToAdd { get; set; }
             public float Cooldown { get; set; }
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff462e", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int healthToAdd = 1, float cooldown = .25f) : base(skill, active, color, onlyTeam, needsTeammates)
+            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff462e", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, int healthToAdd = 1, float cooldown = .25f) : base(skill, active, color, onlyTeam, needsTeammates)
             {
                 HealthToAdd = healthToAdd;
                 Cooldown = cooldown;

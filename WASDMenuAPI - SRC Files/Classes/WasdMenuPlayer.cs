@@ -123,14 +123,22 @@ public class WasdMenuPlayer
             return;
 
         StringBuilder builder = new();
+        string itemText = "";
+        string itemHoverText = "";
         string endControl = "";
         LinkedListNode<IWasdMenuOption>? option = MenuStart;
 
         if (!string.IsNullOrEmpty(option?.Value?.Parent?.Title))
-            builder.AppendLine($"{option.Value.Parent?.Title}</u><font class='fontSize-m' color='white'><br>");
+            builder.AppendLine(option.Value.Parent?.Title ?? "");
+
+        if (!string.IsNullOrEmpty(option?.Value?.Parent?.ItemText))
+            itemText = option?.Value?.Parent?.ItemText ?? "";
+
+        if (!string.IsNullOrEmpty(option?.Value?.Parent?.ItemHoverText))
+            itemHoverText = option?.Value?.Parent?.ItemHoverText ?? "";
 
         if (!string.IsNullOrEmpty(option?.Value?.Parent?.ControlText))
-             endControl = option?.Value?.Parent?.ControlText ?? "";
+            endControl = option?.Value?.Parent?.ControlText ?? "";
 
         int shown = 0;
         int maxOptions = VisibleOptions;
@@ -176,10 +184,10 @@ public class WasdMenuPlayer
                 else
                     text = SafeSubstring(text, 0, maxLength);
 
-                builder.AppendLine($"</font><font color='purple'>[ </font><font color='orange'>{text}</font><font color='purple'> ]</font><font color='white'> <br>");
+                builder.AppendLine(string.Format(itemHoverText, text));
             }
             else
-                builder.AppendLine($"<font color='{color ?? "white"}'>{SafeSubstring(text, 0, maxLength)}</font> <br>");
+                builder.AppendLine(string.Format(itemText, $"<font {(string.IsNullOrEmpty(color) ? "" : $"color='{color}'")}'>{SafeSubstring(text, 0, maxLength)}</font>"));
 
             option = option.Next;
             shown++;
@@ -188,7 +196,6 @@ public class WasdMenuPlayer
         if (!string.IsNullOrEmpty(endControl))
             builder.AppendLine(endControl);
 
-        builder.AppendLine("</div>");
         CenterHtml = builder.ToString();
     }
 

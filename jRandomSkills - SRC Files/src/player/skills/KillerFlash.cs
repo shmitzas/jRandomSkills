@@ -1,9 +1,7 @@
-﻿using CounterStrikeSharp.API;
-using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using Microsoft.Extensions.Logging;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -11,11 +9,10 @@ namespace jRandomSkills
     public class KillerFlash : ISkill
     {
         private const Skills skillName = Skills.KillerFlash;
-        private static readonly float flashDuration = Config.GetValue<float>(skillName, "flashDuration");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void PlayerBlind(EventPlayerBlind @event)
@@ -27,7 +24,7 @@ namespace jRandomSkills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
             var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
-            if (attackerInfo?.Skill == skillName && playerInfo?.Skill != Skills.AntyFlash && player!.PlayerPawn.Value!.FlashDuration >= flashDuration)
+            if (attackerInfo?.Skill == skillName && playerInfo?.Skill != Skills.AntyFlash && player!.PlayerPawn.Value!.FlashDuration >= SkillsInfo.GetValue<float>(skillName, "flashDuration"))
                 player?.PlayerPawn?.Value?.CommitSuicide(false, true);
         }
 
@@ -36,7 +33,7 @@ namespace jRandomSkills
             SkillUtils.TryGiveWeapon(player, CsItem.FlashbangGrenade);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#57bcff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float flashDuration = 1f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#57bcff", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float flashDuration = 1f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float FlashDuration { get; set; } = flashDuration;
         }

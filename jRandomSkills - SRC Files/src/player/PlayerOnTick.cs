@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
@@ -40,7 +41,7 @@ namespace jRandomSkills
         {
             if (Instance?.GameRules == null || Instance?.GameRules?.Handle == IntPtr.Zero)
                 InitializeGameRules();
-            else if (Instance != null && Config.LoadedConfig.Settings.FlashingHtmlHudFix)
+            else if (Instance != null && Config.LoadedConfig.FlashingHtmlHudFix)
                 Instance.GameRules.GameRestart = Instance.GameRules?.RestartRoundTime < Server.CurrentTime;
         }
 
@@ -52,17 +53,20 @@ namespace jRandomSkills
 
             string infoLine = "";
             string skillLine = "";
+            string remainingLine = "";
+            bool showDescirptionHUD = skillPlayer.SkillDescriptionHudExpired >= DateTime.Now;
+            bool isDescription = true;
 
             if (SkillData.Skills.Count == 0)
             {
-                infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
-                skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("none")}</font> <br>";
+                infoLine = player.GetTranslation("your_skill");
+                skillLine = player.GetTranslation("none");
             }
             else if (skillPlayer.IsDrawing)
             {
                 var randomSkill = SkillData.Skills[Instance.Random.Next(SkillData.Skills.Count)];
-                infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("drawing_skill")}:</font> <br>";
-                skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{randomSkill.Color}'>{player.GetSkillName(randomSkill.Skill)}</font> <br>";
+                infoLine = player.GetTranslation("drawing_skill");
+                skillLine = $"<font color='{randomSkill.Color}'>{player.GetSkillName(randomSkill.Skill)}</font>";
             }
             else if (!skillPlayer.IsDrawing)
             {
@@ -71,11 +75,21 @@ namespace jRandomSkills
                     var skillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == skillPlayer.Skill);
                     if (skillInfo != null)
                     {
-                        infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
-                        skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillInfo.Color}'>{player.GetSkillName(skillInfo.Skill)}</font> <br>";
+                        infoLine = player.GetTranslation("your_skill");
+                        skillLine = $"<font color='{skillInfo.Color}'>{player.GetSkillName(skillInfo.Skill, skillPlayer.SkillChance)}</font>";
+                        if (skillInfo.Skill != Skills.None)
+                        {
+                            remainingLine = string.IsNullOrEmpty(skillPlayer.PrintHTML)
+                                ? showDescirptionHUD ? player.GetSkillDescription(skillInfo.Skill, skillPlayer.SkillChance) : ""
+                                : skillPlayer.PrintHTML;
+                            isDescription = string.IsNullOrEmpty(skillPlayer.PrintHTML);
+                        }
                     }
-                } else if (player?.IsValid == true && Config.LoadedConfig.Settings.DisableSpectateHUD)
+                } else if (player?.IsValid == true)
                 {
+                    if (player.Team is CsTeam.Spectator or CsTeam.None && Config.LoadedConfig.DisableSpectateHUD)
+                        return;
+
                     var pawn = player.Pawn.Value;
                     if (pawn == null) return;
 
@@ -94,15 +108,19 @@ namespace jRandomSkills
                     string pName = observeredPlayerSkill.PlayerName;
                     if (pName.Length > 18)
                         pName = $"{pName[..17]}...";
-                    infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("observer_skill")} {pName}:</font> <br>";
-                    skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{observeredPlayerSkillInfo.Color}'>{(observeredPlayerSkill.SpecialSkill == Skills.None ? player.GetSkillName(observeredPlayerSkillInfo.Skill) : $"{player.GetSkillName(observeredPlayerSpecialSkillInfo.Skill)}({player.GetSkillName(observeredPlayerSkillInfo.Skill)})")}</font> <br>";
+                    var observerSkill = player.GetTranslation("observer_skill");
+                    infoLine = string.IsNullOrEmpty(observerSkill) ? pName : $"{observerSkill} {pName}";
+                    skillLine = $"<font color='{observeredPlayerSkillInfo.Color}'>{(observeredPlayerSkill.SpecialSkill == Skills.None 
+                        ? player.GetSkillName(observeredPlayerSkillInfo.Skill, observeredPlayerSkill.SkillChance) 
+                        : $"{player.GetSkillName(observeredPlayerSpecialSkillInfo.Skill)}({player.GetSkillName(observeredPlayerSkillInfo.Skill)})")}</font>";
+                    if (showDescirptionHUD)
+                        remainingLine = player.GetSkillDescription(observeredPlayerSkill.Skill, observeredPlayerSkill.SkillChance);
                 }
             }
 
-            if (string.IsNullOrEmpty(infoLine) && string.IsNullOrEmpty(skillLine)) return;
-            var hudContent = infoLine + skillLine;
+            if (string.IsNullOrEmpty(skillLine)) return;
             if (player == null || !player.IsValid) return;
-            player.PrintToCenterHtml(hudContent);
+            Event.UpdateSkillHUD(player, infoLine, skillLine, remainingLine, isDescription);
         }
     }
 }

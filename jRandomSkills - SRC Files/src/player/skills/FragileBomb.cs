@@ -12,20 +12,21 @@ namespace jRandomSkills
     public class FragileBomb : ISkill
     {
         private const Skills skillName = Skills.FragileBomb;
-        private static int bombHealth = Config.GetValue<int>(skillName, "maxBombHealth");
-        private static readonly int maxBombHealth = Config.GetValue<int>(skillName, "maxBombHealth");
+        private static int bombHealth = 1000;
+        private static int maxBombHealth = 1000;
 
         private static CPlantedC4? plantedC4;
         private static CTriggerMultiple? triggerC4;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
         {
-            bombHealth = maxBombHealth;
+            bombHealth = SkillsInfo.GetValue<int>(skillName, "maxBombHealth");
+            maxBombHealth = SkillsInfo.GetValue<int>(skillName, "maxBombHealth");
             plantedC4 = null;
             triggerC4 = null;
         }
@@ -110,7 +111,7 @@ namespace jRandomSkills
             Localization.PrintTranslationToChatAll($" {ChatColors.Gold}{{0}}: {ChatColors.Red}{bombHealth}{ChatColors.Gold}/{ChatColors.Green}{maxBombHealth}", ["fragilebomb_bomb_health"]);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#5d00ff", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false, int maxBombHealth = 1000) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#5d00ff", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool disableOnFreezeTime = false, bool needsTeammates = false, int maxBombHealth = 1000) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public int MaxBombHealth { get; set; } = maxBombHealth;
         }

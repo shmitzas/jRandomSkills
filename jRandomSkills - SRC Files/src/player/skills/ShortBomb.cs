@@ -9,11 +9,10 @@ namespace jRandomSkills
     public class ShortBomb : ISkill
     {
         private const Skills skillName = Skills.ShortBomb;
-        private static readonly int detonationTime = Config.GetValue<int>(skillName, "detonationTime");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void BombPlanted(EventBombPlanted @event)
@@ -26,10 +25,10 @@ namespace jRandomSkills
 
             var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
             if (plantedBomb != null)
-                Server.NextFrame(() => plantedBomb.C4Blow = (float)Server.EngineTime + detonationTime);
+                Server.NextFrame(() => plantedBomb.C4Blow = (float)Server.EngineTime + SkillsInfo.GetValue<int>(skillName, "detonationTime"));
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#f5b74c", CsTeam onlyTeam = CsTeam.Terrorist, bool needsTeammates = false, int detonationTime = 20) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#f5b74c", CsTeam onlyTeam = CsTeam.Terrorist, bool disableOnFreezeTime = false, bool needsTeammates = false, int detonationTime = 20) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public int DetonationTime { get; set; } = detonationTime;
         }

@@ -9,12 +9,10 @@ namespace jRandomSkills
     public class Push : ISkill
     {
         private const Skills skillName = Skills.Push;
-        private static readonly float jumpVelocity = Config.GetValue<float>(skillName, "jumpVelocity");
-        private static readonly float pushVelocity = Config.GetValue<float>(skillName, "pushVelocity");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"), false);
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -38,11 +36,11 @@ namespace jRandomSkills
         {
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
-            float newChance = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
+            float newChance = (float)Instance.Random.NextDouble() * (SkillsInfo.GetValue<float>(skillName, "ChanceTo") - SkillsInfo.GetValue<float>(skillName, "ChanceFrom")) + SkillsInfo.GetValue<float>(skillName, "ChanceFrom");
             playerInfo.SkillChance = newChance;
             newChance = (float)Math.Round(newChance, 2) * 100;
             newChance = (float)Math.Round(newChance);
-            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetTranslation("push")}{ChatColors.Lime}: " + player.GetTranslation("push_desc2", newChance), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(skillName)}{ChatColors.Lime}: {player.GetSkillDescription(skillName, newChance)}", false);
         }
 
         private static void PushEnemy(CCSPlayerController player, QAngle attackerAngle)
@@ -53,13 +51,13 @@ namespace jRandomSkills
             var currentPosition = player.PlayerPawn.Value.AbsOrigin;
             var currentAngles = player.PlayerPawn.Value.EyeAngles;
 
-            Vector newVelocity = SkillUtils.GetForwardVector(attackerAngle) * pushVelocity;
-            newVelocity.Z = player.PlayerPawn.Value.AbsVelocity.Z + jumpVelocity;
+            Vector newVelocity = SkillUtils.GetForwardVector(attackerAngle) * SkillsInfo.GetValue<float>(skillName, "pushVelocity");
+            newVelocity.Z = player.PlayerPawn.Value.AbsVelocity.Z + SkillsInfo.GetValue<float>(skillName, "jumpVelocity");
 
             player.PlayerPawn.Value.Teleport(currentPosition, currentAngles, newVelocity);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1e9ab0", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = 1f, float chanceTo = 1f, float jumpVelocity = 300f, float pushVelocity = 400f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1e9ab0", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float chanceFrom = 1f, float chanceTo = 1f, float jumpVelocity = 300f, float pushVelocity = 400f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float ChanceFrom { get; set; } = chanceFrom;
             public float ChanceTo { get; set; } = chanceTo;

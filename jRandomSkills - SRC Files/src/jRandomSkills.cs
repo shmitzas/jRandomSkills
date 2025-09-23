@@ -19,17 +19,19 @@ namespace jRandomSkills
         public Random Random { get; } = new Random();
         public CCSGameRules? GameRules { get; set; }
         public IWasdMenuManager? MenuManager;
+        public const string Tag = "jRandomSkills";
 
         public override string ModuleName => "[CS2] [ jRandomSkills ]";
         public override string ModuleAuthor => "D3X, Juzlus";
         public override string ModuleDescription => "Plugin adds random skills every round for CS2 by D3X. Modified by Juzlus.";
-        public override string ModuleVersion => "1.1.5";
+        public override string ModuleVersion => "1.1.7";
 
         public override void Load(bool hotReload)
         {
             Instance = this;
 
             Config.LoadConfig();
+            SkillsInfo.LoadSkillsInfo();
             Localization.Load();
             Debug.Load();
             PlayerOnTick.Load();
@@ -42,11 +44,11 @@ namespace jRandomSkills
         internal void LoadAllSkills()
         {
             foreach (var skill in Enum.GetValues(typeof(Skills)))
-                if (Config.GetValue<bool>(skill, "active"))
+                if (SkillsInfo.GetValue<bool>(skill, "active"))
                     SkillAction(skill.ToString()!, "LoadSkill");
 
-            Debug.WriteToDebug($"jRandomSkills v{Instance.ModuleVersion} ({SkillData.Skills.Count - 1}/{Config.LoadedConfig.SkillsInfo.Length - 1} Skills) loaded!");
-            Debug.WriteToDebug($"GameModes: {(Config.GameModes)Config.LoadedConfig.Settings.GameMode}, Lang: {Config.LoadedConfig.Settings.LangCode}");
+            Debug.WriteToDebug($"jRandomSkills v{Instance.ModuleVersion} ({SkillData.Skills.Count - 1}/{SkillsInfo.LoadedConfig.Count - 1} Skills) loaded!");
+            Debug.WriteToDebug($"GameModes: {(Config.GameModes)Config.LoadedConfig.GameMode}, Lang: {Config.LoadedConfig.LanguageSystem.DefaultLangCode}");
             foreach (var skill in SkillData.Skills)
                 Debug.WriteToDebug($"Loaded: {skill.Skill}");
         }
@@ -106,6 +108,7 @@ namespace jRandomSkills
         public float? SkillChance { get; set; }
         public bool IsDrawing { get; set; }
         public DateTime SkillDescriptionHudExpired { get; set; }
+        public string? PrintHTML { get; set; }
     }
 
 #pragma warning disable IDE1006
@@ -113,7 +116,7 @@ namespace jRandomSkills
 #pragma warning restore IDE1006
     {
         public Skills Skill { get; } = skill;
-        public string Color { get; } = color;
+        public string Color { get; set; } = color;
         public bool Display { get; } = display;
 
         public static implicit operator Skills(jSkill_SkillInfo v)

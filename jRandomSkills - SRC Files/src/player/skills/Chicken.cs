@@ -5,7 +5,7 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 using jRandomSkills.src.utils;
-using CounterStrikeSharp.API.Core.Attributes;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
@@ -22,17 +22,21 @@ namespace jRandomSkills
             "weapon_xm1014", "weapon_mag7", "weapon_sawedoff", "weapon_m249",
             "weapon_negev"
         ];
-        private static readonly Dictionary<CCSPlayerController, CBaseModelEntity> chickens = [];
+        private static readonly ConcurrentDictionary<CCSPlayerController, CBaseModelEntity> chickens = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
         {
             foreach (var player in Utilities.GetPlayers())
                 SetWeaponAttack(player, false);
+            foreach (var valuePair in chickens)
+                if (valuePair.Value != null && valuePair.Value.IsValid)
+                    valuePair.Value.AcceptInput("Kill");
+            chickens.Clear();
         }
 
         public static void WeaponPickup(EventItemPickup @event)
@@ -42,17 +46,6 @@ namespace jRandomSkills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
             SetWeaponAttack(player, true);
-        }
-
-        public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
-        {
-            foreach (var (info, player) in infoList)
-            {
-                if (player == null) continue;
-                if (chickens.TryGetValue(player, out var chicken))
-                    if (chicken != null && chicken.IsValid)
-                        info.TransmitEntities.Remove(chicken.Index);
-            }
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -79,6 +72,7 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
+            SkillUtils.ResetPrintHTML(player);
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null)
             {
@@ -100,7 +94,7 @@ namespace jRandomSkills
             {
                 if (chicken != null && chicken.IsValid)
                     chicken.AcceptInput("Kill");
-                chickens.Remove(player);
+                chickens.TryRemove(player, out _);
             }
         }
 
@@ -129,16 +123,21 @@ namespace jRandomSkills
             var chickenModel = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic");
             if (chickenModel == null)
                 return;
-            Vector pos = new(0, 0, 0);
-
+            
             chickenModel.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(chickenModel.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             chickenModel.SetModel("models/chicken/chicken.vmdl");
             chickenModel.Render = Color.FromArgb(255, 255, 255, 255);
-            chickenModel.Teleport(pos, playerPawn.AbsRotation, null);
+            chickenModel.Teleport(playerPawn.AbsOrigin, playerPawn.AbsRotation, null);
             chickenModel.DispatchSpawn();
             chickenModel.AcceptInput("InitializeSpawnFromWorld", playerPawn, playerPawn, "");
             Utilities.SetStateChanged(chickenModel, "CBaseEntity", "m_CBodyComponent");
-            Instance.AddTimer(1f, () => chickens.TryAdd(player, chickenModel));
+
+            chickenModel.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = 1;
+            Utilities.SetStateChanged(chickenModel, "CBaseEntity", "m_CBodyComponent");
+            Server.NextFrame(() => chickenModel.AcceptInput("SetScale", chickenModel, chickenModel, "1"));
+
+            chickenModel.AcceptInput("SetParent", playerPawn, playerPawn, "!activator");
+            chickens.TryAdd(player, chickenModel);
         }
 
         public static void OnTick()
@@ -153,12 +152,6 @@ namespace jRandomSkills
                 var pawn = player.PlayerPawn.Value;
                 if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null || chicken.AbsOrigin == null) continue;
 
-                float X = (float)Math.Round(pawn.AbsOrigin.X, 2);
-                float Y = (float)Math.Round(pawn.AbsOrigin.Y, 2);
-                float Z = (float)Math.Round(pawn.AbsOrigin.Z, 2);
-                Vector pos = new(X, Y, Z);
-                if (chicken.AbsOrigin.X != pos.X || chicken.AbsOrigin.Y != pos.Y || chicken.AbsOrigin.Z != pos.Z)
-                    chicken.Teleport(pos, pawn.AbsRotation, null);
                 pawn.VelocityModifier = 1.1f;
                 UpdateHUD(player);
             }
@@ -170,21 +163,20 @@ namespace jRandomSkills
             var pawn = player.PlayerPawn.Value;
             if (pawn.WeaponServices == null || pawn.WeaponServices.ActiveWeapon == null || !pawn.WeaponServices.ActiveWeapon.IsValid || pawn.WeaponServices.ActiveWeapon.Value == null || !pawn.WeaponServices.ActiveWeapon.Value.IsValid) return;
 
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(s => s.SteamID == player?.SteamID);
+            if (playerInfo == null) return;
 
             var weapon = pawn.WeaponServices.ActiveWeapon.Value;
-            if (weapon == null || !disabledWeapons.Contains(weapon.DesignerName)) return;
+            if (weapon == null || !disabledWeapons.Contains(weapon.DesignerName))
+            {
+                playerInfo.PrintHTML = null;
+                return;
+            }
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>{player.GetTranslation("disabled_weapon")}</font> <br>";
-
-            var hudContent = infoLine + skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            playerInfo.PrintHTML = $"<font color='#FF0000'>{player.GetTranslation("disabled_weapon")}</font>";
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FF8B42", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FF8B42", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
         }
     }

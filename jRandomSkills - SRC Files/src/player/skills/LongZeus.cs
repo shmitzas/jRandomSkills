@@ -16,11 +16,10 @@ namespace jRandomSkills
     public class LongZeus : ISkill
     {
         private const Skills skillName = Skills.LongZeus;
-        private static readonly float maxDistance = Config.GetValue<float>(skillName, "maxDistance");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public unsafe static void WeaponFire(EventWeaponFire @event)
@@ -38,7 +37,7 @@ namespace jRandomSkills
             if (activeWeapon == null || !activeWeapon.IsValid || activeWeapon.DesignerName != "weapon_taser") return;
 
             Vector eyePos = new(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + pawn.ViewOffset.Z);
-            Vector endPos = eyePos + SkillUtils.GetForwardVector(pawn.EyeAngles) * maxDistance;
+            Vector endPos = eyePos + SkillUtils.GetForwardVector(pawn.EyeAngles) * SkillsInfo.GetValue<float>(skillName, "maxDistance");
 
             Ray ray = new(Vector3.Zero);
             CTraceFilter filter = new(pawn.Index, pawn.Index)
@@ -57,7 +56,7 @@ namespace jRandomSkills
             filter.m_nHierarchyIds[1] = 0;
             CGameTrace trace = TraceRay.TraceHull(eyePos, endPos, filter, ray);
 
-            if (Config.LoadedConfig.Settings.CS2TraceRayDebug)
+            if (Config.LoadedConfig.CS2TraceRayDebug)
             {
                 CreateLine(eyePos, endPos, Color.FromArgb(255, 255, 255, 0));
                 CreateLine(new Vector(trace.StartPos.X, trace.StartPos.Y, trace.StartPos.Z), new Vector(trace.EndPos.X, trace.EndPos.Y, trace.EndPos.Z), Color.FromArgb(255, 255, 0, 0));
@@ -102,7 +101,7 @@ namespace jRandomSkills
             beam.AcceptInput("FollowEntity", beam, null!, "");
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#6effc7", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float maxDistance = 4096f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#6effc7", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float maxDistance = 4096f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float MaxDistance { get; set; } = maxDistance;
         }

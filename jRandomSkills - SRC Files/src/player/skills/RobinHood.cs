@@ -9,11 +9,10 @@ namespace jRandomSkills
     public class RobinHood : ISkill
     {
         private const Skills skillName = Skills.RobinHood;
-        private static readonly int moneyMultiplier = Config.GetValue<int>(skillName, "moneyMultiplier");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -26,7 +25,7 @@ namespace jRandomSkills
             var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
             if (attackerInfo?.Skill != skillName) return;
 
-            int moneyToSteal = damage * moneyMultiplier;
+            int moneyToSteal = damage * SkillsInfo.GetValue<int>(skillName, "moneyMultiplier");
             StealMoney(victim!, attacker!, moneyToSteal);
         }
 
@@ -44,7 +43,7 @@ namespace jRandomSkills
             Utilities.SetStateChanged(attacker!, "CCSPlayerController", "m_pInGameMoneyServices");
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#119125", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int moneyMultiplier = 35) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#119125", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, int moneyMultiplier = 35) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public int MoneyMultiplier { get; set; } = moneyMultiplier;
         }

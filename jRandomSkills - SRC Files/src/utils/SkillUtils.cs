@@ -11,17 +11,27 @@ using System.Runtime.InteropServices;
 using WASDMenuAPI.Classes;
 using WASDSharedAPI;
 using static CounterStrikeSharp.API.Core.Listeners;
+using System.Collections.Concurrent;
+using System;
+using static System.Net.Mime.MediaTypeNames;
+using System.Drawing;
 
 namespace jRandomSkills
 {
     public static class SkillUtils
     {
+        private static readonly MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int> HEGrenadeProjectile_CreateFunc = new(GameData.GetSignature("HEGrenadeProjectile_CreateFunc"));
         private static readonly MemoryFunctionVoid<nint, float, RoundEndReason, nint, nint> TerminateRoundFunc = new(GameData.GetSignature("CCSGameRules_TerminateRound"));
 
         public static void PrintToChat(CCSPlayerController player, string msg, bool isError)
         {
             string checkIcon = isError ? $"{ChatColors.DarkRed}✖{ChatColors.LightRed}" : $"{ChatColors.Green}✔{ChatColors.Lime}";
-            player.PrintToChat($" {ChatColors.DarkRed}► {ChatColors.Green}[{ChatColors.DarkRed} jRadnomSkills {ChatColors.Green}] {checkIcon} {msg}");
+            player.PrintToChat($" {ChatColors.DarkRed}► {ChatColors.Green}[{ChatColors.DarkRed} {jRandomSkills.Tag} {ChatColors.Green}] {checkIcon} {msg}");
+        }
+
+        public static bool IsFreezeTime()
+        {
+            return jRandomSkills.Instance?.GameRules?.FreezePeriod == true;
         }
 
         public static void RegisterSkill(Skills skill, string color, bool display = true)
@@ -76,10 +86,14 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid || playerPawn.CBodyComponent == null || playerPawn.CBodyComponent.SceneNode == null) return;
 
-            playerPawn.CBodyComponent.SceneNode.Scale = scale;
             playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = scale;
-            playerPawn.AcceptInput("SetScale", null, null, scale.ToString());
-            Server.NextFrame(() => Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent"));
+            Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
+            Server.NextFrame(() => playerPawn.AcceptInput("SetScale", playerPawn, playerPawn, scale.ToString()));
+        }
+
+        public static void CreateHEGrenadeProjectile(Vector pos, QAngle angle, Vector vel, int teamNum)
+        {
+            HEGrenadeProjectile_CreateFunc.Invoke(pos.Handle, angle.Handle, vel.Handle, vel.Handle, IntPtr.Zero, 44, teamNum);
         }
 
         public static void TakeHealth(CCSPlayerPawn? pawn, int damage)
@@ -96,6 +110,13 @@ namespace jRandomSkills
                 {
                     pawn?.CommitSuicide(false, true);
                 });
+        }
+
+        public static void ResetPrintHTML(CCSPlayerController? player)
+        {
+            var playerInfo = jRandomSkills.Instance.SkillPlayer.FirstOrDefault(s => s.SteamID == player?.SteamID);
+            if (playerInfo == null) return;
+            playerInfo.PrintHTML = null;
         }
 
         public static void AddHealth(CCSPlayerPawn? pawn, int extraHealth, int maxHealth = 100)
@@ -159,7 +180,7 @@ namespace jRandomSkills
             return manager.HasMenu(player);
         }
 
-        public static void UpdateMenu(CCSPlayerController? player, HashSet<(string, string)> items)
+        public static void UpdateMenu(CCSPlayerController? player, ConcurrentBag<(string, string)> items)
         {
             if (player == null) return;
 
@@ -171,7 +192,7 @@ namespace jRandomSkills
 
             Dictionary<string, Action<CCSPlayerController, IWasdMenuOption>> list = [];
             foreach (var item in items)
-                list.Add(item.Item1, (p, option) =>
+                list.TryAdd(item.Item1, (p, option) =>
                 {
                     jRandomSkills.Instance.SkillAction(playerInfo.Skill.ToString(), "TypeSkill", [p, new[] { item.Item2 }]);
                     manager.CloseMenu(p);
@@ -180,7 +201,7 @@ namespace jRandomSkills
             manager.UpdateActiveMenu(player, list);
         }
 
-        public static void CreateMenu(CCSPlayerController? player, HashSet<(string, string)> enemies)
+        public static void CreateMenu(CCSPlayerController? player, ConcurrentBag<(string, string)> enemies, (string, string)? lastElement = null)
         {
             if (player == null || !player.IsValid) return;
 
@@ -190,18 +211,45 @@ namespace jRandomSkills
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == playerInfo.Skill);
             if (skillData == null) return;
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{player.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font> <br>"
-                + $"<font color='green'>{player.GetTranslation($"{playerInfo.Skill.ToString().ToLower()}_select_info")}</font>";
-
             var manager = GetMenuManager();
             if (manager == null) return;
 
-            IWasdMenu menu = manager.CreateMenu(infoLine + skillLine, "<font class='fontSize-m' color='cyan'>W/S - Scroll</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>E - Select</font> <br>");
+            var config = Config.LoadedConfig.HtmlHudCustomisation;
+            var your_skill = player.GetTranslation("your_skill");
+            var emptySymbol = $"<font class='fontSize-{(string.IsNullOrEmpty(your_skill) ? "l" : "ml")}'> </font>";
+
+            string infoLine = string.IsNullOrEmpty(your_skill)
+                ? ""
+                : $"<font class='fontWeight-Bold fontSize-{config.HeaderLineSize}' color='{config.HeaderLineColor}'>{your_skill}:</font><br>";
+
+            string skillLine = $"<font class='fontWeight-Bold fontSize-{config.SkillLineSize}' color='{skillData.Color}'>{player.GetSkillName(skillData.Skill)}</font><br>";
+
+            var skill_select_info = player.GetTranslation($"{playerInfo.Skill.ToString().ToLower()}_select_info");
+            string remainingLine = string.IsNullOrWhiteSpace(skill_select_info)
+                ? ""
+                : $"<font class='fontSize-{config.WSADMenuSelectInfoLineSize}' color='{config.WSADMenuSelectInfoLineColor}'>{skill_select_info}</font><br>";
+
+            var hudContent = infoLine + skillLine + remainingLine;
+
+            string controllsLine = 
+                $"{emptySymbol}<font class='fontSize-{config.WSADMenuControllsLineSize}' color='{config.WSADMenuControllsLineColor1}'>{player.GetTranslation($"menu_controlls_scroll")}</font>"
+                + $"<font class='fontSize-{config.WSADMenuControllsLineSize}' color='{config.WSADMenuControllsLineColor2}'>{player.GetTranslation($"menu_controlls_padding")}</font>"
+                + $"<font class='fontSize-{config.WSADMenuControllsLineSize}' color='{config.WSADMenuControllsLineColor3}'>{player.GetTranslation($"menu_controlls_select")}</font>{emptySymbol}";
+
+            string itemText = $"<font class='fontSize-{config.WSADMenuItemLineSize}' color='{config.WSADMenuItemLineColor}'>{{0}}</font><br>";
+            string itemHoverText = $"<font class='fontSize-{config.WSADMenuItemLineSize}'><font color='purple'>[ </font><font color='{config.WSADMenuItemHoverLineColor}'>{{0}}</font><font color='purple'> ]</font></font><br>";
+
+            IWasdMenu menu = manager.CreateMenu(hudContent, itemText, itemHoverText, controllsLine);
             foreach (var enemy in enemies)
                 menu.Add(enemy.Item1, (p, option) =>
                 {
                     jRandomSkills.Instance.SkillAction(playerInfo.Skill.ToString(), "TypeSkill", [p, new[] { enemy.Item2 }]);
+                    manager.CloseMenu(p);
+                });
+            if (lastElement != null)
+                menu.Add(lastElement.Value.Item1, (p, option) =>
+                {
+                    jRandomSkills.Instance.SkillAction(playerInfo.Skill.ToString(), "TypeSkill", [p, new[] { lastElement.Value.Item2 }]);
                     manager.CloseMenu(p);
                 });
             manager.OpenMainMenu(player, menu);

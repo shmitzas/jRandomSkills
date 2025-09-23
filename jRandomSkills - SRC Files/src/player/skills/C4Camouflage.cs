@@ -5,17 +5,18 @@ using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class C4Camouflage : ISkill
     {
         private const Skills skillName = Skills.C4Camouflage;
-        private static readonly Dictionary<ulong, List<uint>> invisibleEntities = [];
+        private static readonly ConcurrentDictionary<ulong, List<uint>> invisibleEntities = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void WeaponPickup(EventItemPickup @event)
@@ -45,6 +46,16 @@ namespace jRandomSkills
             {
                 SetPlayerVisibility(player!, true);
                 SetWeaponVisibility(player!, true);
+            }
+        }
+
+        public static void OnTick()
+        {
+            foreach (var player in Utilities.GetPlayers())
+            {
+                if (!player.PawnIsAlive)
+                    if (invisibleEntities.ContainsKey(player.SteamID))
+                        invisibleEntities.TryRemove(player.SteamID, out _);
             }
         }
 
@@ -81,7 +92,7 @@ namespace jRandomSkills
         {
             SetPlayerVisibility(player, true);
             SetWeaponVisibility(player, true);
-            invisibleEntities.Remove(player.SteamID);
+            invisibleEntities.TryRemove(player.SteamID, out _);
         }
 
         private static void SetPlayerVisibility(CCSPlayerController player, bool enabled)
@@ -101,7 +112,7 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn.Value!;
             if (playerPawn.WeaponServices == null) return;
 
-            invisibleEntities.Remove(player.SteamID);
+            invisibleEntities.TryRemove(player.SteamID, out _);
             foreach (var weapon in playerPawn.WeaponServices.MyWeapons)
             {
                 if (weapon != null && weapon.IsValid && weapon.Value != null && weapon.Value.IsValid)
@@ -114,16 +125,16 @@ namespace jRandomSkills
                                 items.Add(weapon.Index);
                         }
                         else
-                            invisibleEntities.Add(player.SteamID, [weapon.Index]);
+                            invisibleEntities.TryAdd(player.SteamID, [weapon.Index]);
                     }
                 }
             }
 
             if (visible)
-                invisibleEntities.Remove(player.SteamID);
+                invisibleEntities.TryRemove(player.SteamID, out _);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#00911f", CsTeam onlyTeam = CsTeam.Terrorist, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#00911f", CsTeam onlyTeam = CsTeam.Terrorist, bool disableOnFreezeTime = false, bool needsTeammates = false) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
         }
     }

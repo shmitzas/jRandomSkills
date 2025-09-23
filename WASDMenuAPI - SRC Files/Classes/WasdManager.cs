@@ -35,11 +35,13 @@ public class WasdManager : IWasdMenuManager
         menuPlayer?.OpenSubMenu(menu);
     }
 
-    public IWasdMenu CreateMenu(string title = "", string controlText = "")
+    public IWasdMenu CreateMenu(string title, string itemText, string itemHoverText, string controlText)
     {
         WasdMenu menu = new()
         {
             Title = title,
+            ItemText = itemText,
+            ItemHoverText = itemHoverText,
             ControlText = controlText
         };
         return menu;

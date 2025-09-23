@@ -5,17 +5,18 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class Flash : ISkill
     {
         private const Skills skillName = Skills.Flash;
-        public static readonly Dictionary<ulong, int> jumpedPlayers = [];
+        public static readonly ConcurrentDictionary<ulong, int> jumpedPlayers = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"), false);
         }
 
         public static void NewRound()
@@ -46,7 +47,7 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
             if (!jumpedPlayers.TryGetValue(player.SteamID, out _)) return;
-            jumpedPlayers[player.SteamID] = Server.TickCount + 20;
+            jumpedPlayers.AddOrUpdate(player.SteamID, Server.TickCount + 20, (k, v) => Server.TickCount + 20);
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -55,16 +56,13 @@ namespace jRandomSkills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerPawn == null || playerInfo == null) return;
 
-            var skillConfig = Config.LoadedConfig.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString());
-            if (skillConfig == null) return;
-
-            float newSpeed = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
+            float newSpeed = (float)Instance.Random.NextDouble() * (SkillsInfo.GetValue<float>(skillName, "ChanceTo") - SkillsInfo.GetValue<float>(skillName, "ChanceFrom")) + SkillsInfo.GetValue<float>(skillName, "ChanceFrom");
             newSpeed = (float)Math.Round(newSpeed, 2);
             playerInfo.SkillChance = newSpeed;
 
             jumpedPlayers.TryAdd(player.SteamID, 0);
             playerPawn.VelocityModifier = newSpeed;
-            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetTranslation("flash")}{ChatColors.Lime}: " + player.GetTranslation("flash_desc2", newSpeed), false);
+            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(skillName)}{ChatColors.Lime}: {player.GetSkillDescription(skillName, newSpeed)}", false);
         }
 
         public static void DisableSkill(CCSPlayerController player)
@@ -72,7 +70,7 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null) return;
             playerPawn.VelocityModifier = 1;
-            jumpedPlayers.Remove(player.SteamID);
+            jumpedPlayers.TryRemove(player.SteamID, out _);
         }
 
         public static void OnTick()
@@ -100,7 +98,7 @@ namespace jRandomSkills
             }
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#A31912", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = 1.2f, float chanceTo = 3.0f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#A31912", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float chanceFrom = 1.2f, float chanceTo = 3.0f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float ChanceFrom { get; set; } = chanceFrom;
             public float ChanceTo { get; set; } = chanceTo;

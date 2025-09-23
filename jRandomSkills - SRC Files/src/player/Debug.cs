@@ -127,7 +127,7 @@ namespace jRandomSkills
 
         public static void WriteToDebug(string message)
         {
-            if (Config.LoadedConfig.Settings.DebugMode != true)
+            if (Config.LoadedConfig.DebugMode != true)
                 return;
 
             string filename = $"debug_{sessionId}.txt";

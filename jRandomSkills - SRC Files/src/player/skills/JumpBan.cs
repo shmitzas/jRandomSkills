@@ -4,17 +4,18 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class JumpBan : ISkill
     {
         private const Skills skillName = Skills.JumpBan;
-        public static readonly Dictionary<CCSPlayerPawn, int> bannedPlayers = [];
+        public static readonly ConcurrentDictionary<CCSPlayerPawn, int> bannedPlayers = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void NewRound()
@@ -29,7 +30,7 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
             if (!bannedPlayers.TryGetValue(player.PlayerPawn.Value, out _)) return;
-            bannedPlayers[player.PlayerPawn.Value] = Server.TickCount + 10;
+            bannedPlayers.AddOrUpdate(player.PlayerPawn.Value, Server.TickCount + 10, (k, v) => Server.TickCount + 10);
         }
 
         public static void OnTick()
@@ -52,7 +53,7 @@ namespace jRandomSkills
                 if (playerInfo == null || playerInfo.Skill != skillName) continue;
                 var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
 
-                HashSet<(string, string)> menuItems = enemies.Select(e => (e.PlayerName, e.Index.ToString())).ToHashSet();
+                ConcurrentBag<(string, string)> menuItems = new(enemies.Select(e => (e.PlayerName, e.Index.ToString())));
                 SkillUtils.UpdateMenu(player, menuItems);
             }
         }
@@ -78,7 +79,7 @@ namespace jRandomSkills
                 return;
             }
 
-            bannedPlayers[enemy.PlayerPawn.Value] = 0;
+            bannedPlayers.AddOrUpdate(enemy.PlayerPawn.Value, 0, (k, v) => 0);
             playerInfo.SkillChance = 1;
             player.PrintToChat($" {ChatColors.Green}" + player.GetTranslation("jumpban_player_info", enemy.PlayerName));
             enemy.PrintToChat($" {ChatColors.Red}" + player.GetTranslation("jumpban_enemy_info"));
@@ -93,7 +94,7 @@ namespace jRandomSkills
             var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
             if (enemies.Length > 0)
             {
-                HashSet<(string, string)> menuItems = enemies.Select(e => (e.PlayerName, e.Index.ToString())).ToHashSet();
+                ConcurrentBag<(string, string)> menuItems = new(enemies.Select(e => (e.PlayerName, e.Index.ToString())));
                 SkillUtils.CreateMenu(player, menuItems);
             }
             else
@@ -103,11 +104,11 @@ namespace jRandomSkills
         public static void DisableSkill(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
-            bannedPlayers.Remove(player.PlayerPawn.Value);
+            bannedPlayers.TryRemove(player.PlayerPawn.Value, out _);
             SkillUtils.CloseMenu(player);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#b01e5d", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#b01e5d", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
         }
     }

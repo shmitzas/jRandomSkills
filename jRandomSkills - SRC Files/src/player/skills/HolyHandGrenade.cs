@@ -10,12 +10,10 @@ namespace jRandomSkills
     public class HolyHandGrenade : ISkill
     {
         private const Skills skillName = Skills.HolyHandGrenade;
-        private static readonly float damageMultiplier = Config.GetValue<float>(skillName, "damageMultiplier");
-        private static readonly float damageRadiusMultiplier = Config.GetValue<float>(skillName, "damageRadiusMultiplier");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
         public static void OnEntitySpawned(CEntityInstance @event)
@@ -36,8 +34,8 @@ namespace jRandomSkills
                 var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
                 if (playerInfo?.Skill != skillName) return;
 
-                hegrenade.Damage *= damageMultiplier;
-                hegrenade.DmgRadius *= damageRadiusMultiplier;
+                hegrenade.Damage *= SkillsInfo.GetValue<float>(skillName, "damageMultiplier");
+                hegrenade.DmgRadius *= SkillsInfo.GetValue<float>(skillName, "damageRadiusMultiplier");
             });
         }
 
@@ -46,7 +44,7 @@ namespace jRandomSkills
             SkillUtils.TryGiveWeapon(player, CsItem.HEGrenade);
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ffdd00", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float damageMultiplier = 2f, float damageRadiusMultiplier = 2f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ffdd00", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float damageMultiplier = 2f, float damageRadiusMultiplier = 2f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float DamageMultiplier { get; set; } = damageMultiplier;
             public float DamageRadiusMultiplier { get; set; } = damageRadiusMultiplier;

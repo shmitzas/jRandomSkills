@@ -13,7 +13,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"), false);
         }
 
         public static void NewRound()
@@ -33,12 +33,12 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && player.IsValid)
             {
-                float newSize = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "maxScale") - Config.GetValue<float>(skillName, "minScale")) + Config.GetValue<float>(skillName, "minScale");
+                float newSize = (float)Instance.Random.NextDouble() * (SkillsInfo.GetValue<float>(skillName, "maxScale") - SkillsInfo.GetValue<float>(skillName, "minScale")) + SkillsInfo.GetValue<float>(skillName, "minScale");
                 newSize = (float)Math.Round(newSize, 2);
                 playerInfo.SkillChance = newSize;
 
                 SkillUtils.ChangePlayerScale(player, newSize);
-                SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetTranslation("dwarf")}{ChatColors.Lime}: " + player.GetTranslation("dwarf_desc2", newSize), false);
+                SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(skillName)}{ChatColors.Lime}: {player.GetSkillDescription(skillName, newSize)}", false);
             }
         }
 
@@ -56,7 +56,7 @@ namespace jRandomSkills
             }
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ffff00", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float minScale = .6f, float maxScale = .95f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ffff00", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float minScale = .6f, float maxScale = .95f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)
         {
             public float MinScale { get; set; } = minScale;
             public float MaxScale { get; set; } = maxScale;
