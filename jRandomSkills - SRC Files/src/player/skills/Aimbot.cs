@@ -1,12 +1,12 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
 using System.Runtime.InteropServices;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class Aimbot : ISkill
     {
@@ -42,11 +42,11 @@ namespace jRandomSkills
             if (playerInfo == null) return;
 
             if (attacker.PawnIsAlive)
-            {   
-                IntPtr hitGroupPointer = Marshal.ReadIntPtr(param2.Handle, GameData.GetOffset("CTakeDamageInfo_HitGroup"));
+            {
+                nint hitGroupPointer = Marshal.ReadIntPtr(param2.Handle, GameData.GetOffset("CTakeDamageInfo_HitGroup"));
                 if (hitGroupPointer != nint.Zero)
                 {
-                    IntPtr hitGroupOffset = Marshal.ReadIntPtr(hitGroupPointer, 16);
+                    nint hitGroupOffset = Marshal.ReadIntPtr(hitGroupPointer, 16);
                     if (hitGroupOffset != nint.Zero)
                     {
                         if (playerInfo.Skill == skillName)

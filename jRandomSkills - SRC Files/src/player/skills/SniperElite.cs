@@ -1,11 +1,11 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class SniperElite : ISkill
     {
@@ -93,10 +93,13 @@ namespace jRandomSkills
 
                     if (createdWeapon != null && createdWeapon.IsValid && createdWeapon.DesignerName == "weapon_awp")
                     {
-                        if (playerAWPs.TryGetValue(player.SteamID, out List<CEntityInstance>? value))
-                            value.Add(createdWeapon);
-                        else
-                            playerAWPs.TryAdd(player.SteamID, [createdWeapon]);
+                        lock (setLock)
+                        {
+                            if (playerAWPs.TryGetValue(player.SteamID, out var list))
+                                list.Add(createdWeapon);
+                            else
+                                playerAWPs.TryAdd(player.SteamID, [createdWeapon]);
+                        }
                     }
                     DeleteDroppedAWP(player);
                 });
@@ -111,23 +114,26 @@ namespace jRandomSkills
             var weaponServices = pawn.WeaponServices;
             if (weaponServices == null) return;
 
-            List<uint> playerWeapons = weaponServices.MyWeapons.Where(w => w != null && w.IsValid && w.Value != null && w.Value.IsValid)
-                                                                .Select(w => w.Value!.Index).ToList();
+            ConcurrentBag<uint> playerWeapons = [.. weaponServices.MyWeapons.Where(w => w != null && w.IsValid && w.Value != null && w.Value.IsValid)
+                                                                .Select(w => w.Value!.Index)];
 
-            if (playerAWPs.TryGetValue(player.SteamID, out var AWPs))
-                foreach (var awp in AWPs.ToList())
-                {
-                    if (awp != null && awp.IsValid)
+            lock (setLock)
+            {
+                if (playerAWPs.TryGetValue(player.SteamID, out var AWPs))
+                    foreach (var awp in AWPs.ToList())
                     {
-                        if (!playerWeapons.Contains(awp.Index))
+                        if (awp != null && awp.IsValid)
                         {
-                            awp.AcceptInput("Kill");
-                            AWPs.Remove(awp);
+                            if (!playerWeapons.Contains(awp.Index))
+                            {
+                                awp.AcceptInput("Kill");
+                                AWPs.Remove(awp);
+                            }
                         }
+                        else
+                            AWPs.Remove(awp!);
                     }
-                    else
-                        AWPs.Remove(awp!);
-                }
+            }
         }
 
         private static CBasePlayerWeapon? GetActiveRifle(CCSPlayerController player)

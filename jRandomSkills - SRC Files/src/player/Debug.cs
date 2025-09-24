@@ -3,10 +3,11 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
+using src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 
-namespace jRandomSkills
+namespace src.player
 {
     public static class Debug
     {
@@ -15,12 +16,12 @@ namespace jRandomSkills
 
         public static void Load()
         {
-            Debug.sessionId = $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}";
+            sessionId = $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}";
             Instance.RegisterEventHandler<EventPlayerConnectFull>((@event, info) =>
             {
                 var player = @event.Userid;
                 if (player == null || !player.IsValid) return HookResult.Continue;
-                Debug.WriteToDebug($"{(player.IsBot ? "Bot" : "Player")} {player.PlayerName} joined the game.");
+                WriteToDebug($"{(player.IsBot ? "Bot" : "Player")} {player.PlayerName} joined the game.");
                 return HookResult.Continue;
             });
 
@@ -28,7 +29,7 @@ namespace jRandomSkills
             {
                 var player = @event.Userid;
                 if (player == null || !player.IsValid) return HookResult.Continue;
-                Debug.WriteToDebug($"{(player.IsBot ? "Bot" : "Player")} {player.PlayerName} disconnected.");
+                WriteToDebug($"{(player.IsBot ? "Bot" : "Player")} {player.PlayerName} disconnected.");
                 return HookResult.Continue;
             });
 
@@ -37,13 +38,13 @@ namespace jRandomSkills
                 var teams = Utilities.FindAllEntitiesByDesignerName<CCSTeam>("cs_team_manager").Where(t => t != null).ToList();
                 var tTeam = teams.FirstOrDefault(t => t.TeamNum == (int)CsTeam.Terrorist);
                 var ctTeam = teams.FirstOrDefault(t => t.TeamNum == (int)CsTeam.CounterTerrorist);
-                Debug.WriteToDebug($"Round #{tTeam?.Score + ctTeam?.Score + 1} (CT {ctTeam?.Score} : {tTeam?.Score} TT) started.");
+                WriteToDebug($"Round #{tTeam?.Score + ctTeam?.Score + 1} (CT {ctTeam?.Score} : {tTeam?.Score} TT) started.");
                 return HookResult.Continue;
             });
 
             Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
-                Debug.WriteToDebug($"Freeze time ended.");
+                WriteToDebug($"Freeze time ended.");
                 return HookResult.Continue;
             });
 
@@ -52,7 +53,7 @@ namespace jRandomSkills
                 var teams = Utilities.FindAllEntitiesByDesignerName<CCSTeam>("cs_team_manager").Where(t => t != null).ToList();
                 var tTeam = teams.FirstOrDefault(t => t.TeamNum == (int)CsTeam.Terrorist);
                 var ctTeam = teams.FirstOrDefault(t => t.TeamNum == (int)CsTeam.CounterTerrorist);
-                Debug.WriteToDebug($"Round #{tTeam?.Score + ctTeam?.Score} (CT {ctTeam?.Score} : {tTeam?.Score} TT) ended.");
+                WriteToDebug($"Round #{tTeam?.Score + ctTeam?.Score} (CT {ctTeam?.Score} : {tTeam?.Score} TT) ended.");
                 return HookResult.Continue;
             });
 
@@ -63,35 +64,35 @@ namespace jRandomSkills
                 if (victim != null)
                 {
                     if (attacker != null)
-                        Debug.WriteToDebug($"{(victim.IsBot ? "Bot" : "Player")} {victim.PlayerName} died from {(attacker.IsBot ? "bot" : "player")} {attacker.PlayerName}.");
+                        WriteToDebug($"{(victim.IsBot ? "Bot" : "Player")} {victim.PlayerName} died from {(attacker.IsBot ? "bot" : "player")} {attacker.PlayerName}.");
                     else
-                        Debug.WriteToDebug($"{(victim.IsBot ? "Bot" : "Player")} {victim.PlayerName} died.");
+                        WriteToDebug($"{(victim.IsBot ? "Bot" : "Player")} {victim.PlayerName} died.");
                 }
                 return HookResult.Continue;
             });
 
             Instance.RegisterEventHandler<EventBombPlanted>((@event, info) =>
             {
-                Debug.WriteToDebug($"Bomb planted.");
+                WriteToDebug($"Bomb planted.");
                 return HookResult.Continue;
             });
 
             Instance.RegisterEventHandler<EventBombDefused>((@event, info) =>
             {
-                Debug.WriteToDebug($"Bomb defused.");
+                WriteToDebug($"Bomb defused.");
                 return HookResult.Continue;
             });
 
-            Instance.RegisterListener<OnMapStart>((string mapName) =>
+            Instance.RegisterListener<OnMapStart>((mapName) =>
             {
-                Debug.WriteToDebug($"Map changed: {mapName}.");
+                WriteToDebug($"Map changed: {mapName}.");
             });
 
             Instance.RegisterEventHandler<EventPlayerShoot>((@event, info) =>
             {
                 var player = @event.Userid;
                 if (player == null || !player.IsValid) return HookResult.Continue;
-                Debug.WriteToDebug($"{(player.IsBot ? "Bot" : "Player")} {player.PlayerName} fired a shot.");
+                WriteToDebug($"{(player.IsBot ? "Bot" : "Player")} {player.PlayerName} fired a shot.");
                 return HookResult.Continue;
             });
             
@@ -121,7 +122,7 @@ namespace jRandomSkills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
             if (playerInfo == null) return HookResult.Continue;
 
-            Debug.WriteToDebug($"{(victim.IsBot ? "Bot" : "Player")} {victim.PlayerName} took damage from {(attacker.IsBot ? "bot" : "player")} {attacker.PlayerName}.");
+            WriteToDebug($"{(victim.IsBot ? "Bot" : "Player")} {victim.PlayerName} took damage from {(attacker.IsBot ? "bot" : "player")} {attacker.PlayerName}.");
             return HookResult.Continue;
         }
 

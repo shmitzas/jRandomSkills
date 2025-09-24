@@ -1,12 +1,11 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class Thief : ISkill
     {
@@ -75,7 +74,7 @@ namespace jRandomSkills
             var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
             if (enemies.Length > 0)
             {
-                List<string> skills = [];
+                ConcurrentBag<string> skills = [];
                 ConcurrentBag<(string, string)> menuItems = [];
                 foreach (var enemy in enemies)
                 {
@@ -140,7 +139,7 @@ namespace jRandomSkills
                 player.PrintToChat($" {ChatColors.Green}" + player.GetTranslation("thief_player_info", enemy.PlayerName));
 
                 if (SkillsInfo.GetValue<bool>(enemySkill, "disableOnFreezeTime") && SkillUtils.IsFreezeTime())
-                    Instance?.AddTimer(Math.Max((float)(Event.freezeTimeEnd - DateTime.Now).TotalSeconds, 0), () => {
+                    Instance?.AddTimer(Math.Max((float)(Event.GetFreezeTimeEnd() - DateTime.Now).TotalSeconds, 0), () => {
                         if (Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID && p.Skill == enemySkill) == null) return;
                         Instance?.SkillAction(enemySkill.ToString(), "EnableSkill", new[] { player });
                     });

@@ -2,15 +2,16 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
+using src.utils;
+using System.Collections.Concurrent;
+using static src.jRandomSkills;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class HealingSmoke : ISkill
     {
         private const Skills skillName = Skills.HealingSmoke;
-        private static readonly List<Vector> smokes = [];
+        private static readonly ConcurrentDictionary<Vector, byte> smokes = [];
 
         public static void LoadSkill()
         {
@@ -28,7 +29,7 @@ namespace jRandomSkills
             if (player == null || !player.IsValid) return;
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
-            smokes.Add(new Vector(@event.X, @event.Y, @event.Z));
+            smokes.TryAdd(new Vector(@event.X, @event.Y, @event.Z), 0);
         }
 
         public static void SmokegrenadeExpired(EventSmokegrenadeExpired @event)
@@ -37,7 +38,8 @@ namespace jRandomSkills
             if (player == null || !player.IsValid) return;
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
-            smokes.RemoveAll(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z);
+            foreach (var smoke in smokes.Keys.Where(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z))    
+                smokes.TryRemove(smoke, out _);
         }
 
         public static void OnEntitySpawned(CEntityInstance entity)
@@ -68,7 +70,7 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
-            foreach (Vector smokePos in smokes)
+            foreach (Vector smokePos in smokes.Keys)
                 foreach (var player in Utilities.GetPlayers())
                     if (Server.TickCount % 17 == 0)
                         if (player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && player.PlayerPawn.Value.AbsOrigin != null)

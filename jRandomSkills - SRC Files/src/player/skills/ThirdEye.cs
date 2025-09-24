@@ -1,11 +1,11 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
 using System.Drawing;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class ThirdEye : ISkill
     {

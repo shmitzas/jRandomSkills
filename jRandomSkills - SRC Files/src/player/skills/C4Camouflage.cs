@@ -3,16 +3,16 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class C4Camouflage : ISkill
     {
         private const Skills skillName = Skills.C4Camouflage;
-        private static readonly ConcurrentDictionary<ulong, List<uint>> invisibleEntities = [];
+        private static readonly ConcurrentDictionary<ulong, ConcurrentBag<uint>> invisibleEntities = [];
 
         public static void LoadSkill()
         {
@@ -73,7 +73,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillUtils.EnableTransmit();
+            Event.EnableTransmit();
             if (player == null || !player.IsValid) return;
             var playerPawn = player.PlayerPawn.Value;
 

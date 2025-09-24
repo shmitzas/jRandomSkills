@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 
-namespace jRandomSkills
+namespace src.utils
 {
     public static class Config
     {

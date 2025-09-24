@@ -2,20 +2,21 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Commands;
 using CounterStrikeSharp.API.Modules.Commands;
-using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
+using src.command;
+using src.player;
+using src.utils;
+using System.Collections.Concurrent;
 using System.Reflection;
 using WASDSharedAPI;
 
-namespace jRandomSkills
+namespace src
 {
-#pragma warning disable IDE1006 // Style nazewnictwa
     public partial class jRandomSkills : BasePlugin
-#pragma warning restore IDE1006 // Style nazewnictwa
     {
-       public static jRandomSkills Instance { get; private set; }
-
-        public List<jSkill_PlayerInfo> SkillPlayer { get; } = [];
+#pragma warning disable CS8618
+        public static jRandomSkills Instance { get; private set; }
+#pragma warning restore CS8618
+        public ConcurrentBag<jSkill_PlayerInfo> SkillPlayer { get; set; } = [];
         public Random Random { get; } = new Random();
         public CCSGameRules? GameRules { get; set; }
         public IWasdMenuManager? MenuManager;
@@ -53,9 +54,7 @@ namespace jRandomSkills
                 Debug.WriteToDebug($"Loaded: {skill.Skill}");
         }
 
-#pragma warning disable CA1822 // Oznaczaj elementy członkowskie jako statyczne
         internal void SkillAction(string skill, string methodName, object[]? param = null)
-#pragma warning restore CA1822 // Oznaczaj elementy członkowskie jako statyczne
         {
             string className = $"jRandomSkills.{skill}";
             Type? type = Type.GetType(className);
@@ -86,9 +85,7 @@ namespace jRandomSkills
             CommandManager.RegisterCommand(definition);
         }
 
-#pragma warning disable CA1822 // Oznaczaj elementy członkowskie jako statyczne
         internal bool IsPlayerValid(CCSPlayerController? player)
-#pragma warning restore CA1822 // Oznaczaj elementy członkowskie jako statyczne
         {
             return player != null && player.IsValid && player.PlayerPawn?.Value != null && player.PlayerPawn.Value.IsValid && player.PlayerPawn.Value.LifeState == (byte)LifeState_t.LIFE_ALIVE;
         }
@@ -97,9 +94,7 @@ namespace jRandomSkills
         public uint[] silentSoundEvents = [2551626319, 765706800, 765706800, 2860219006, 2162652424, 2551626319, 2162652424, 117596568, 117596568, 740474905, 1661204257, 3009312615, 1506215040, 115843229, 3299941720, 1016523349, 2684452812, 2067683805, 2067683805, 1016523349, 4160462271, 1543118744, 585390608, 3802757032, 2302139631, 2546391140, 144629619, 4152012084, 4113422219, 1627020521, 2899365092, 819435812, 3218103073, 961838155, 1535891875, 1826799645, 3460445620, 1818046345, 3666896632, 3099536373, 1440734007, 1409986305, 1939055066, 782454593, 4074593561, 1540837791, 3257325156];
     }
 
-#pragma warning disable IDE1006
     public class jSkill_PlayerInfo
-#pragma warning restore IDE1006
     {
         public required ulong SteamID { get; set; }
         public required string PlayerName { get; set; }
@@ -111,9 +106,7 @@ namespace jRandomSkills
         public string? PrintHTML { get; set; }
     }
 
-#pragma warning disable IDE1006
     public class jSkill_SkillInfo(Skills skill, string color, bool display)
-#pragma warning restore IDE1006
     {
         public Skills Skill { get; } = skill;
         public string Color { get; set; } = color;
@@ -127,6 +120,6 @@ namespace jRandomSkills
 
     public static class SkillData
     {
-        public static List<jSkill_SkillInfo> Skills { get; } = [];
+        public static ConcurrentBag<jSkill_SkillInfo> Skills { get; } = [];
     }
 }

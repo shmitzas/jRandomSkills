@@ -6,32 +6,31 @@ using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.UserMessages;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player
 {
     public static partial class Event
     {
-        public static DateTime freezeTimeEnd = DateTime.MinValue;
-        public static bool isTransmitRegistered = false;
+        private static DateTime freezeTimeEnd = DateTime.MinValue;
+        private static bool isTransmitRegistered = false;
         public static readonly jSkill_SkillInfo noneSkill = new(Skills.None, SkillsInfo.GetValue<string>(Skills.None, "color"), false);
 
         private static jSkill_SkillInfo ctSkill = noneSkill;
         private static jSkill_SkillInfo tSkill = noneSkill;
         private static jSkill_SkillInfo allSkill = noneSkill;
-        private static List<jSkill_SkillInfo> debugSkills = new(SkillData.Skills);
+        private static List<jSkill_SkillInfo> debugSkills = [.. SkillData.Skills];
 
-        public static readonly SkillsInfo.DefaultSkillInfo[] terroristSkills = SkillsInfo.LoadedConfig.Where(s => s.OnlyTeam == (int)CsTeam.Terrorist).ToArray();
-        public static readonly SkillsInfo.DefaultSkillInfo[] counterterroristSkills = SkillsInfo.LoadedConfig.Where(s => s.OnlyTeam == (int)CsTeam.CounterTerrorist).ToArray();
-        private static readonly SkillsInfo.DefaultSkillInfo[] allTeamsSkills = SkillsInfo.LoadedConfig.Where(s => s.OnlyTeam == 0).ToArray();
+        public static readonly SkillsInfo.DefaultSkillInfo[] terroristSkills = [.. SkillsInfo.LoadedConfig.Where(s => s.OnlyTeam == (int)CsTeam.Terrorist)];
+        public static readonly SkillsInfo.DefaultSkillInfo[] counterterroristSkills = [.. SkillsInfo.LoadedConfig.Where(s => s.OnlyTeam == (int)CsTeam.CounterTerrorist)];
+        private static readonly SkillsInfo.DefaultSkillInfo[] allTeamsSkills = [.. SkillsInfo.LoadedConfig.Where(s => s.OnlyTeam == 0)];
 
-        private static readonly ConcurrentDictionary<ulong, List<jSkill_SkillInfo>> playersSkills = [];
+        private static readonly ConcurrentDictionary<ulong, ConcurrentBag<jSkill_SkillInfo>> playersSkills = [];
         public static readonly ConcurrentDictionary<ulong, jSkill_SkillInfo> staticSkills = [];
-        private static readonly object setLock = new object();
+        private static readonly object setLock = new();
 
         public static void Load()
         {
@@ -71,106 +70,145 @@ namespace jRandomSkills
 
         private static HookResult PlayerMakeSound(UserMessage um)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "PlayerMakeSound", [um]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "PlayerMakeSound", [um]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult WeaponFire(EventWeaponFire @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "WeaponFire", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "WeaponFire", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult WeaponEquip(EventItemEquip @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "WeaponEquip", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "WeaponEquip", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult WeaponPickup(EventItemPickup @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "WeaponPickup", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "WeaponPickup", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult WeaponReload(EventWeaponReload @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "WeaponReload", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "WeaponReload", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult GrenadeThrown(EventGrenadeThrown @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "GrenadeThrown", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "GrenadeThrown", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult BombBeginplant(EventBombBeginplant @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "BombBeginplant", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "BombBeginplant", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult BombPlanted(EventBombPlanted @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "BombPlanted", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "BombPlanted", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult BombBegindefuse(EventBombBegindefuse @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "BombBegindefuse", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "BombBegindefuse", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult DecoyStarted(EventDecoyStarted @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "DecoyStarted", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "DecoyStarted", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult DecoyDetonate(EventDecoyDetonate @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "DecoyDetonate", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "DecoyDetonate", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult SmokegrenadeDetonate(EventSmokegrenadeDetonate @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "SmokegrenadeDetonate", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "SmokegrenadeDetonate", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult SmokegrenadeExpired(EventSmokegrenadeExpired @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "SmokegrenadeExpired", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "SmokegrenadeExpired", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult PlayerHurt(EventPlayerHurt @event, GameEventInfo info)
@@ -186,139 +224,169 @@ namespace jRandomSkills
 
         private static HookResult PlayerJump(EventPlayerJump @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "PlayerJump", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "PlayerJump", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult PlayerBlind(EventPlayerBlind @event, GameEventInfo info)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "PlayerBlind", [@event]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "PlayerBlind", [@event]);
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult OnTakeDamage(DynamicHook h)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "OnTakeDamage", [h]);
-            return HookResult.Continue;
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "OnTakeDamage", [h]);
+                return HookResult.Continue;
+            }
         }
 
         private static void OnTick()
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    if (SkillsInfo.GetValue<bool>(playerSkill.Skill, "disableOnFreezeTime") && SkillUtils.IsFreezeTime())
-                        return;
-                    else
-                        Instance.SkillAction(playerSkill.Skill.ToString(), "OnTick");
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        if (SkillsInfo.GetValue<bool>(playerSkill.Skill, "disableOnFreezeTime") && SkillUtils.IsFreezeTime())
+                            return;
+                        else
+                            Instance.SkillAction(playerSkill.Skill.ToString(), "OnTick");
+            }
         }
 
         private static HookResult PlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)
         {
-            var player = @event.Userid;
-            if (player == null || !player.IsValid) return HookResult.Continue;
-
-            Instance.SkillPlayer.Add(new jSkill_PlayerInfo
+            lock (setLock)
             {
-                SteamID = player.SteamID,
-                PlayerName = player.PlayerName,
-                Skill = Skills.None,
-                SpecialSkill = Skills.None,
-                IsDrawing = false,
-                SkillChance = 1,
-            });
+                var player = @event.Userid;
+                if (player == null || !player.IsValid) return HookResult.Continue;
 
-            string welcomeMsg = player.GetTranslation("welcome_message", "welcome");
-            foreach (string line in welcomeMsg.Split("\n"))
-                player.PrintToChat($" {ChatColors.Green}" + line.Replace("{PLAYER}", $" {ChatColors.Red}{player.PlayerName}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
-                                        .Replace("{SERVER_NAME}", $" {ChatColors.Red}{ConVar.Find("hostname")?.StringValue ?? "Default Server"}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
-                                        .Replace("{VERSION}", $" {ChatColors.Red}v{Instance.ModuleVersion}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
-                                        .Replace("{SKILLS_COUNT}", $" {ChatColors.Red}{SkillData.Skills.Count - 1}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
-                                        .Replace("{AUTHOR1}", $" {ChatColors.Red}Jakub Bartosik (D3X){ChatColors.Green} ({ChatColors.Red}https://github.com/jakubbartosik/dRandomSkills{ChatColors.Green})", StringComparison.OrdinalIgnoreCase)
-                                        .Replace("{AUTHOR2}", $" {ChatColors.Red}Juzlus{ChatColors.Green} ({ChatColors.Red}https://github.com/Juzlus/jRandomSkills{ChatColors.Green})", StringComparison.OrdinalIgnoreCase));
-            return HookResult.Continue;
+                Instance.SkillPlayer.Add(new jSkill_PlayerInfo
+                {
+                    SteamID = player.SteamID,
+                    PlayerName = player.PlayerName,
+                    Skill = Skills.None,
+                    SpecialSkill = Skills.None,
+                    IsDrawing = false,
+                    SkillChance = 1,
+                });
+
+                string welcomeMsg = player.GetTranslation("welcome_message", "welcome");
+                foreach (string line in welcomeMsg.Split("\n"))
+                    player.PrintToChat($" {ChatColors.Green}" + line.Replace("{PLAYER}", $" {ChatColors.Red}{player.PlayerName}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
+                                            .Replace("{SERVER_NAME}", $" {ChatColors.Red}{ConVar.Find("hostname")?.StringValue ?? "Default Server"}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
+                                            .Replace("{VERSION}", $" {ChatColors.Red}v{Instance.ModuleVersion}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
+                                            .Replace("{SKILLS_COUNT}", $" {ChatColors.Red}{SkillData.Skills.Count - 1}{ChatColors.Green}", StringComparison.OrdinalIgnoreCase)
+                                            .Replace("{AUTHOR1}", $" {ChatColors.Red}Jakub Bartosik (D3X){ChatColors.Green} ({ChatColors.Red}https://github.com/jakubbartosik/dRandomSkills{ChatColors.Green})", StringComparison.OrdinalIgnoreCase)
+                                            .Replace("{AUTHOR2}", $" {ChatColors.Red}Juzlus{ChatColors.Green} ({ChatColors.Red}https://github.com/Juzlus/jRandomSkills{ChatColors.Green})", StringComparison.OrdinalIgnoreCase));
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult PlayerDisconnect(EventPlayerDisconnect @event, GameEventInfo info)
         {
-            var player = @event.Userid;
-            if (player == null || !player.IsValid) return HookResult.Continue;
+            lock (setLock)
+            {
+                var player = @event.Userid;
+                if (player == null || !player.IsValid) return HookResult.Continue;
 
-            var skillPlayer = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (skillPlayer != null)
-                Instance.SkillPlayer.Remove(skillPlayer);
-            return HookResult.Continue;
+                var skillPlayer = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (skillPlayer == null) return HookResult.Continue;
+
+                var items = Instance.SkillPlayer.ToList();
+                Instance.SkillPlayer = [.. items.Where(p => p.SteamID != skillPlayer.SteamID)];
+
+                return HookResult.Continue;
+            }
         }
 
         private static HookResult RoundStart(EventRoundStart @event, GameEventInfo info)
         {
-            isTransmitRegistered = false;
-            Instance.AddTimer(.1f, () => DisableAll());
-            foreach (var player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
+            lock (setLock)
             {
-                var skillPlayer = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (skillPlayer == null) continue;
-                skillPlayer.IsDrawing = true;
-                skillPlayer.PrintHTML = null;
-            }
+                isTransmitRegistered = false;
+                Instance.AddTimer(.1f, () => DisableAll());
+                foreach (var player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
+                {
+                    var skillPlayer = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    if (skillPlayer == null) continue;
+                    skillPlayer.IsDrawing = true;
+                    skillPlayer.PrintHTML = null;
+                }
 
-            Instance.RemoveListener<CheckTransmit>(CheckTransmit);
-            int freezetime = ConVar.Find("mp_freezetime")?.GetPrimitiveValue<Int32>() ?? 0;
-            freezeTimeEnd = DateTime.Now.AddSeconds(freezetime + (Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0));
-            Instance?.AddTimer((Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0) + Math.Max(freezetime - Config.LoadedConfig.SkillTimeBeforeStart, 0) + .3f, SetSkill);
-            return HookResult.Continue;
+                Instance.RemoveListener<CheckTransmit>(CheckTransmit);
+                int freezetime = ConVar.Find("mp_freezetime")?.GetPrimitiveValue<Int32>() ?? 0;
+                freezeTimeEnd = DateTime.Now.AddSeconds(freezetime + (Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0));
+                Instance?.AddTimer((Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0) + Math.Max(freezetime - Config.LoadedConfig.SkillTimeBeforeStart, 0) + .3f, SetSkill);
+                return HookResult.Continue;
+            }
         }
 
         private static void DisableAll()
         {
-            foreach (var player in Utilities.GetPlayers().Where(p => !p.IsBot))
+            lock (setLock)
             {
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo == null) return;
-                Instance.SkillAction(playerInfo.Skill.ToString(), "DisableSkill", [player]);
-                Instance.SkillAction(playerInfo.Skill.ToString(), "NewRound");
+                foreach (var player in Utilities.GetPlayers().Where(p => !p.IsBot))
+                {
+                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    if (playerInfo == null) return;
+                    Instance.SkillAction(playerInfo.Skill.ToString(), "DisableSkill", [player]);
+                    Instance.SkillAction(playerInfo.Skill.ToString(), "NewRound");
+                }
             }
         }
 
         private static HookResult RoundEnd(EventRoundEnd @event, GameEventInfo info)
         {
-            foreach (var player in Utilities.GetPlayers())
+            lock (setLock)
             {
-                Instance.AddTimer(0.5f, () =>
+                foreach (var player in Utilities.GetPlayers().Where(p => p.IsValid))
                 {
-                    var _players = Utilities.GetPlayers().Where(p => p.IsValid).OrderBy(p => p.Team);
-
-                    string skillsText = "";
-                    foreach (var _player in _players)
+                    Instance.AddTimer(.5f, () =>
                     {
-                        var _playerSkill = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == _player.SteamID);
-                        if (_playerSkill != null)
+                        var _players = Utilities.GetPlayers().Where(p => p.IsValid && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist).OrderBy(p => p.Team);
+
+                        string skillsText = "";
+                        foreach (var _player in _players)
                         {
-                            var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == _playerSkill.Skill);
-                            var specialSkillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == _playerSkill.SpecialSkill);
-                            if (skillInfo == null) continue;
-                            skillsText += $" {ChatColors.DarkRed}{_player.PlayerName}{ChatColors.Lime}: {(_playerSkill.SpecialSkill == Skills.None || specialSkillInfo == null ? player.GetSkillName(skillInfo.Skill, _playerSkill.SkillChance) : $"{player.GetSkillName(specialSkillInfo.Skill)} -> {player.GetSkillName(skillInfo.Skill, _playerSkill.SkillChance)}")}\n";
+                            var _playerSkill = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == _player.SteamID);
+                            if (_playerSkill != null)
+                            {
+                                var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == _playerSkill.Skill);
+                                var specialSkillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == _playerSkill.SpecialSkill);
+                                if (skillInfo == null) continue;
+                                skillsText += $" {ChatColors.DarkRed}{_player.PlayerName}{ChatColors.Lime}: {(_playerSkill.SpecialSkill == Skills.None || specialSkillInfo == null ? player.GetSkillName(skillInfo.Skill, _playerSkill.SkillChance) : $"{player.GetSkillName(specialSkillInfo.Skill)} -> {player.GetSkillName(skillInfo.Skill, _playerSkill.SkillChance)}")}\n";
+                            }
                         }
-                    }
 
-                    if (Config.LoadedConfig.SummaryAfterTheRound && !string.IsNullOrEmpty(skillsText))
-                    {
-                        player.PrintToChat(" ");
-                        player.PrintToChat($" {ChatColors.Lime}{player.GetTranslation("summary_start")}");
-                        foreach (string text in skillsText.Split("\n"))
-                            if (!string.IsNullOrEmpty(text))
-                                player.PrintToChat(text);
-                        player.PrintToChat($" {ChatColors.Lime}{player.GetTranslation("summary_end")}");
-                        player.PrintToChat(" \n");
-                    }
-                });
+                        if (Config.LoadedConfig.SummaryAfterTheRound && !string.IsNullOrEmpty(skillsText))
+                        {
+                            player.PrintToChat(" ");
+                            player.PrintToChat($" {ChatColors.Lime}{player.GetTranslation("summary_start")}");
+                            foreach (string text in skillsText.Split("\n"))
+                                if (!string.IsNullOrEmpty(text))
+                                    player.PrintToChat(text);
+                            player.PrintToChat($" {ChatColors.Lime}{player.GetTranslation("summary_end")}");
+                            player.PrintToChat(" \n");
+                        }
+                    });
+                }
+                return HookResult.Continue;
             }
-            return HookResult.Continue;
         }
 
         private static HookResult PlayerDeath(EventPlayerDeath @event, GameEventInfo info)
@@ -358,77 +426,209 @@ namespace jRandomSkills
 
         private static void CheckUseSkill(CCSPlayerController player, PlayerButtons pressed, PlayerButtons released)
         {
-            string? button = Config.LoadedConfig.AlternativeSkillButton;
-            if (string.IsNullOrEmpty(button)) return;
-
-            if (Enum.TryParse<PlayerButtons>(button, out var skillButton))
+            lock (setLock)
             {
-                if (pressed != skillButton) return;
-            } else return;
+                string? button = Config.LoadedConfig.AlternativeSkillButton;
+                if (string.IsNullOrEmpty(button)) return;
 
-            if (player == null) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo == null || playerInfo.IsDrawing) return;
+                if (Enum.TryParse<PlayerButtons>(button, out var skillButton))
+                {
+                    if (pressed != skillButton) return;
+                }
+                else return;
 
-            if (SkillsInfo.GetValue<bool>(playerInfo.Skill, "disableOnFreezeTime") && SkillUtils.IsFreezeTime())
-                return;
+                if (player == null) return;
+                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo == null || playerInfo.IsDrawing) return;
 
-            var playerPawn = player.PlayerPawn.Value;
-            if (playerPawn?.CBodyComponent == null) return;
-            if (!player.IsValid || !player.PawnIsAlive) return;
+                if (SkillsInfo.GetValue<bool>(playerInfo.Skill, "disableOnFreezeTime") && SkillUtils.IsFreezeTime())
+                    return;
 
-            Debug.WriteToDebug($"Player {player.PlayerName} used the skill: {playerInfo.Skill} by PlayerButtons: {pressed}");
-            Instance.SkillAction(playerInfo.Skill.ToString(), "UseSkill", [player]);
+                var playerPawn = player.PlayerPawn.Value;
+                if (playerPawn?.CBodyComponent == null) return;
+                if (!player.IsValid || !player.PawnIsAlive) return;
+
+                Debug.WriteToDebug($"Player {player.PlayerName} used the skill: {playerInfo.Skill} by PlayerButtons: {pressed}");
+                Instance.SkillAction(playerInfo.Skill.ToString(), "UseSkill", [player]);
+            }
         }
 
         private static void EntitySpawned(CEntityInstance entity)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "OnEntitySpawned", [entity]);
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "OnEntitySpawned", [entity]);
+            }
         }
 
         private static void SetSkill()
         {
-            var validPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p .Team is CsTeam.CounterTerrorist or CsTeam.Terrorist).ToList();
-
-            if (Config.LoadedConfig.GameMode == (int)Config.GameModes.TeamSkills)
+            lock (setLock)
             {
-                List<jSkill_SkillInfo> tSkills = new(SkillData.Skills);
-                tSkills.RemoveAll(s => s.Skill == tSkill.Skill || s.Skill == Skills.None || counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                tSkill = tSkills.Count == 0 ? noneSkill : tSkills[Instance.Random.Next(tSkills.Count)];
+                var validPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist).ToList();
 
-                List<jSkill_SkillInfo> ctSkills = new(SkillData.Skills);
-                ctSkills.RemoveAll(s => s.Skill == ctSkill.Skill || s.Skill == Skills.None || terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                ctSkill = ctSkills.Count == 0 ? noneSkill : ctSkills[Instance.Random.Next(ctSkills.Count)];
+                if (Config.LoadedConfig.GameMode == (int)Config.GameModes.TeamSkills)
+                {
+                    List<jSkill_SkillInfo> tSkills = [.. SkillData.Skills];
+                    tSkills.RemoveAll(s => s.Skill == tSkill.Skill || s.Skill == Skills.None || counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                    tSkill = tSkills.Count == 0 ? noneSkill : tSkills[Instance.Random.Next(tSkills.Count)];
+
+                    List<jSkill_SkillInfo> ctSkills = [.. SkillData.Skills];
+                    ctSkills.RemoveAll(s => s.Skill == ctSkill.Skill || s.Skill == Skills.None || terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                    ctSkill = ctSkills.Count == 0 ? noneSkill : ctSkills[Instance.Random.Next(ctSkills.Count)];
+                }
+                else if (Config.LoadedConfig.GameMode == (int)Config.GameModes.SameSkills)
+                {
+                    List<jSkill_SkillInfo> allSkills = [.. SkillData.Skills];
+                    allSkills.RemoveAll(s => s.Skill == allSkill.Skill || s.Skill == Skills.None || !allTeamsSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                    allSkill = allSkills.Count == 0 ? noneSkill : allSkills[Instance.Random.Next(allSkills.Count)];
+                }
+                else if (Config.LoadedConfig.GameMode == (int)Config.GameModes.Debug && debugSkills.Count == 0)
+                    debugSkills = [.. SkillData.Skills];
+
+                foreach (var player in validPlayers)
+                {
+                    if (player == null) continue;
+                    var teammates = validPlayers.Where(p => p.Team == player.Team && p != player);
+                    string teammateSkills = "";
+
+                    var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    if (skillPlayer == null) continue;
+
+                    if (player.PlayerPawn.Value == null || !player.PlayerPawn.IsValid)
+                    {
+                        skillPlayer.Skill = Skills.None;
+                        continue;
+                    }
+
+                    skillPlayer.IsDrawing = false;
+                    jSkill_SkillInfo randomSkill = noneSkill;
+
+                    if (Instance?.GameRules != null && Instance?.GameRules.WarmupPeriod == false)
+                    {
+                        Config.GameModes gameMode = (Config.GameModes)Config.LoadedConfig.GameMode;
+                        if (staticSkills.TryGetValue(player.SteamID, out var staticSkill))
+                            randomSkill = staticSkill;
+                        else if (gameMode == Config.GameModes.Normal || gameMode == Config.GameModes.NoRepeat)
+                        {
+                            List<jSkill_SkillInfo> skillList = [.. SkillData.Skills];
+                            skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
+
+                            if (validPlayers.Count(p => p.Team == player.Team) == 1)
+                            {
+                                SkillsInfo.DefaultSkillInfo[] skillsNeedsTeammates = [.. SkillsInfo.LoadedConfig.Where(s => s.NeedsTeammates)];
+                                skillList.RemoveAll(s => skillsNeedsTeammates.Any(s2 => s2.Name == s.Skill.ToString()));
+                            }
+
+                            if (player.Team == CsTeam.Terrorist)
+                                skillList.RemoveAll(s => counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                            else
+                                skillList.RemoveAll(s => terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+
+                            if (gameMode == Config.GameModes.NoRepeat && playersSkills.TryGetValue(player.SteamID, out ConcurrentBag<jSkill_SkillInfo>? skills))
+                            {
+                                skillList.RemoveAll(s => skills.Any(s2 => s2.Skill == s.Skill));
+                                if (skillList.Count == 0) skills.Clear();
+                            }
+
+                            randomSkill = skillList.Count == 0 ? noneSkill : skillList[Instance.Random.Next(skillList.Count)];
+                            if (gameMode == Config.GameModes.NoRepeat)
+                            {
+                                if (playersSkills.TryGetValue(player.SteamID, out ConcurrentBag<jSkill_SkillInfo>? value))
+                                    value.Add(randomSkill);
+                                else
+                                    playersSkills.TryAdd(player.SteamID, [randomSkill]);
+                            }
+                        }
+                        else if (gameMode == Config.GameModes.TeamSkills)
+                            randomSkill = player.Team == CsTeam.Terrorist ? tSkill : ctSkill;
+                        else if (gameMode == Config.GameModes.SameSkills)
+                            randomSkill = allSkill;
+                        else if (gameMode == Config.GameModes.Debug)
+                        {
+                            if (debugSkills.Count == 0)
+                                debugSkills = [.. SkillData.Skills];
+                            randomSkill = debugSkills[0];
+                            debugSkills.RemoveAt(0);
+                            player.PrintToChat($"{SkillData.Skills.Count - debugSkills.Count}/{SkillData.Skills.Count}");
+                        }
+                    }
+
+                    if (randomSkill.Display)
+                        SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(randomSkill.Skill)}{ChatColors.Lime}: {player.GetSkillDescription(randomSkill.Skill)}", false);
+
+                    skillPlayer.Skill = randomSkill.Skill;
+                    skillPlayer.SpecialSkill = Skills.None;
+
+                    if (SkillsInfo.GetValue<bool>(randomSkill.Skill, "disableOnFreezeTime") && SkillUtils.IsFreezeTime())
+                        Instance?.AddTimer(Config.LoadedConfig.SkillTimeBeforeStart, () =>
+                        {
+                            if (Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID && p.Skill == randomSkill.Skill) == null) return;
+                            Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", [player]);
+                        });
+                    else
+                        Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", [player]);
+
+                    Debug.WriteToDebug($"Player {skillPlayer.PlayerName} has got the skill \"{player.GetSkillName(randomSkill.Skill)}\".");
+                    skillPlayer.SkillDescriptionHudExpired = DateTime.Now.AddSeconds(Config.LoadedConfig.SkillDescriptionDuration);
+
+                    if (Config.LoadedConfig.TeamMateSkillInfo)
+                    {
+                        Instance?.AddTimer(.5f, () =>
+                        {
+                            foreach (var teammate in teammates)
+                            {
+                                var teammateInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == teammate.SteamID);
+                                if (teammateInfo != null && teammateInfo?.Skill != null)
+                                {
+                                    var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == teammateInfo.Skill);
+                                    teammateSkills += $" {ChatColors.DarkRed}{teammate.PlayerName}{ChatColors.Lime}: {(skillInfo == null ? player.GetSkillName(Skills.None) : player.GetSkillName(skillInfo.Skill, teammateInfo.SkillChance))}\n";
+                                }
+                            }
+
+                            if (!string.IsNullOrEmpty(teammateSkills))
+                            {
+                                SkillUtils.PrintToChat(player, $" {ChatColors.Lime}{player.GetTranslation("teammate_skills")}:", false);
+                                foreach (string text in teammateSkills.Split("\n"))
+                                    if (!string.IsNullOrEmpty(text))
+                                        player.PrintToChat(text);
+                            }
+                        });
+                    }
+                }
             }
-            else if (Config.LoadedConfig.GameMode == (int)Config.GameModes.SameSkills)
-            {
-                List<jSkill_SkillInfo> allSkills = new(SkillData.Skills);
-                allSkills.RemoveAll(s => s.Skill == allSkill.Skill || s.Skill == Skills.None || !allTeamsSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                allSkill = allSkills.Count == 0 ? noneSkill : allSkills[Instance.Random.Next(allSkills.Count)];
-            }
-            else if (Config.LoadedConfig.GameMode == (int)Config.GameModes.Debug && debugSkills.Count == 0)
-                debugSkills = new(SkillData.Skills);
+        }
 
-            foreach (var player in validPlayers)
+        public static void SetRandomSkill(CCSPlayerController player)
+        {
+            lock (setLock)
             {
-                if (player == null) continue;
-                var teammates = validPlayers.Where(p => p.Team == player.Team && p != player);
-                string teammateSkills = "";
+                var validPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist).ToList();
 
+                if (Config.LoadedConfig.GameMode == (int)Config.GameModes.TeamSkills)
+                {
+                    List<jSkill_SkillInfo> tSkills = [.. SkillData.Skills];
+                    tSkills.RemoveAll(s => s.Skill == tSkill.Skill || s.Skill == Skills.None || counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                    tSkill = tSkills.Count == 0 ? noneSkill : tSkills[0];
+
+                    List<jSkill_SkillInfo> ctSkills = [.. SkillData.Skills];
+                    ctSkills.RemoveAll(s => s.Skill == ctSkill.Skill || s.Skill == Skills.None || terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                    ctSkill = ctSkills.Count == 0 ? noneSkill : ctSkills[0];
+                }
+
+                if (player == null) return;
                 var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (skillPlayer == null) continue;
+                if (skillPlayer == null) return;
 
                 if (player.PlayerPawn.Value == null || !player.PlayerPawn.IsValid)
                 {
                     skillPlayer.Skill = Skills.None;
-                    continue;
+                    return;
                 }
 
-                skillPlayer.IsDrawing = false;
                 jSkill_SkillInfo randomSkill = noneSkill;
-
                 if (Instance?.GameRules != null && Instance?.GameRules.WarmupPeriod == false)
                 {
                     Config.GameModes gameMode = (Config.GameModes)Config.LoadedConfig.GameMode;
@@ -436,12 +636,12 @@ namespace jRandomSkills
                         randomSkill = staticSkill;
                     else if (gameMode == Config.GameModes.Normal || gameMode == Config.GameModes.NoRepeat)
                     {
-                        List<jSkill_SkillInfo> skillList = new(SkillData.Skills);
+                        List<jSkill_SkillInfo> skillList = [.. SkillData.Skills];
                         skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
 
                         if (validPlayers.Count(p => p.Team == player.Team) == 1)
                         {
-                            SkillsInfo.DefaultSkillInfo[] skillsNeedsTeammates = SkillsInfo.LoadedConfig.Where(s => s.NeedsTeammates).ToArray();
+                            SkillsInfo.DefaultSkillInfo[] skillsNeedsTeammates = [.. SkillsInfo.LoadedConfig.Where(s => s.NeedsTeammates)];
                             skillList.RemoveAll(s => skillsNeedsTeammates.Any(s2 => s2.Name == s.Skill.ToString()));
                         }
 
@@ -450,7 +650,7 @@ namespace jRandomSkills
                         else
                             skillList.RemoveAll(s => terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
 
-                        if (gameMode == Config.GameModes.NoRepeat && playersSkills.TryGetValue(player.SteamID, out List<jSkill_SkillInfo>? skills))
+                        if (gameMode == Config.GameModes.NoRepeat && playersSkills.TryGetValue(player.SteamID, out ConcurrentBag<jSkill_SkillInfo>? skills))
                         {
                             skillList.RemoveAll(s => skills.Any(s2 => s2.Skill == s.Skill));
                             if (skillList.Count == 0) skills.Clear();
@@ -459,7 +659,7 @@ namespace jRandomSkills
                         randomSkill = skillList.Count == 0 ? noneSkill : skillList[Instance.Random.Next(skillList.Count)];
                         if (gameMode == Config.GameModes.NoRepeat)
                         {
-                            if (playersSkills.TryGetValue(player.SteamID, out List<jSkill_SkillInfo>? value))
+                            if (playersSkills.TryGetValue(player.SteamID, out ConcurrentBag<jSkill_SkillInfo>? value))
                                 value.Add(randomSkill);
                             else
                                 playersSkills.TryAdd(player.SteamID, [randomSkill]);
@@ -467,16 +667,8 @@ namespace jRandomSkills
                     }
                     else if (gameMode == Config.GameModes.TeamSkills)
                         randomSkill = player.Team == CsTeam.Terrorist ? tSkill : ctSkill;
-                    else if (gameMode == Config.GameModes.SameSkills)
-                        randomSkill = allSkill;
                     else if (gameMode == Config.GameModes.Debug)
-                    {
-                        if (debugSkills.Count == 0)
-                            debugSkills = new List<jSkill_SkillInfo>(SkillData.Skills);
-                        randomSkill = debugSkills[0];
-                        debugSkills.RemoveAt(0);
-                        player.PrintToChat($"{SkillData.Skills.Count - debugSkills.Count}/{SkillData.Skills.Count}");
-                    }
+                        return;
                 }
 
                 if (randomSkill.Display)
@@ -488,152 +680,59 @@ namespace jRandomSkills
                 if (SkillsInfo.GetValue<bool>(randomSkill.Skill, "disableOnFreezeTime") && SkillUtils.IsFreezeTime())
                     Instance?.AddTimer(Config.LoadedConfig.SkillTimeBeforeStart, () => {
                         if (Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID && p.Skill == randomSkill.Skill) == null) return;
-                        Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", new[] { player });
+                        Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", [player]);
                     });
                 else
-                    Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", new[] { player });
+                    Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", [player]);
 
                 Debug.WriteToDebug($"Player {skillPlayer.PlayerName} has got the skill \"{player.GetSkillName(randomSkill.Skill)}\".");
                 skillPlayer.SkillDescriptionHudExpired = DateTime.Now.AddSeconds(Config.LoadedConfig.SkillDescriptionDuration);
-
-                if (Config.LoadedConfig.TeamMateSkillInfo)
-                {
-                    Instance?.AddTimer(.5f, () =>
-                    {
-                        foreach (var teammate in teammates)
-                        {
-                            var teammateInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == teammate.SteamID);
-                            if (teammateInfo != null && teammateInfo?.Skill != null)
-                            {
-                                var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == teammateInfo.Skill);
-                                teammateSkills += $" {ChatColors.DarkRed}{teammate.PlayerName}{ChatColors.Lime}: {(skillInfo == null ? player.GetSkillName(Skills.None) : player.GetSkillName(skillInfo.Skill, teammateInfo.SkillChance))}\n";
-                            }
-                        }
-
-                        if (!string.IsNullOrEmpty(teammateSkills))
-                        {
-                            SkillUtils.PrintToChat(player, $" {ChatColors.Lime}{player.GetTranslation("teammate_skills")}:", false);
-                            foreach (string text in teammateSkills.Split("\n"))
-                                if (!string.IsNullOrEmpty(text))
-                                    player.PrintToChat(text);
-                        }
-                    });
-                }
             }
-        }
-
-        public static void SetRandomSkill(CCSPlayerController player)
-        {
-            var validPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist).ToList();
-
-            if (Config.LoadedConfig.GameMode == (int)Config.GameModes.TeamSkills)
-            {
-                List<jSkill_SkillInfo> tSkills = new(SkillData.Skills);
-                tSkills.RemoveAll(s => s.Skill == tSkill.Skill || s.Skill == Skills.None || counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                tSkill = tSkills.Count == 0 ? noneSkill : tSkills[0];
-
-                List<jSkill_SkillInfo> ctSkills = new(SkillData.Skills);
-                ctSkills.RemoveAll(s => s.Skill == ctSkill.Skill || s.Skill == Skills.None || terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                ctSkill = ctSkills.Count == 0 ? noneSkill : ctSkills[0];
-            }
-
-            if (player == null) return;
-            var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (skillPlayer == null) return;
-
-            if (player.PlayerPawn.Value == null || !player.PlayerPawn.IsValid)
-            {
-                skillPlayer.Skill = Skills.None;
-                return;
-            }
-
-            jSkill_SkillInfo randomSkill = noneSkill;
-            if (Instance?.GameRules != null && Instance?.GameRules.WarmupPeriod == false)
-            {
-                Config.GameModes gameMode = (Config.GameModes)Config.LoadedConfig.GameMode;
-                if (staticSkills.TryGetValue(player.SteamID, out var staticSkill))
-                    randomSkill = staticSkill;
-                else if (gameMode == Config.GameModes.Normal || gameMode == Config.GameModes.NoRepeat)
-                {
-                    List<jSkill_SkillInfo> skillList = new(SkillData.Skills);
-                    skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
-
-                    if (validPlayers.Count(p => p.Team == player.Team) == 1)
-                    {
-                        SkillsInfo.DefaultSkillInfo[] skillsNeedsTeammates = SkillsInfo.LoadedConfig.Where(s => s.NeedsTeammates).ToArray();
-                        skillList.RemoveAll(s => skillsNeedsTeammates.Any(s2 => s2.Name == s.Skill.ToString()));
-                    }
-
-                    if (player.Team == CsTeam.Terrorist)
-                        skillList.RemoveAll(s => counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                    else
-                        skillList.RemoveAll(s => terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-
-                    if (gameMode == Config.GameModes.NoRepeat && playersSkills.TryGetValue(player.SteamID, out List<jSkill_SkillInfo>? skills))
-                    {
-                        skillList.RemoveAll(s => skills.Any(s2 => s2.Skill == s.Skill));
-                        if (skillList.Count == 0) skills.Clear();
-                    }
-
-                    randomSkill = skillList.Count == 0 ? noneSkill : skillList[Instance.Random.Next(skillList.Count)];
-                    if (gameMode == Config.GameModes.NoRepeat)
-                    {
-                        if (playersSkills.TryGetValue(player.SteamID, out List<jSkill_SkillInfo>? value))
-                            value.Add(randomSkill);
-                        else
-                            playersSkills.TryAdd(player.SteamID, [randomSkill]);
-                    }
-                }
-                else if (gameMode == Config.GameModes.TeamSkills)
-                    randomSkill = player.Team == CsTeam.Terrorist ? tSkill : ctSkill;
-                else if (gameMode == Config.GameModes.Debug)
-                    return;
-            }
-
-            if (randomSkill.Display)
-                SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(randomSkill.Skill)}{ChatColors.Lime}: {player.GetSkillDescription(randomSkill.Skill)}", false);
-
-            skillPlayer.Skill = randomSkill.Skill;
-            skillPlayer.SpecialSkill = Skills.None;
-
-            if (SkillsInfo.GetValue<bool>(randomSkill.Skill, "disableOnFreezeTime") && SkillUtils.IsFreezeTime())
-                Instance?.AddTimer(Config.LoadedConfig.SkillTimeBeforeStart, () => {
-                    if (Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID && p.Skill == randomSkill.Skill) == null) return;
-                    Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", new[] { player });
-                });
-            else
-                Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", new[] { player });
-
-            Debug.WriteToDebug($"Player {skillPlayer.PlayerName} has got the skill \"{player.GetSkillName(randomSkill.Skill)}\".");
-            skillPlayer.SkillDescriptionHudExpired = DateTime.Now.AddSeconds(Config.LoadedConfig.SkillDescriptionDuration);
         }
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
         {
-            foreach (var playerSkill in Instance.SkillPlayer)
-                if (!playerSkill.IsDrawing)
-                    Instance.SkillAction(playerSkill.Skill.ToString(), "CheckTransmit", [infoList]);
+            lock (setLock)
+            {
+                foreach (var playerSkill in Instance.SkillPlayer)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "CheckTransmit", [infoList]);
+            }
         }
 
         public static void UpdateSkillHUD(CCSPlayerController? player, string? headerLine, string? centerLine, string? extraLine, bool isDescription)
         {
-            if (player == null || !player.IsValid) return;
-            var config = Config.LoadedConfig.HtmlHudCustomisation;
-            var emptySymbol = $"<font class='fontSize-{(string.IsNullOrEmpty(headerLine) ? "l" : "ml")}'> </font>";
-            var emptySymbol2 = $"<font class='fontSize-ml'> </font>";
+            lock (setLock)
+            {
+                if (player == null || !player.IsValid) return;
+                var config = Config.LoadedConfig.HtmlHudCustomisation;
+                var emptySymbol = $"<font class='fontSize-{(string.IsNullOrEmpty(headerLine) ? "l" : "ml")}'> </font>";
+                var emptySymbol2 = $"<font class='fontSize-ml'> </font>";
 
-            string infoLine = string.IsNullOrEmpty(headerLine)
-                ? ""
-                : $"<font class='fontWeight-Bold fontSize-{config.HeaderLineSize}' color='{config.HeaderLineColor}'>{headerLine}:</font><br>";
+                string infoLine = string.IsNullOrEmpty(headerLine)
+                    ? ""
+                    : $"<font class='fontWeight-Bold fontSize-{config.HeaderLineSize}' color='{config.HeaderLineColor}'>{headerLine}:</font><br>";
 
-            string skillLine = $"{emptySymbol2}<font class='fontWeight-Bold fontSize-{config.SkillLineSize}'>{centerLine}</font>{emptySymbol2}";
+                string skillLine = $"{emptySymbol2}<font class='fontWeight-Bold fontSize-{config.SkillLineSize}'>{centerLine}</font>{emptySymbol2}";
 
-            string remainingLine = string.IsNullOrWhiteSpace(extraLine) 
-                ? ""
-                : $"<br>{emptySymbol}<font class='fontSize-{(isDescription ? config.SkillDescriptionLineSize : config.InfoLineSize)}' color='{(isDescription ? config.SkillDescriptionLineColor : config.InfoLineColor)}'>{extraLine}</font>{emptySymbol}";
+                string remainingLine = string.IsNullOrWhiteSpace(extraLine)
+                    ? ""
+                    : $"<br>{emptySymbol}<font class='fontSize-{(isDescription ? config.SkillDescriptionLineSize : config.InfoLineSize)}' color='{(isDescription ? config.SkillDescriptionLineColor : config.InfoLineColor)}'>{extraLine}</font>{emptySymbol}";
 
-            var hudContent = infoLine + skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+                var hudContent = infoLine + skillLine + remainingLine;
+                player.PrintToCenterHtml(hudContent);
+            }
         }
+
+        public static void EnableTransmit()
+        {
+            if (!isTransmitRegistered)
+            {
+                Instance?.RegisterListener<CheckTransmit>(CheckTransmit);
+                isTransmitRegistered = true;
+            }
+        }
+
+        public static DateTime GetFreezeTimeEnd() => freezeTimeEnd;
     }
 }

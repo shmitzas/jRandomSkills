@@ -1,12 +1,11 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class WeaponsSwap : ISkill
     {
@@ -147,7 +146,7 @@ namespace jRandomSkills
 
         private static string[]? GetWeapons(CCSPlayerController player)
         {
-            List<string> playerWeapons = [];
+            ConcurrentBag<string> playerWeapons = [];
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid || player.LifeState != (byte)LifeState_t.LIFE_ALIVE) return null;
             if (pawn.WeaponServices == null) return null;

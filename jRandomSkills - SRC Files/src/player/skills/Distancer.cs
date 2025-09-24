@@ -1,10 +1,10 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
+using src.utils;
 using System.Collections.Concurrent;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class Distancer : ISkill
     {

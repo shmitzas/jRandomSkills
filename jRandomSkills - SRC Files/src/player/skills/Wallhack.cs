@@ -2,16 +2,17 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
+using src.utils;
+using System.Collections.Concurrent;
 using System.Drawing;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class Wallhack : ISkill
     {
         private const Skills skillName = Skills.Wallhack;
-        private static readonly List<(CDynamicProp, CDynamicProp, CsTeam)> glows = [];
+        private static readonly ConcurrentBag<(CDynamicProp, CDynamicProp, CsTeam)> glows = [];
 
         public static void LoadSkill()
         {
@@ -53,8 +54,8 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController _)
         {
-            SkillUtils.EnableTransmit();
-            if (glows.Count == 0)
+            Event.EnableTransmit();
+            if (glows.IsEmpty)
                 SetGlowEffectForAll();
         }
 

@@ -1,9 +1,9 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
+using src.utils;
+using static src.jRandomSkills;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class JumpingJack : ISkill
     {

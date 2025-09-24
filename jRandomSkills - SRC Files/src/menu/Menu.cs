@@ -1,30 +1,28 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Menu;
 using CounterStrikeSharp.API.Modules.Utils;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using System.Text.RegularExpressions;
-using jRandomSkills.src.utils;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.menu
 {
     public static class Menu
     {
         public static void DisplaySkillsList(CCSPlayerController player)
         {
-            CenterHtmlMenu menu = new($"[ ★ {player.GetTranslation("skills_menu")} ★ ]");
+            CenterHtmlMenu menu = new($"[ ★ {player.GetTranslation("skills_menu")} ★ ]", Instance);
             
-            for (int i = 0; i < SkillData.Skills.Count; i++)
+            foreach (var skillInfo in SkillData.Skills)
             {
-                var skill = SkillData.Skills[i];
-                string skillName = $"{player.GetSkillName(skill.Skill)}";
+                string skillName = $"{player.GetSkillName(skillInfo.Skill)}";
                 menu.AddMenuOption($" ★ {skillName}", (player, option) =>
                 {
                     string selectedSkillName = option.Text;
                     string pattern = "\\[/?color\\b[^\\]]*\\]";
                     string cleanSkillName = Regex.Replace(selectedSkillName, pattern, "");
                     string skillName = cleanSkillName.Replace($" ★ ", "");
-                    int intValue = Array.IndexOf(SkillData.Skills.Select(r => player.GetSkillName(r.Skill)).ToArray(), skillName);
-                    string skillDesc = player.GetSkillDescription(SkillData.Skills[intValue].Skill);
+                    string skillDesc = player.GetSkillDescription(skillInfo.Skill);
                     SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{skillName}{ChatColors.Lime}: {skillDesc}", false);
                     MenuManager.CloseActiveMenu(player);
                 });

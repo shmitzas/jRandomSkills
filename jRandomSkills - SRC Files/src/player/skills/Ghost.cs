@@ -4,12 +4,11 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class Ghost : ISkill
     {
@@ -26,7 +25,7 @@ namespace jRandomSkills
             "weapon_g3sg1", "weapon_nova", "weapon_xm1014", "weapon_mag7",
             "weapon_sawedoff", "weapon_m249", "weapon_negev"
         ];
-        private static readonly ConcurrentDictionary<ulong, List<uint>> invisibleEntities = [];
+        private static readonly ConcurrentDictionary<ulong, ConcurrentBag<uint>> invisibleEntities = [];
 
         public static void LoadSkill()
         {
@@ -78,7 +77,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillUtils.EnableTransmit();
+            Event.EnableTransmit();
             SetPlayerVisibility(player, false);
             SetWeaponVisibility(player, false);
             SetWeaponAttack(player, true);

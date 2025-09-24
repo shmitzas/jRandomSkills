@@ -4,14 +4,13 @@ using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using CS2TraceRay.Class;
 using CS2TraceRay.Struct;
-using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
 using System.Numerics;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class Shade : ISkill
     {

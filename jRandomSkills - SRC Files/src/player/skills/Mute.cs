@@ -1,9 +1,9 @@
 ﻿/*using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using jRandomSkills.src.player;
+
 using static jRandomSkills.jRandomSkills;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class Mute : ISkill
     {

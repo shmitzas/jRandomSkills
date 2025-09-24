@@ -1,10 +1,10 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.utils;
+using src.utils;
 using System.Collections.Concurrent;
 
-namespace jRandomSkills
+namespace src.command
 {
     public static class VoteSystem
     {

@@ -1,14 +1,13 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
 using MaxMind.Db;
 using Newtonsoft.Json;
 using System.Net;
 using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
+using src.player;
 
-namespace jRandomSkills.src.utils
+namespace src.utils
 {
     public static class Localization
     {
@@ -109,7 +108,7 @@ namespace jRandomSkills.src.utils
 
             var skilLDescription = desc2 == skillName
                 ? player.GetTranslation($"{skill.ToString().ToLower()}_desc")
-                : (desc2.Contains('%') ? desc2.Replace(value.ToString(), Math.Round(value * 100, 0).ToString()) : desc2);
+                : desc2.Contains('%') ? desc2.Replace(value.ToString(), Math.Round(value * 100, 0).ToString()) : desc2;
             return skilLDescription;
         }
 
@@ -124,14 +123,14 @@ namespace jRandomSkills.src.utils
                     return;
                 }
 
-                List<string> translations = [];
+                ConcurrentBag<string> translations = [];
                 for (int i = 0; i < key.Length; i++)
                 {
-                    object[] currentArgs = (args != null && i < args.Length) ? args[i] : [];
+                    object[] currentArgs = args != null && i < args.Length ? args[i] : [];
                     string translation = GetTranslation(key[i], langCode, currentArgs);
                     translations.Add(translation);
                 }
-                player.PrintToChat(string.Format(message, translations.ToArray()));
+                player.PrintToChat(string.Format(message, [.. translations]));
             }
         }
 

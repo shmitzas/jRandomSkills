@@ -1,13 +1,13 @@
-﻿using CounterStrikeSharp.API;
-using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
+﻿using CounterStrikeSharp.API.Modules.Utils;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using src.player;
+using System.Collections.Concurrent;
 using System.Reflection;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 
-namespace jRandomSkills
+namespace src.utils
 {
     public static class SkillsInfo
     {
@@ -106,11 +106,11 @@ namespace jRandomSkills
             return default!;
         }
 
-        public class SkillsInfoModel : List<DefaultSkillInfo>
+        public class SkillsInfoModel : ConcurrentBag<DefaultSkillInfo>
         {
             public SkillsInfoModel()
             {
-                AddRange(
+                foreach (var skill in
                     Assembly.GetExecutingAssembly().GetTypes()
                         .Where(t => typeof(DefaultSkillInfo).IsAssignableFrom(t) && t.Name == "SkillConfig")
                         .Select(t =>
@@ -121,9 +121,9 @@ namespace jRandomSkills
                             return ctor.Invoke(args) as DefaultSkillInfo;
                         })
                         .Where(instance => instance != null)
-                        .Cast<DefaultSkillInfo>()
-                );
-            }
+                        .Cast<DefaultSkillInfo>())
+                    Add(skill);
+			}
         }
 
         public class DefaultSkillInfo(Skills skill, bool active = true, string color = "#ffffff", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false)

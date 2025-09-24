@@ -1,68 +1,68 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Commands.Targeting;
-using jRandomSkills.src.utils;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 
-namespace jRandomSkills;
-
-public class FindTarget
+namespace src.utils
 {
-    public static (List<CCSPlayerController> players, string targetname) Find
-        (
-            CommandInfo command,
-            int minArgCount,
-            bool singletarget,
-            bool ignoreMessage = false
-        )
+    public class FindTarget
     {
-        if (command.ArgCount < minArgCount)
+        public static (List<CCSPlayerController> players, string targetname) Find
+            (
+                CommandInfo command,
+                int minArgCount,
+                bool singletarget,
+                bool ignoreMessage = false
+            )
         {
-            return (new List<CCSPlayerController>(), string.Empty);
-        }
-
-        TargetResult targetresult = command.GetArgTargetResult(1);
-
-        if (targetresult.Players.Count == 0)
-        {
-            if (!ignoreMessage && command.CallingPlayer != null)
-                command.ReplyToCommand(command.CallingPlayer.GetTranslation("no_player"));
-
-            return (new List<CCSPlayerController>(), string.Empty);
-        }
-        else if (singletarget && targetresult.Players.Count > 1)
-        {
-            if (command.CallingPlayer != null)
-                command.ReplyToCommand(command.CallingPlayer.GetTranslation("duplicate_player"));
-            return (new List<CCSPlayerController>(), string.Empty);
-        }
-
-        string targetname;
-
-        if (targetresult.Players.Count == 1)
-        {
-            targetname = targetresult.Players.Single().PlayerName;
-        }
-        else
-        {
-            Target.TargetTypeMap.TryGetValue(command.GetArg(1), out TargetType type);
-
-            targetname = type switch
+            if (command.ArgCount < minArgCount)
             {
-                TargetType.GroupAll => Instance.Localizer["all"],
-                TargetType.GroupBots => Instance.Localizer["bots"],
-                TargetType.GroupHumans => Instance.Localizer["humans"],
-                TargetType.GroupAlive => Instance.Localizer["alive"],
-                TargetType.GroupDead => Instance.Localizer["dead"],
-                TargetType.GroupNotMe => Instance.Localizer["notme"],
-                TargetType.PlayerMe => targetresult.Players.First().PlayerName,
-                TargetType.TeamCt => Instance.Localizer["ct"],
-                TargetType.TeamT => Instance.Localizer["t"],
-                TargetType.TeamSpec => Instance.Localizer["spec"],
-                _ => targetresult.Players.First().PlayerName
-            };
-        }
+                return (new List<CCSPlayerController>(), string.Empty);
+            }
 
-        return (targetresult.Players, targetname);
+            TargetResult targetresult = command.GetArgTargetResult(1);
+
+            if (targetresult.Players.Count == 0)
+            {
+                if (!ignoreMessage && command.CallingPlayer != null)
+                    command.ReplyToCommand(command.CallingPlayer.GetTranslation("no_player"));
+
+                return (new List<CCSPlayerController>(), string.Empty);
+            }
+            else if (singletarget && targetresult.Players.Count > 1)
+            {
+                if (command.CallingPlayer != null)
+                    command.ReplyToCommand(command.CallingPlayer.GetTranslation("duplicate_player"));
+                return (new List<CCSPlayerController>(), string.Empty);
+            }
+
+            string targetname;
+
+            if (targetresult.Players.Count == 1)
+            {
+                targetname = targetresult.Players.Single().PlayerName;
+            }
+            else
+            {
+                Target.TargetTypeMap.TryGetValue(command.GetArg(1), out TargetType type);
+
+                targetname = type switch
+                {
+                    TargetType.GroupAll => Instance.Localizer["all"],
+                    TargetType.GroupBots => Instance.Localizer["bots"],
+                    TargetType.GroupHumans => Instance.Localizer["humans"],
+                    TargetType.GroupAlive => Instance.Localizer["alive"],
+                    TargetType.GroupDead => Instance.Localizer["dead"],
+                    TargetType.GroupNotMe => Instance.Localizer["notme"],
+                    TargetType.PlayerMe => targetresult.Players.First().PlayerName,
+                    TargetType.TeamCt => Instance.Localizer["ct"],
+                    TargetType.TeamT => Instance.Localizer["t"],
+                    TargetType.TeamSpec => Instance.Localizer["spec"],
+                    _ => targetresult.Players.First().PlayerName
+                };
+            }
+
+            return (targetresult.Players, targetname);
+        }
     }
 }

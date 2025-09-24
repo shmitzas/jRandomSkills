@@ -1,7 +1,7 @@
 ﻿using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class None : ISkill
     {

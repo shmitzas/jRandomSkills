@@ -2,17 +2,17 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
 using System.Drawing;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class Jackal : ISkill
     {
         private const Skills skillName = Skills.Jackal;
-        private static readonly ConcurrentDictionary<CCSPlayerController, List<CBeam>> stepBeams = [];
+        private static readonly ConcurrentDictionary<CCSPlayerController, ConcurrentQueue<CBeam>> stepBeams = [];
 
         public static void LoadSkill()
         {
@@ -49,12 +49,13 @@ namespace jRandomSkills
 
                 var newBeam = CreateBeamStep(step.Key.Team, lastBeamVector, pawn.AbsOrigin);
                 if (newBeam != null)
-                    step.Value.Add(newBeam);
+                    step.Value.Enqueue(newBeam);
 
                 if (beams?.Count >= SkillsInfo.GetValue<int>(skillName, "maxStepBeam"))
                 {
-                    beams[0].AcceptInput("Kill");
-                    step.Value.RemoveAt(0);
+                    if (beams.TryPeek(out var beam))
+                        beam.AcceptInput("Kill");
+                    step.Value.TryDequeue(out _);
                 }
             }
         }
@@ -103,7 +104,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController _)
         {
-            SkillUtils.EnableTransmit();
+            Event.EnableTransmit();
             foreach (var _player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.PawnIsAlive && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
                 if (!stepBeams.ContainsKey(_player))
                     stepBeams.TryAdd(_player, []);

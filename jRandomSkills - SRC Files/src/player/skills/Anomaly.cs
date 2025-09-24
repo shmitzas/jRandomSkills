@@ -1,12 +1,11 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
+using src.utils;
 using System.Collections.Concurrent;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class Anomaly : ISkill
     {
@@ -40,12 +39,12 @@ namespace jRandomSkills
                         if (pawn != null && pawn.IsValid && pawn.AbsOrigin != null)
                         {
                             if (skillInfo.LastRotations == null || skillInfo.LastPositions == null) continue;
-                            skillInfo.LastPositions.Add(new Vector(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z));
-                            skillInfo.LastRotations.Add(new QAngle(pawn.EyeAngles.X, pawn.EyeAngles.Y, pawn.EyeAngles.Z));
+                            skillInfo.LastPositions.Enqueue(new Vector(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z));
+                            skillInfo.LastRotations.Enqueue(new QAngle(pawn.EyeAngles.X, pawn.EyeAngles.Y, pawn.EyeAngles.Z));
                             if (skillInfo.LastRotations.Count > SkillsInfo.GetValue<int>(skillName, "secondsInBack"))
                             {
-                                skillInfo.LastPositions.RemoveAt(0);
-                                skillInfo.LastRotations.RemoveAt(0);
+                                skillInfo.LastPositions.TryDequeue(out _);
+                                skillInfo.LastRotations.TryDequeue(out _);
                             }
                         }
                     }
@@ -103,7 +102,7 @@ namespace jRandomSkills
                 {
                     skillInfo.CanUse = false;
                     skillInfo.Cooldown = DateTime.Now;
-                    if (skillInfo.LastRotations == null || skillInfo.LastRotations.Count == 0 || skillInfo.LastPositions == null || skillInfo.LastPositions.Count == 0) return;
+                    if (skillInfo.LastRotations == null || skillInfo.LastRotations.IsEmpty || skillInfo.LastPositions == null || skillInfo.LastPositions.IsEmpty) return;
                     Vector? lastPosition = skillInfo.LastPositions.FirstOrDefault();
                     QAngle? lastRotation = skillInfo.LastRotations.FirstOrDefault();
                     if (lastPosition != null && lastRotation != null)
@@ -117,8 +116,8 @@ namespace jRandomSkills
             public ulong SteamID { get; set; }
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
-            public List<Vector>? LastPositions { get; set; }
-            public List<QAngle>? LastRotations { get; set; }
+            public ConcurrentQueue<Vector>? LastPositions { get; set; }
+            public ConcurrentQueue<QAngle>? LastRotations { get; set; }
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#a86eff", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = true, bool needsTeammates = false, int secondsInBack = 5, float cooldown = 15) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)

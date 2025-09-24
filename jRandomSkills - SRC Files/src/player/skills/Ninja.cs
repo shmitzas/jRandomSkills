@@ -3,17 +3,17 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class Ninja : ISkill
     {
         private const Skills skillName = Skills.Ninja;
         private static readonly ConcurrentDictionary<nint, float> invisibilityChanged = [];
-        private static readonly ConcurrentDictionary<ulong, List<uint>> invisibleEntities = [];
+        private static readonly ConcurrentDictionary<ulong, ConcurrentBag<uint>> invisibleEntities = [];
         private static readonly object setLock = new();
 
         public static void LoadSkill()
@@ -74,7 +74,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController _)
         {
-            SkillUtils.EnableTransmit();
+            Event.EnableTransmit();
         }
         
         public static void DisableSkill(CCSPlayerController player)

@@ -6,13 +6,13 @@ using CounterStrikeSharp.API.Modules.Utils;
 using CS2TraceRay.Class;
 using CS2TraceRay.Enum;
 using CS2TraceRay.Struct;
-using jRandomSkills.src.player;
+using src.utils;
 using System.Drawing;
 using System.Numerics;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class LongKnife : ISkill
     {

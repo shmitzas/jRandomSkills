@@ -2,12 +2,11 @@ using System.Drawing;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
-using jRandomSkills.src.utils;
+using static src.jRandomSkills;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class Chicken : ISkill
     {
@@ -53,7 +52,7 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && playerPawn.IsValid)
             {
-                SkillUtils.EnableTransmit();
+                Event.EnableTransmit();
                 playerPawn.VelocityModifier = 1.1f;
 
                 playerPawn.Health = 50;

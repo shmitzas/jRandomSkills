@@ -3,11 +3,10 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
-using static jRandomSkills.jRandomSkills;
+using src.utils;
+using static src.jRandomSkills;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class FragileBomb : ISkill
     {

@@ -1,12 +1,11 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
+using src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 
-namespace jRandomSkills
+namespace src.player
 {
     public static class PlayerOnTick
     {
@@ -57,14 +56,14 @@ namespace jRandomSkills
             bool showDescirptionHUD = skillPlayer.SkillDescriptionHudExpired >= DateTime.Now;
             bool isDescription = true;
 
-            if (SkillData.Skills.Count == 0)
+            if (SkillData.Skills.IsEmpty)
             {
                 infoLine = player.GetTranslation("your_skill");
                 skillLine = player.GetTranslation("none");
             }
             else if (skillPlayer.IsDrawing)
             {
-                var randomSkill = SkillData.Skills[Instance.Random.Next(SkillData.Skills.Count)];
+                var randomSkill = SkillData.Skills.ToArray()[Instance.Random.Next(SkillData.Skills.Count)];
                 infoLine = player.GetTranslation("drawing_skill");
                 skillLine = $"<font color='{randomSkill.Color}'>{player.GetSkillName(randomSkill.Skill)}</font>";
             }

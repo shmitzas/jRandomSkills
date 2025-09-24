@@ -72,7 +72,7 @@ Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.
 | Darkness | Applies a darkness effect to a chosen enemy | - |
 | Deactivator | Choose a player whose skill you want to disable | - |
 | Deaf | Choose a player to mute all sounds for | - |
-| Disarmament | You have a random chance to make an enemy drop their weapon on hit | (65 - 85)% |
+| Disarmament | You have a random chance to make an enemy drop their weapon on hit | (20 - 35)% |
 | Rangefinder | You can see the distance to the nearest enemy | - |
 | Dash | Perform a second jump to dash | - |
 | Dracula | Hitting an enemy restores health equal to a percentage of the damage dealt | - |
@@ -291,6 +291,60 @@ This plugin uses content from the following projects:
 - [GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) by [MaxMind](https://www.maxmind.com/) - geolocation data
 
 ## 📋 Changelog
+
+<details>
+<summary><b>v1.1.7</b></summary>
+  
+- #### General:
+    - ###### Update the dependency to the latest version.
+    - ###### Information about skills is available in `skillsInfo.json` instead of `config.json`.
+    - ###### Added the `jRandomSkills.gamedata.json` file.
+    - ###### Added the option to disable a specific power during freeze time (Disabled by default: ).
+    - ###### Added `LanguageSystem` options to the config for detailed language assignment management.
+    - ###### The `StartGameCommand` command now includes a changeable start parameter in config.
+    - ###### Added `DisplayAlwaysDescription` option to the config to show the description all the time.
+    - ###### Added `HtmlHudCustomisation` options to config for setting colours and font size.
+    - ###### Can be set to empty text: your_skill/drawing_skill/observer_skill/XXX_select_info.
+    - ###### Option to set the obtained value in the name/description of the skill (`{0}`).
+    - ###### Fixed skill cooldown time display (Rounding up).
+    - ###### The `!reload` command now refreshes all parameters from the all configs.
+    - ###### Most of the collection has been replaced with safe-threading to avoid server crashes (idea by: @ebat_kopat777).
+- #### Skill improvements:
+    - ##### Long Knife:
+        - ###### A secondary knife attack also deals damage.
+    - ##### Wallhack:
+        - ###### Glows are created just once, instead of being created again for each player.
+    - ##### Position Swap:
+        - ###### Added a configurable cooldown at the start of the round.
+    - ##### Spectator:
+        - ###### The method used to attach the camera has changed.
+    - ##### Noclip:
+        - ###### Return to the last place where you used skill if you fall below 3,000 units.
+        - ###### Added an option to disable the noclip when it is active.
+    - ##### Ninja:
+        - ###### Fixed an issue with weapons not being visible after death.
+    - ##### Muhammed:
+        - ###### The message at the explosion is configurable (in languages/).
+        - ###### Fixed a bug with the grenade not detonating.
+    - ##### Ghost:
+        - ###### Fixed an issue with weapons not being visible after death.
+    - ##### Explosive Shot:
+        - ###### Fixed a bug with the grenade not detonating.
+    - ##### Enemy Spawn:
+        - ###### Added a configurable cooldown at the start of the round.
+    - ##### Disarmament:
+        - ###### Back to dropping weapons instead of changing to slot3.
+        - ###### The chance of dropping weapons has been reduced: (20–50)% → (20–35)%
+    - ##### Chicken:
+        - ###### The method used to attach the chicken has changed.
+        - ###### Player with skill can see a model of your chicken.
+    - ##### C4 Camouflage:
+        - ###### Fixed an issue with weapons not being visible after death.
+    - ##### Blade Master:
+        - ###### Movement speed with a knife has been reduced by 10% (configurable).
+    - ##### AntyFlash:
+        - ###### Added the option in config to change the flash duration of your flashes.
+</details>
 
 <details>
 <summary><b>v1.1.6</b></summary>

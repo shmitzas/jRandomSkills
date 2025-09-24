@@ -4,11 +4,13 @@ using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.utils;
+using src.menu;
+using src.player;
+using src.utils;
 using System.Collections.Concurrent;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 
-namespace jRandomSkills
+namespace src.command
 {
     public static class Command
     {
@@ -24,7 +26,7 @@ namespace jRandomSkills
 
             lock (setLock)
             {
-                if (oldCommands.Count != 0)
+                if (!oldCommands.IsEmpty)
                 {
                     foreach (var command in oldCommands)
                         Instance.RemoveCommand(command.Key, command.Value);
@@ -119,7 +121,7 @@ namespace jRandomSkills
             }
 
             var skillName = command.ArgCount > 3 ? $"{command.GetArg(2)} {command.GetArg(3)}" : command.GetArg(2);
-            var skill = SkillData.Skills.FirstOrDefault(s => (player != null && player.GetSkillName(s.Skill).Equals(skillName, StringComparison.OrdinalIgnoreCase)) || s.Skill.ToString().Equals(skillName, StringComparison.OrdinalIgnoreCase));
+            var skill = SkillData.Skills.FirstOrDefault(s => player != null && player.GetSkillName(s.Skill).Equals(skillName, StringComparison.OrdinalIgnoreCase) || s.Skill.ToString().Equals(skillName, StringComparison.OrdinalIgnoreCase));
 
             if (skill == null)
             {
@@ -281,7 +283,7 @@ namespace jRandomSkills
 
         private static void Shuffle()
         {
-            var players = Utilities.GetPlayers().FindAll(p => (Instance.IsPlayerValid(p) && new CsTeam[] { CsTeam.CounterTerrorist, CsTeam.Terrorist }.Contains(p.Team)));
+            var players = Utilities.GetPlayers().FindAll(p => Instance.IsPlayerValid(p) && new CsTeam[] { CsTeam.CounterTerrorist, CsTeam.Terrorist }.Contains(p.Team));
             double CTlimit = Instance.Random.Next(0, 2) == 0 ? Math.Floor(players.Count / 2.0) : Math.Ceiling(players.Count / 2.0);
 
             foreach (var player in players.OrderBy(_ => Instance.Random.Next()).ToList())
@@ -394,7 +396,7 @@ namespace jRandomSkills
             }
 
             var skillName = command.ArgCount > 3 ? $"{command.GetArg(2)} {command.GetArg(3)}" : command.GetArg(2);
-            var skill = SkillData.Skills.FirstOrDefault(s => (player != null && player.GetSkillName(s.Skill).Equals(skillName, StringComparison.OrdinalIgnoreCase)) || s.Skill.ToString().Equals(skillName, StringComparison.OrdinalIgnoreCase));
+            var skill = SkillData.Skills.FirstOrDefault(s => player != null && player.GetSkillName(s.Skill).Equals(skillName, StringComparison.OrdinalIgnoreCase) || s.Skill.ToString().Equals(skillName, StringComparison.OrdinalIgnoreCase));
 
             if (skill == null)
             {
@@ -458,7 +460,7 @@ namespace jRandomSkills
             if (player == null || !player.IsValid) return;
             if (!AdminManager.PlayerHasPermissions(player, config.NormalCommands.ChangeLanguageCommand.Permissions)) return;
 
-            string fileName = Config.LoadedConfig.LanguageSystem.DefaultLangCode;
+            string fileName;
             string newLangCode = command.GetArg(1).ToUpper();
             foreach (var langInfo in Config.LoadedConfig.LanguageSystem.LanguageInfos)
                 if (langInfo.IsoCodes.Contains(newLangCode))
@@ -481,7 +483,7 @@ namespace jRandomSkills
                 Config.LoadConfig();
                 SkillsInfo.LoadSkillsInfo();
                 Localization.Load();
-                Command.Load();
+                Load();
 
                 foreach (var skill in SkillData.Skills)
                     skill.Color = SkillsInfo.GetValue<string>(skill.Skill, "color");

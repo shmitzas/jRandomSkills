@@ -1,12 +1,11 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class Gambler : ISkill
     {
@@ -52,12 +51,12 @@ namespace jRandomSkills
                 playerInfo.SkillChance = 1;
 
                 if (SkillsInfo.GetValue<bool>(skill.Skill, "disableOnFreezeTime") && SkillUtils.IsFreezeTime())
-                    Instance?.AddTimer(Math.Max((float)(Event.freezeTimeEnd - DateTime.Now).TotalSeconds, 0), () => {
+                    Instance?.AddTimer(Math.Max((float)(Event.GetFreezeTimeEnd() - DateTime.Now).TotalSeconds, 0), () => {
                         if (Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID && p.Skill == skill.Skill) == null) return;
-                        Instance?.SkillAction(skill.Skill.ToString(), "EnableSkill", new[] { player });
+                        Instance?.SkillAction(skill.Skill.ToString(), "EnableSkill", [player]);
                     });
                 else
-                    Instance?.SkillAction(skill.Skill.ToString(), "EnableSkill", new[] { player });
+                    Instance?.SkillAction(skill.Skill.ToString(), "EnableSkill", [player]);
             });
         }
 
@@ -95,7 +94,7 @@ namespace jRandomSkills
             var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (skillPlayer == null) return [Event.noneSkill];
 
-            List<jSkill_SkillInfo> skillList = new(SkillData.Skills);
+            List<jSkill_SkillInfo> skillList = [.. SkillData.Skills];
             skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
 
             if (Utilities.GetPlayers().FindAll(p => p.Team == player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).Count == 1)

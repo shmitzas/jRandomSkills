@@ -5,18 +5,14 @@ using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
 using System.Runtime.InteropServices;
 using WASDMenuAPI.Classes;
 using WASDSharedAPI;
 using static CounterStrikeSharp.API.Core.Listeners;
 using System.Collections.Concurrent;
-using System;
-using static System.Net.Mime.MediaTypeNames;
-using System.Drawing;
+using src.player;
 
-namespace jRandomSkills
+namespace src.utils
 {
     public static class SkillUtils
     {
@@ -148,15 +144,6 @@ namespace jRandomSkills
             };
 
             return designerName;
-        }
-
-        public static void EnableTransmit()
-        {
-            if (!Event.isTransmitRegistered)
-            {
-                jRandomSkills.Instance?.RegisterListener<CheckTransmit>(Event.CheckTransmit);
-                Event.isTransmitRegistered = true;
-            }
         }
 
         private static IWasdMenuManager? GetMenuManager()

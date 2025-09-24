@@ -2,15 +2,16 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
+using src.utils;
+using System.Collections.Concurrent;
+using static src.jRandomSkills;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class FrozenDecoy : ISkill
     {
         private const Skills skillName = Skills.FrozenDecoy;
-        private static readonly List<Vector> decoys = [];
+        private static readonly ConcurrentDictionary<Vector, byte> decoys = [];
 
         public static void LoadSkill()
         {
@@ -28,7 +29,7 @@ namespace jRandomSkills
             if (player == null || !player.IsValid) return;
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
-            decoys.Add(new Vector(@event.X, @event.Y, @event.Z));
+            decoys.TryAdd(new Vector(@event.X, @event.Y, @event.Z), 0);
         }
 
         public static void DecoyDetonate(EventDecoyDetonate @event)
@@ -37,12 +38,13 @@ namespace jRandomSkills
             if (player == null || !player.IsValid) return;
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
-            decoys.RemoveAll(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z);
+            foreach (var decoy in decoys.Keys.Where(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z))
+                decoys.TryRemove(decoy, out _);
         }
 
         public static void OnTick()
         {
-            foreach (Vector decoyPos in decoys)
+            foreach (Vector decoyPos in decoys.Keys)
                 foreach (var player in Utilities.GetPlayers().Where(p => p.Team == CsTeam.Terrorist || p.Team == CsTeam.CounterTerrorist))
                 {
                     var decoyRadius = SkillsInfo.GetValue<float>(skillName, "triggerRadius");

@@ -3,7 +3,7 @@ using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.UserMessages;
 
-namespace jRandomSkills.src.player;
+namespace src.player;
 
 public interface ISkill
 {

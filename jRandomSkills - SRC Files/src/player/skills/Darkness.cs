@@ -1,12 +1,11 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class Darkness : ISkill
     {
@@ -53,7 +52,7 @@ namespace jRandomSkills
                 if (playerInfo == null || playerInfo.Skill != skillName) continue;
                 var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
 
-                ConcurrentBag<(string, string)> menuItems = new(enemies.Select(e => (e.PlayerName, e.Index.ToString())));
+                ConcurrentBag<(string, string)> menuItems = [.. enemies.Select(e => (e.PlayerName, e.Index.ToString()))];
                 SkillUtils.UpdateMenu(player, menuItems);
             }
         }
@@ -94,7 +93,7 @@ namespace jRandomSkills
             var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
             if (enemies.Length > 0)
             {
-                ConcurrentBag<(string, string)> menuItems = new(enemies.Select(e => (e.PlayerName, e.Index.ToString())));
+                ConcurrentBag<(string, string)> menuItems = [.. enemies.Select(e => (e.PlayerName, e.Index.ToString()))];
                 SkillUtils.CreateMenu(player, menuItems);
             }
             else
@@ -116,42 +115,45 @@ namespace jRandomSkills
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid || pawn.CameraServices == null) return;
 
-            if (!defaultPostProcessings.ContainsKey(player))
-                defaultPostProcessings.TryAdd(player, []);
-
-            int i = 0;
-            foreach (var postProcessingVolume in pawn.CameraServices.PostProcessingVolumes)
+            lock (setLock)
             {
-                if (postProcessingVolume == null || postProcessingVolume.Value == null)
-                    return;
+                if (!defaultPostProcessings.ContainsKey(player))
+                    defaultPostProcessings.TryAdd(player, []);
 
+                int i = 0;
+                foreach (var postProcessingVolume in pawn.CameraServices.PostProcessingVolumes)
+                {
+                    if (postProcessingVolume == null || postProcessingVolume.Value == null)
+                        return;
+
+                    if (dontCreateNew)
+                    {
+                        if (defaultPostProcessings.TryGetValue(player, out var defaultList) && i < defaultList.Count)
+                            postProcessingVolume.Raw = defaultList[i].EntityHandle.Raw;
+                    }
+                    else
+                    {
+                        if (defaultPostProcessings.TryGetValue(player, out var defaultList))
+                            defaultList.Add(postProcessingVolume.Value);
+
+                        var postProcessing = Utilities.CreateEntityByName<CPostProcessingVolume>("post_processing_volume");
+                        if (postProcessing == null) return;
+
+                        var brightness = SkillsInfo.GetValue<float>(skillName, "brightness");
+                        postProcessing.ExposureControl = true;
+                        postProcessing.MaxExposure = brightness;
+                        postProcessing.MinExposure = brightness;
+
+                        newPostProcessing.Add(postProcessing);
+                        postProcessingVolume.Raw = postProcessing.EntityHandle.Raw;
+                    }
+                    i++;
+                }
+
+                Utilities.SetStateChanged(pawn, "CBasePlayerPawn", "m_pCameraServices");
                 if (dontCreateNew)
-                {
-                    if (defaultPostProcessings.TryGetValue(player, out var defaultList) && i < defaultList.Count)
-                        postProcessingVolume.Raw = defaultList[i].EntityHandle.Raw;
-                }
-                else
-                {
-                    if (defaultPostProcessings.TryGetValue(player, out var defaultList))
-                        defaultList.Add(postProcessingVolume.Value);
-
-                    var postProcessing = Utilities.CreateEntityByName<CPostProcessingVolume>("post_processing_volume");
-                    if (postProcessing == null) return;
-
-                    var brightness = SkillsInfo.GetValue<float>(skillName, "brightness");
-                    postProcessing.ExposureControl = true;
-                    postProcessing.MaxExposure = brightness;
-                    postProcessing.MinExposure = brightness;
-
-                    newPostProcessing.Add(postProcessing);
-                    postProcessingVolume.Raw = postProcessing.EntityHandle.Raw;
-                }
-                i++;
+                    defaultPostProcessings.TryRemove(player, out _);
             }
-
-            Utilities.SetStateChanged(pawn, "CBasePlayerPawn", "m_pCameraServices");
-            if (dontCreateNew)
-                defaultPostProcessings.TryRemove(player, out _);
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#383838", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false, float brightness = .01f) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)

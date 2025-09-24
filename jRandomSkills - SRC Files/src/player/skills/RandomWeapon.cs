@@ -1,13 +1,12 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
 using System.Collections.Immutable;
-using static jRandomSkills.jRandomSkills;
+using static src.jRandomSkills;
 using System.Collections.Concurrent;
+using src.utils;
 
-namespace jRandomSkills
+namespace src.player.skills
 {
     public class RandomWeapon : ISkill
     {
@@ -104,21 +103,20 @@ namespace jRandomSkills
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return;
 
-            List<string> playerWeapons = [];
+            ConcurrentBag<string> playerWeapons = [];
             foreach (var item in pawn.WeaponServices.MyWeapons)
                 if (item != null && item.IsValid && item.Value != null && item.Value.IsValid && !string.IsNullOrEmpty(item.Value.DesignerName))
                     playerWeapons.Add(item.Value.DesignerName);
 
-            if (playerWeapons.Count == 0)
+            if (playerWeapons.IsEmpty)
                 return;
 
-            List<string> weaponList = new(pistols.Concat(rifles));
-            weaponList.RemoveAll(w => playerWeapons.Contains(w));
+            ConcurrentBag<string> weaponList = [.. pistols.Concat(rifles).Where(w => !playerWeapons.Contains(w))];
 
             if (weaponList.Count == 0)
                 return;
 
-            string weapon = weaponList[Instance.Random.Next(weaponList.Count)];
+            string weapon = weaponList.ToArray()[Instance.Random.Next(weaponList.Count)];
             bool isPistol = pistols.Contains(weapon);
 
             string? weaponToRemove = playerWeapons.FirstOrDefault(itemName =>
