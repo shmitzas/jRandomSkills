@@ -299,7 +299,7 @@ This plugin uses content from the following projects:
     - ###### Update the dependency to the latest version.
     - ###### Information about skills is available in `skillsInfo.json` instead of `config.json`.
     - ###### Added the `jRandomSkills.gamedata.json` file.
-    - ###### Added the option to disable a specific power during freeze time (Disabled by default: ).
+    - ###### Added the option to disable a specific power during freeze time (Disabled by default: Position Swap, Retreat, Replicator, Poison, Planter, Pilot, Noclip, Medic, God Mode, Fortnite, Enemy Spawn, Anomaly).
     - ###### Added `LanguageSystem` options to the config for detailed language assignment management.
     - ###### The `StartGameCommand` command now includes a changeable start parameter in config.
     - ###### Added `DisplayAlwaysDescription` option to the config to show the description all the time.
@@ -358,7 +358,6 @@ This plugin uses content from the following projects:
     - ##### Impostor:
         - ###### Setting the player model after deactivating the skill.
         - ###### The default model for terrorists has been changed.
-
 </details>
 
 <details>
