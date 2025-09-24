@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Drawing;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
@@ -11,22 +12,33 @@ namespace src.player.skills
     {
         private const Skills skillName = Skills.Impostor;
         private static readonly string defaultCTModel = "characters/models/ctm_sas/ctm_sas.vmdl";
-        private static readonly string defaultTModel = "characters/models/tm_phoenix_heavy/tm_phoenix_heavy.vmdl";
+        private static readonly string defaultTModel = "characters/models/tm_phoenix/tm_phoenix.vmdl";
+        private static readonly ConcurrentDictionary<ulong, string> originalModels = [];
 
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
         }
 
+        public static void NewRound()
+        {
+            originalModels.Clear();
+        }
+
         public static void EnableSkill(CCSPlayerController player)
         {
             string model = GetEnemyModel(player);
+            if (player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && player.PlayerPawn.Value.CBodyComponent != null && player.PlayerPawn.Value.CBodyComponent.SceneNode != null)
+                originalModels.TryAdd(player.SteamID, player.PlayerPawn.Value.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
             SetPlayerModel(player, model);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            SetPlayerModel(player, player.Team == CsTeam.Terrorist ? defaultTModel : defaultCTModel);
+            var model = originalModels.TryGetValue(player.SteamID, out var originalModel) && !string.IsNullOrEmpty(originalModel) ? originalModel :
+                player.Team == CsTeam.Terrorist ? defaultTModel : defaultCTModel;
+            SetPlayerModel(player, model);
+            originalModels.TryRemove(player.SteamID, out _);
         }
 
         private static string GetEnemyModel(CCSPlayerController player)

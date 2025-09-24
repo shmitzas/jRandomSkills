@@ -12,6 +12,7 @@ namespace src.player.skills
     public class Wallhack : ISkill
     {
         private const Skills skillName = Skills.Wallhack;
+        private static readonly ConcurrentDictionary<ulong, byte> playersInAction = [];
         private static readonly ConcurrentBag<(CDynamicProp, CDynamicProp, CsTeam)> glows = [];
 
         public static void LoadSkill()
@@ -50,22 +51,21 @@ namespace src.player.skills
                     glow.Item2.AcceptInput("Kill");
             }
             glows.Clear();
+            playersInAction.Clear();
         }
 
-        public static void EnableSkill(CCSPlayerController _)
+        public static void EnableSkill(CCSPlayerController player)
         {
             Event.EnableTransmit();
+            playersInAction.TryAdd(player.SteamID, 0);
             if (glows.IsEmpty)
                 SetGlowEffectForAll();
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo == null) return;
-
-            playerInfo.Skill = Skills.None;
-            if (!Instance.SkillPlayer.Any(s => s.Skill == skillName))   
+            playersInAction.TryRemove(player.SteamID, out _);
+            if (playersInAction.IsEmpty)
                 NewRound();
         }
 

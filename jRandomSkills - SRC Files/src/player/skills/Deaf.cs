@@ -94,8 +94,8 @@ namespace src.player.skills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            deafPlayers.TryRemove(player, out _);
             SkillUtils.CloseMenu(player);
+            deafPlayers.TryRemove(player, out _);
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#dae01f", CsTeam onlyTeam = CsTeam.None, bool disableOnFreezeTime = false, bool needsTeammates = false) : SkillsInfo.DefaultSkillInfo(skill, active, color, onlyTeam, disableOnFreezeTime, needsTeammates)

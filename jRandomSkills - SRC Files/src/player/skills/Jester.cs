@@ -2,6 +2,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using src.utils;
+using System.Collections.Concurrent;
 using System.Drawing;
 using static src.jRandomSkills;
 
@@ -12,6 +13,8 @@ namespace src.player.skills
         private const Skills skillName = Skills.Jester;
         private static bool jesterMode = false;
         private static bool jesterStarted = false;
+        public static bool GetJesterMode() => jesterMode;
+        private static readonly ConcurrentBag<CCSPlayerController> jesters = [];
 
         public static void LoadSkill()
         {
@@ -21,11 +24,17 @@ namespace src.player.skills
         public static void NewRound()
         {
             jesterStarted = false;
+            foreach (var jester in jesters)
+                if (jester != null && jester.IsValid)
+                    DisableSkill(jester);
+            jesters.Clear();
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
             SkillUtils.ResetPrintHTML(player);
+            if (player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
+            SetPlayerColor(player.PlayerPawn.Value, true);
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -35,10 +44,17 @@ namespace src.player.skills
             var victim = @event.Userid;
             int hitgroup = @event.Hitgroup;
 
-            if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim)) return;
-            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            if (!Instance.IsPlayerValid(victim)) return;
             var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
 
+            if (!Instance.IsPlayerValid(attacker))
+            {
+                if (victimInfo?.Skill == skillName)
+                    RestoreHealth(victim!, @event.DmgHealth);
+                return;
+            }
+
+            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
             if (attackerInfo?.Skill == skillName || victimInfo?.Skill == skillName)
                 RestoreHealth(victim!, @event.DmgHealth);
         }
@@ -89,9 +105,9 @@ namespace src.player.skills
             }
         }
 
-        private static void SetPlayerColor(CCSPlayerPawn pawn)
+        private static void SetPlayerColor(CCSPlayerPawn pawn, bool forceDisable = false)
         {
-            var color = jesterMode ? Color.FromArgb(255, 128, 0, 128) : Color.FromArgb(255, 255, 255, 255);
+            var color = jesterMode && !forceDisable ? Color.FromArgb(255, 128, 0, 128) : Color.FromArgb(255, 255, 255, 255);
             pawn.Render = color;
             Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_clrRender");
         }

@@ -2,7 +2,6 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using static src.jRandomSkills;
-using System.Collections.Concurrent;
 using src.utils;
 
 namespace src.player.skills
@@ -58,9 +57,7 @@ namespace src.player.skills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
-
-            ConcurrentBag<(string, string)> menuItems = [(player.GetTranslation("bombsite_a"), "a"), (player.GetTranslation("bombsite_b"), "b")];
-            SkillUtils.CreateMenu(player, menuItems);
+            SkillUtils.CreateMenu(player, [(player.GetTranslation("bombsite_a"), "a")], (player.GetTranslation("bombsite_b"), "b"));
         }
 
         public static void DisableSkill(CCSPlayerController player)

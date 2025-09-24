@@ -7,6 +7,7 @@ using CS2TraceRay.Class;
 using CS2TraceRay.Enum;
 using CS2TraceRay.Struct;
 using src.utils;
+using System.Collections.Concurrent;
 using System.Drawing;
 using System.Numerics;
 using static src.jRandomSkills;
@@ -20,6 +21,7 @@ namespace src.player.skills
 
         private static bool hooked = false;
         private const int actionCode = 503;
+        private static readonly ConcurrentDictionary<ulong, byte> playersInAction = [];
         private static readonly MemoryFunctionVoid<IntPtr, short> Shoot_Secondary = new(GameData.GetSignature("Shoot_Secondary"));
 
         public static void LoadSkill()
@@ -29,23 +31,23 @@ namespace src.player.skills
 
         public static void NewRound()
         {
+            playersInAction.Clear();
+            hooked = false;
             Shoot_Secondary.Unhook(ShootSecondary, HookMode.Pre);
         }
 
-        public static void EnableSkill(CCSPlayerController _)
+        public static void EnableSkill(CCSPlayerController player)
         {
             if (hooked) return;
             hooked = true;
             Shoot_Secondary.Hook(ShootSecondary, HookMode.Pre);
+            playersInAction.TryAdd(player.SteamID, 0);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo == null) return;
-
-            playerInfo.Skill = Skills.None;
-            if (!Instance.SkillPlayer.Any(p => p.Skill == skillName))
+            playersInAction.TryRemove(player.SteamID, out _);
+            if (playersInAction.IsEmpty)
             {
                 Shoot_Secondary.Unhook(ShootSecondary, HookMode.Pre);
                 hooked = false;

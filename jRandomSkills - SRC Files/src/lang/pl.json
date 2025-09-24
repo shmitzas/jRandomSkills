@@ -345,7 +345,8 @@
   "secondlife_desc": "Po śmierci odradzasz się z taką samą ilością zdrowia",
 
   "shade": "Cień",
-  "shade_desc": "Teleportujesz się za plecy trafionego wroga",
+  "shade_desc": "Masz losową szansę na teleportację za plecy trafionego wroga",
+  "shade_desc2": "Twoje szanse na teleportację za trafionego wroga wynoszą: {0}%",
   "shade_nospace": "Brak miejsca",
 
   "shortbomb": "Krótka Bomba",

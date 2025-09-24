@@ -345,7 +345,8 @@
   "secondlife_desc": "Após a morte, você renasce com a mesma quantidade de saúde",
 
   "shade": "Sombra",
-  "shade_desc": "Você se teletransporta para trás de um inimigo acertado",
+  "shade_desc": "Você tem uma chance aleatória de se teletransportar para trás de um inimigo atingido",
+  "shade_desc2": "Suas chances de se teletransportar para trás de um inimigo atingido são: {0}%",
   "shade_nospace": "Sem espaço disponível",
 
   "shortbomb": "Fusível Curto",

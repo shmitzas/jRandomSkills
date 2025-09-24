@@ -31,12 +31,6 @@ namespace src.player.skills
                 var playerInfo = jRandomSkills.Instance.SkillPlayer.FirstOrDefault(s => s.SteamID == player?.SteamID);
                 if (playerInfo == null) return;
 
-                if (playerInfo.SkillDescriptionHudExpired >= DateTime.Now)
-                {
-                    playerInfo.PrintHTML = null;
-                    return;
-                }
-
                 var playerPawn = player.PlayerPawn.Value;
                 if (playerPawn == null || !playerPawn.IsValid) return;
                 if (playerPawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) return;

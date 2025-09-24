@@ -12,6 +12,7 @@ namespace src.player.skills
     public class Jackal : ISkill
     {
         private const Skills skillName = Skills.Jackal;
+        private static readonly ConcurrentDictionary<ulong, byte> playersInAction = [];
         private static readonly ConcurrentDictionary<CCSPlayerController, ConcurrentQueue<CBeam>> stepBeams = [];
 
         public static void LoadSkill()
@@ -26,6 +27,7 @@ namespace src.player.skills
                     if (beam != null && beam.IsValid)
                         beam.AcceptInput("Kill");
             stepBeams.Clear();
+            playersInAction.Clear();
         }
 
         public static void OnTick()
@@ -102,9 +104,10 @@ namespace src.player.skills
             return beam;
         }
 
-        public static void EnableSkill(CCSPlayerController _)
+        public static void EnableSkill(CCSPlayerController player)
         {
             Event.EnableTransmit();
+            playersInAction.TryAdd(player.SteamID, 0);
             foreach (var _player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.PawnIsAlive && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
                 if (!stepBeams.ContainsKey(_player))
                     stepBeams.TryAdd(_player, []);
@@ -112,11 +115,8 @@ namespace src.player.skills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo == null) return;
-
-            playerInfo.Skill = Skills.None;
-            if (!Instance.SkillPlayer.Any(s => s.Skill == skillName))
+            playersInAction.TryRemove(player.SteamID, out _);
+            if (playersInAction.IsEmpty)
                 NewRound();
         }
 

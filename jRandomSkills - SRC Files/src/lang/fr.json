@@ -346,6 +346,7 @@
 
   "shade": "Ombre",
   "shade_desc": "Vous vous téléportez derrière l’ennemi touché",
+  "shade_desc2": "Vos chances de vous téléporter derrière un ennemi touché sont de: {0}%",
   "shade_nospace": "Aucun espace disponible",
 
   "shortbomb": "Mèche Courte",

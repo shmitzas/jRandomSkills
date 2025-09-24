@@ -312,8 +312,12 @@ This plugin uses content from the following projects:
 - #### Skill improvements:
     - ##### Long Knife:
         - ###### A secondary knife attack also deals damage.
+        - ###### Fixed a mistake where the player's skill was shown as `None` after death.
     - ##### Wallhack:
         - ###### Glows are created just once, instead of being created again for each player.
+        - ###### Fixed a mistake where the player's skill was shown as `None` after death.
+    - ##### Jackal:
+        - ###### Fixed a mistake where the player's skill was shown as `None` after death.
     - ##### Position Swap:
         - ###### Added a configurable cooldown at the start of the round.
     - ##### Spectator:
@@ -338,12 +342,23 @@ This plugin uses content from the following projects:
     - ##### Chicken:
         - ###### The method used to attach the chicken has changed.
         - ###### Player with skill can see a model of your chicken.
+        - ###### Fixed hitboxes after returning to normal model.
+        - ###### Fixed a bug that added extra health after deactivating skill.
     - ##### C4 Camouflage:
         - ###### Fixed an issue with weapons not being visible after death.
     - ##### Blade Master:
         - ###### Movement speed with a knife has been reduced by 10% (configurable).
     - ##### AntyFlash:
         - ###### Added the option in config to change the flash duration of your flashes.
+    - ##### Jester:
+        - ###### Fixed an issue where you could take damage from other skills or bombs.
+        - ###### Fixed a bug where the player was always purple.
+    - ##### Shade:
+        - ###### Added an option to set the chance of teleportation after hitting an enemy in the config.
+    - ##### Impostor:
+        - ###### Setting the player model after deactivating the skill.
+        - ###### The default model for terrorists has been changed.
+
 </details>
 
 <details>

@@ -8,9 +8,9 @@ using CounterStrikeSharp.API.Modules.Utils;
 using System.Runtime.InteropServices;
 using WASDMenuAPI.Classes;
 using WASDSharedAPI;
-using static CounterStrikeSharp.API.Core.Listeners;
 using System.Collections.Concurrent;
 using src.player;
+using src.player.skills;
 
 namespace src.utils
 {
@@ -96,6 +96,14 @@ namespace src.utils
         {
             if (pawn == null || !pawn.IsValid || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE)
                 return;
+
+            if (pawn.Controller.Value != null && pawn.Controller.Value.IsValid)
+            {
+                var playerInfo = jRandomSkills.Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == pawn.Controller.Value.SteamID);
+                if (playerInfo == null) return;
+                if (playerInfo.Skill == Skills.Jester && Jester.GetJesterMode())
+                    return;
+            }
 
             int newHealth = (int)(pawn.Health - damage);
             pawn.Health = newHealth;

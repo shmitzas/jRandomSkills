@@ -345,7 +345,8 @@
   "secondlife_desc": "死亡后你会以相同生命值复活",
 
   "shade": "阴影",
-  "shade_desc": "你会传送到被击中敌人的背后",
+  "shade_desc": "你存在随机几率将被击中的敌人传送至其身后",
+  "shade_desc2": "你传送至击中敌人身后的概率为：{0}%",
   "shade_nospace": "无可用空间",
 
   "shortbomb": "短引信",

@@ -37,8 +37,6 @@ namespace src.player.skills
             if (playerInfo == null) return;
             float newChance = (float)Instance.Random.NextDouble() * (SkillsInfo.GetValue<float>(skillName, "chanceTo") - SkillsInfo.GetValue<float>(skillName, "chanceFrom")) + SkillsInfo.GetValue<float>(skillName, "chanceFrom");
             playerInfo.SkillChance = newChance;
-            newChance = (float)Math.Round(newChance, 2) * 100;
-            newChance = (float)Math.Round(newChance);
             SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(skillName)}{ChatColors.Lime}: {player.GetSkillDescription(skillName, newChance)}", false);
         }
 

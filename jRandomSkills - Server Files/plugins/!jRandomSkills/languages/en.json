@@ -345,7 +345,8 @@
   "secondlife_desc": "After death, you respawn with the same amount of health",
 
   "shade": "Shade",
-  "shade_desc": "You teleport behind the back of a hit enemy",
+  "shade_desc": "You have a random chance to teleport behind the back of a hit enemy",
+  "shade_desc2": "Your chances of teleporting behind a hit enemy are: {0}%",
   "shade_nospace": "No space available",
 
   "shortbomb": "Short Fuse",

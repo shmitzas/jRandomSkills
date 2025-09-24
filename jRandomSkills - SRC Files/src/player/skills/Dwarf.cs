@@ -49,7 +49,6 @@ namespace src.player.skills
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && playerPawn?.CBodyComponent != null)
             {
-                playerInfo.SkillChance = 1;
                 SkillUtils.ChangePlayerScale(player, 1);
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
             }

@@ -22,6 +22,9 @@ namespace src.player.skills
             "weapon_negev"
         ];
         private static readonly ConcurrentDictionary<CCSPlayerController, CBaseModelEntity> chickens = [];
+        private static readonly string defaultCTModel = "characters/models/ctm_sas/ctm_sas.vmdl";
+        private static readonly string defaultTModel = "characters/models/tm_phoenix/tm_phoenix.vmdl";
+        private static readonly ConcurrentDictionary<ulong, string> originalModels = [];
 
         public static void LoadSkill()
         {
@@ -36,6 +39,7 @@ namespace src.player.skills
                 if (valuePair.Value != null && valuePair.Value.IsValid)
                     valuePair.Value.AcceptInput("Kill");
             chickens.Clear();
+            originalModels.Clear();
         }
 
         public static void WeaponPickup(EventItemPickup @event)
@@ -61,8 +65,11 @@ namespace src.player.skills
                 SkillUtils.ChangePlayerScale(player, .2f);
 
                 playerPawn.Render = Color.FromArgb(0, 255, 255, 255);
-                playerPawn.ShadowStrength = 0.0f;
+                playerPawn.ShadowStrength = 0f;
                 Utilities.SetStateChanged(playerPawn, "CBaseModelEntity", "m_clrRender");
+
+                if (playerPawn.CBodyComponent != null && playerPawn.CBodyComponent.SceneNode != null)
+                    originalModels.TryAdd(player.SteamID, playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
 
                 SetWeaponAttack(player, true);
                 CreateChicken(player);
@@ -77,7 +84,7 @@ namespace src.player.skills
             {
                 playerPawn.VelocityModifier = 1f;
 
-                playerPawn.Health += 50;
+                playerPawn.Health = Math.Min(playerPawn.Health + 50, 100);
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
 
                 SkillUtils.ChangePlayerScale(player, 1);
@@ -94,6 +101,23 @@ namespace src.player.skills
                 if (chicken != null && chicken.IsValid)
                     chicken.AcceptInput("Kill");
                 chickens.TryRemove(player, out _);
+            }
+
+            if (originalModels.TryGetValue(player.SteamID, out var model))
+            {
+                var pawn = player.PlayerPawn?.Value;
+                if (pawn == null) return;
+
+                Server.NextFrame(() =>
+                {
+                    if (string.IsNullOrEmpty(model))
+                        model = player.Team == CsTeam.Terrorist ? defaultTModel : defaultCTModel;
+
+                    pawn.SetModel(model);
+                    var originalRender = pawn.Render;
+                    pawn.Render = Color.FromArgb(255, originalRender.R, originalRender.G, originalRender.B);
+                    originalModels.TryRemove(player.SteamID, out _);
+                });
             }
         }
 

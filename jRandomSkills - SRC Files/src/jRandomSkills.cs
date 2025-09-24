@@ -56,7 +56,7 @@ namespace src
 
         internal void SkillAction(string skill, string methodName, object[]? param = null)
         {
-            string className = $"jRandomSkills.{skill}";
+            string className = $"src.player.skills.{skill}";
             Type? type = Type.GetType(className);
 
             if (type != null && typeof(ISkill).IsAssignableFrom(type))

@@ -33,7 +33,6 @@ namespace src.player.skills
             if (playerInfo == null) return;
 
             player.PlayerPawn.Value.ActualGravityScale = 1;
-            playerInfo.SkillChance = 1;
         }
 
         private static void ApplyGravityModifier(CCSPlayerController player)
