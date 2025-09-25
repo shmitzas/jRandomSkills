@@ -438,6 +438,8 @@
   "healed": "You have been healed.",
   "game_start": "Game started!",
   "reload": "Languages and configs have been reloaded.",
+  "hud_on": "HUD has been enabled.",
+  "hud_off": "HUD has been disabled.",
 
   "vote_started": "Vote started: '{0}'",
   "vote_timeout": "Vote '{0}' timed out!",

@@ -184,7 +184,7 @@ Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.
     - Extract it to the `CS2Server/game/csgo/addons/counterstrikesharp/` folder.
 5. Install **jRandomSkills**
     - Download [jRandomSkills](https://github.com/Juzlus/jRandomSkills/releases)
-    - Extract it to the `C2Server/game/csgo/addons/counterstrikesharp/plugins/` folder.
+    - Extract it to the `C2Server/game/csgo/addons/counterstrikesharp/` folder.
     - IF there is a `gamedata.json` file to download:
         - Extract `gamedata.json` to the `C2Server/server/game/csgo/addons/counterstrikesharp/gamedata/` folder.
 
@@ -204,12 +204,13 @@ Buying a server on pukawka? Use my [referral code](https://pukawka.pl/pp,juzlus.
 | `!map <mapWorkshopId>` | `!map 3332005394` | Change map from workshop | `@jRandmosSkills/admin` |
 | `!start` | `!start` | Start game with conditions: `mp_forcecamera 0, mp_freezetime 15, mp_overtime_enable 1, sv_cheats 0` | `@jRandmosSkills/admin` |
 | `!start sv` | `!start sv` | Start the game with conditions: `mp_forcecamera 0, mp_freezetime 0, mp_overtime_enable 1, sv_cheats 1` | `@jRandmosSkills/admin` |
-| `!console <command>` | `!console sv_cheats 1` | Run a command on the server | `@jRandmosSkills/root` |
+| `!console <command>` | `!console sv_cheats 1` | Run a command on the server | `@jRandmosSkills/owner` |
 | `!swap` | `!swap` | Switch sides | `@jRandmosSkills/admin` |
 | `!shuffle` | `!shuffle` | Randomly assign players to teams | `@jRandmosSkills/admin` |
 | `!pause` | `!pause` | Pause the game | `@jRandmosSkills/admin` |
-| `!heal` | `!heal` | Restore 100 health points | `@jRandmosSkills/root` |
-| `!setscore <CT> <TT>` | `!setscore 10 7` | Set the game score | `@jRandmosSkills/root` |
+| `!heal` | `!heal` | Restore 100 health points | `@jRandmosSkills/admin` |
+| `!hud` | `!hud` | Enable/Disable hud | - |
+| `!setscore <CT> <TT>` | `!setscore 10 7` | Set the game score | `@jRandmosSkills/owner` |
 | `!setstaticskill <playerName/steamID> <skill>` | `!setstaticskill Juzlus Aimbot` | Giving a player a permanent skill | `@jRandmosSkills/admin` |
 | `!setstaticskill <playerName/steamID> None` | `!setstaticskill Juzlus None` | Back to normal | `@jRandmosSkills/admin` |
 | `!reload` | `!reload` | Reload translations | - |
@@ -225,7 +226,7 @@ To grant administrative permissions in CounterStrikeSharp:
     {
         "Juzlus": {
             "identity": "STEAM_0:0:94913632",
-            "flags": ["@jRandmosSkills/admin", "@jRandmosSkills/root"]
+            "flags": ["@jRandmosSkills/admin", "@jRandmosSkills/owner"]
         }
     }
     ```
@@ -233,50 +234,73 @@ To grant administrative permissions in CounterStrikeSharp:
 3. Save the file and restart the server to apply the changes.
 
 ## ⚙️ Configuration
-All skills can be customized in the **`Config.cfg`** file located in the **`game/csgo/addons/counterstrikesharp/plugins/jRandomSkills/`** folder.
+All skills can be customized in the **`config.cfg`** / **`skillsInfo.json`** file located in the **`game/csgo/addons/counterstrikesharp/plugins/jRandomSkills/configs/`** folder.
 
+- ##### config.json
 ```json
 {
     "Settings": {
-        "LangCode": "en",               // Plugin language: en, pl, pt-br, zh
-        "GameMode": 3,                  // Game mode: 
-                                        // 0 - Random skills for each player (It can't be the same twice in a row)
-                                        // 1 - Same skills for the whole team
-                                        // 2 - Same skills for all players
-                                        // 3 - Random skills for each player (It can't be the same until the map changes)
-                                        // 4 - Debug: Skills are assigned in turn
-        "KillerSkillInfo": true,        // Show killer's skill in chat
-        "TeamMateSkillInfo": true,      // Show allies' skills in chat
-        "SummaryAfterTheRound": true,   // Show summary of the last round
-        "DebugMode": true,              // Write activity to the ‘Debug’ folder
-        "AlternativeSkillButton": null, // Possible buttons:
-                                        // null, "Attack", "Jump", "Duck", "Forward", "Back",
-                                        // "Use", "Cancel", "Left", "Right", "Moveleft",
-                                        // "Moveright", "Attack2", "Run", "Reload", "Alt1",
-                                        // "Alt2", "Speed", "Walk", "Zoom", "Weapon1",
-                                        // "Weapon2", "Bullrush", "Grenade1", "Grenade2",
-                                        // "Attack3", "Scoreboard", "Inspect"
-        "SkillTimeBeforeStart": 7.0,    // How many seconds before freeze time ends should skills
-                                        // drawing be completed? (freezetime - SkillTimeBeforeStart)
-        "SkillDescriptionDuration": 7.0,// How long should the skill description be visible for?
-        "DisableSpectateHUD": false,    // Disable HTML HUD when spectating
-        "FlashingHtmlHudFix": true,     // Enable FlashingHtmlHudFix
-        "CS2TraceRayDebug": false,      // Enable trail visibility for LongKnife, LongZeus
-        ...
-    },
-    "SkillsInfo": [
-        {
-            "NeedsTeammates": false,    // Requires other players on the team
-            "OnlyTeam": 0,              // Skill availability:
-                                        // 0 - Everyone
-                                        // 2 - Terrorist
-                                        // 3 - CounterTerrorist
-            "Color": "#ff0000",         // Skill color
-            "Active": true,             // Enabled on startup
-            "Name": "Aimbot"            // Skill name
+        "GameMode": 3,                   // Game mode: 
+                                         // 0 - Random skills for each player (It can't be the  same twice in a row)
+                                         // 1 - Same skills for the whole team
+                                         // 2 - Same skills for all players
+                                         // 3 - Random skills for each player (It can't be the same until the map changes)
+                                         // 4 - Debug: Skills are assigned in turn
+        "KillerSkillInfo": true,         // Show killer's skill in chat
+        "TeamMateSkillInfo": true,       // Show allies' skills in chat
+        "SummaryAfterTheRound": true,    // Show summary of the last round
+        "DebugMode": true,               // Write activity to the ‘Debug’ folder
+        "AlternativeSkillButton": null,  // Possible buttons:
+                                         // null, "Attack", "Jump", "Duck", "Forward", "Back",
+                                         // "Use", "Cancel", "Left", "Right", "Moveleft",
+                                         // "Moveright", "Attack2", "Run", "Reload", "Alt1",
+                                         // "Alt2", "Speed", "Walk", "Zoom", "Weapon1",
+                                         // "Weapon2", "Bullrush", "Grenade1", "Grenade2",
+                                         // "Attack3", "Scoreboard", "Inspect"
+        "SkillTimeBeforeStart": 7.0,     // How many seconds before freeze time ends should skills
+                                         // drawing be completed? (freezetime - SkillTimeBeforeStart)
+        "SkillDescriptionDuration": 7.0, // How long should the skill description be visible for?
+        "DisplayAlwaysDescription":false,// Always display skill description (SkillDescriptionDuration = 9999)
+        "DisableSpectateHUD": false,     // Disable HTML HUD when spectating
+        "FlashingHtmlHudFix": true,      // Enable FlashingHtmlHudFix
+        "CS2TraceRayDebug": false,       // Enable trail visibility for 'Long Knife', 'Long Zeus'
+        "DisableHUDOnDeathPermission": "@jRandmosSkills/death",  // Disable the HUD after death for players with this permission
+        "DisableSkillsOnRoundEnd": false,// Disable all skills at the end of the round (when the summary is visible)
+        "LanguageSystem": {
+            "DefaultLangCode": "en",     // Default language: en, pl, fr, pt-br, zh
+            "DisableGeoLite": false,     // Disable player language search by geolocation GeoLite2 (MaxMind)
+            "LanguageInfos": [...]       // Setting to change ISO languages to translations
         },
-        ...
-    ]
+        "HtmlHudCustomisation": {        // Settings for changing colours and font sizes
+            ...                          // xxxl: 64px, xxl: 40px, xl: 32px
+        }                                // l: 24px, ml: 20px, m: 18px
+        ...                              // sm: 16px, s: 12px, xs: 8px
+    },
+```
+
+- ##### skillsInfo.json
+```json
+[
+    {
+        "NeedsTeammates": false,      // Requires other players on the team
+        "DisableOnFreezeTime": false, // Disable the skill during freeze time
+        "OnlyTeam": 0,                // Skill availability:
+                                      // 0 - Everyone
+                                      // 2 - Terrorist
+                                      // 3 - CounterTerrorist
+        "Color": "#ff0000",           // Skill color
+        "Active": true,               // Enabled on startup
+        "Name": "Aimbot"              // Skill name
+    },
+    ...
+]
+```
+
+- ##### playersLanguage.json
+```json
+{
+    "76561198150092992": "en",     // "SteamID": "name of the translation file"
+    ...
 }
 ```
 
@@ -291,6 +315,22 @@ This plugin uses content from the following projects:
 - [GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) by [MaxMind](https://www.maxmind.com/) - geolocation data
 
 ## 📋 Changelog
+
+<details>
+<summary><b>v1.1.8</b></summary>
+  
+- #### General:
+    - ###### Added `DisableHUDOnDeathPermission` options to the config, to disable the HUD after death for players with this specific permission.
+    - ###### Added `DisableSkillsOnRoundEnd` option to the config, to disable all skills at the end of the round (when the summary is visible).
+    - ###### The permission `@jRandmosSkills/root` has been changed to `@jRandmosSkills/owner` to prevent domain issues.
+    - ###### Added `!hud` command to toggle the HUD on/off (When the HUD is off, the WSAD Menu will not appear).
+    - ###### Disabling first skill if two skills are drawn during the first round.
+    - ###### The `!reload` command also refreshes the skill activity status.
+- #### Skill improvements:
+    - ##### Replicator:
+        - ###### Fixed a bug causing server crashes after a bomb explosion.
+        - ###### Replica collisions are now more accurate.
+</details>
 
 <details>
 <summary><b>v1.1.7</b></summary>
@@ -322,7 +362,7 @@ This plugin uses content from the following projects:
         - ###### Added a configurable cooldown at the start of the round.
     - ##### Spectator:
         - ###### The method used to attach the camera has changed.
-    - ##### Noclip:
+    - ##### NoClip:
         - ###### Return to the last place where you used skill if you fall below 3,000 units.
         - ###### Added an option to disable the noclip when it is active.
     - ##### Ninja:

@@ -283,6 +283,8 @@ namespace src.player
                     SpecialSkill = Skills.None,
                     IsDrawing = false,
                     SkillChance = 1,
+                    PrintHTML = null,
+                    DisplayHUD = true,
                 });
 
                 string welcomeMsg = player.GetTranslation("welcome_message", "welcome");
@@ -384,6 +386,24 @@ namespace src.player
                             player.PrintToChat(" \n");
                         }
                     });
+                }
+
+                if (Config.LoadedConfig.DisableSkillsOnRoundEnd)
+                {
+                    isTransmitRegistered = false;
+                    Instance.AddTimer(1f, () =>
+                    {
+                        DisableAll();
+                        foreach (var player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
+                        {
+                            var skillPlayer = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                            if (skillPlayer == null) continue;
+                            skillPlayer.Skill = noneSkill.Skill;
+                            skillPlayer.SpecialSkill = noneSkill.Skill;
+                            skillPlayer.PrintHTML = null;
+                        }
+                    });
+                    Instance.RemoveListener<CheckTransmit>(CheckTransmit);
                 }
                 return HookResult.Continue;
             }
@@ -559,6 +579,7 @@ namespace src.player
                     if (randomSkill.Display)
                         SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(randomSkill.Skill)}{ChatColors.Lime}: {player.GetSkillDescription(randomSkill.Skill)}", false);
 
+                    Instance?.SkillAction(skillPlayer.Skill.ToString(), "DisableSkill", [player]);
                     skillPlayer.Skill = randomSkill.Skill;
                     skillPlayer.SpecialSkill = Skills.None;
 

@@ -438,6 +438,8 @@
   "healed": "你已被治疗。",
   "game_start": "游戏开始！",
   "reload": "语言和配置已重新加载。",
+  "hud_on": "HUD已启用。",
+  "hud_off": "HUD已禁用。",
 
   "vote_started": "投票开始：'{0}'",
   "vote_timeout": "投票'{0}'超时！",

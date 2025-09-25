@@ -71,7 +71,7 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 | Mrok | Nadaje efekt ciemności wybranemu przeciwnikowi | - |
 | Deaktywator | Wybierasz gracza, którego supermoc chcesz wyłączyć | - |
 | Głuchy | Wybierasz gracza, dla którego chcesz wyłączyć wszystkie dźwięki | - |
-| Rozbrojenie | Masz losową szanse na wyrzucenie broni wroga po trafieniu | (65 - 85)% |
+| Rozbrojenie | Masz losową szanse na wyrzucenie broni wroga po trafieniu | (20 - 35)% |
 | Odległościomierz | Możesz zobaczyć odległość do najbliższego przeciwnika | - |
 | Doskok | Wykonaj drugi skok, aby wykonać doskok | - |
 | Drakula | Po trafieniu ofiary odzyskujesz zdrowie równe pewnemu procentowi zadanych obrażeń | - |
@@ -182,7 +182,7 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
     - Wypakuj go do folderu `CS2Server/game/csgo/addons/counterstrikesharp/`
 5. Zainstaluj **jRandomSkills**
     - Pobierz [jRandomSkills](https://github.com/Juzlus/jRandomSkills/releases)
-    - Wypakuj go do folderu `C2Server/game/csgo/addons/counterstrikesharp/plugins/`
+    - Wypakuj go do folderu `C2Server/game/csgo/addons/counterstrikesharp/`
     - JEŚLI do pobrania jest plik `gamedata.json`:
         - Wypakuj `gamedata.json` do folderu `C2Server/server/game/csgo/addons/counterstrikesharp/gamedata/`
 
@@ -202,12 +202,13 @@ Kupujesz serwer na pukawce? Skorzystaj z mojego [kodu polecającego](https://puk
 | `!map <mapWorkshopId>` | `!map 3332005394` | Zmiana mapy z warsztatu | `@jRandmosSkills/admin` |
 | `!start` | `!start` | Rozpoczęcie gry z parametrami: `mp_forcecamera 0, mp_freezetime 15, mp_overtime_enable 1, sv_cheats 0` | `@jRandmosSkills/admin` |
 | `!start sv` | `!start sv` | Rozpoczęcie gry z parametrami: `mp_forcecamera 0, mp_freezetime 0, mp_overtime_enable 1, sv_cheats 1` | `@jRandmosSkills/admin` |
-| `!console <command>` | `!console sv_cheats 1` | Uruchomienie komendy na serwerze | `@jRandmosSkills/root` |
+| `!console <command>` | `!console sv_cheats 1` | Uruchomienie komendy na serwerze | `@jRandmosSkills/owner` |
 | `!swap` | `!swap` | Zamiana stron | `@jRandmosSkills/admin` |
 | `!shuffle` | `!shuffle` | Losowe dobranie graczy do drużyn | `@jRandmosSkills/admin` |
 | `!pause` | `!pause` | Wstrzymanie gry | `@jRandmosSkills/admin` |
-| `!heal` | `!heal` | Przywrócenie 100 punktów zdrowia | `@jRandmosSkills/root` |
-| `!setscore <CT> <TT>` | `!setscore 10 7` | Ustawienie wyniku gry | `@jRandmosSkills/root` |
+| `!heal` | `!heal` | Przywrócenie 100 punktów zdrowia | `@jRandmosSkills/admin` |
+| `!hud` | `!hud` | Włącz/Wyłącz HUD | - |
+| `!setscore <CT> <TT>` | `!setscore 10 7` | Ustawienie wyniku gry | `@jRandmosSkills/owner` |
 | `!setstaticskill <playerName/steamID> <skill>` | `!setstaticskill Juzlus Aimbot` | Przypisanie supermocy do gracza na stałe | `@jRandmosSkills/admin` |
 | `!setstaticskill <playerName/steamID> None` | `!setstaticskill Juzlus None` | Powrót do normalności | `@jRandmosSkills/admin` |
 | `!reload` | `!reload` | Odśwież tłumaczenia | - |
@@ -223,7 +224,7 @@ Aby nadać uprawnienia administracyjne w CounterStrikeSharp:
     {
         "Juzlus": {
             "identity": "STEAM_0:0:94913632",
-            "flags": ["@jRandmosSkills/admin", "@jRandmosSkills/root"]
+            "flags": ["@jRandmosSkills/admin", "@jRandmosSkills/owner"]
         }
     }
     ```
@@ -231,50 +232,73 @@ Aby nadać uprawnienia administracyjne w CounterStrikeSharp:
 3. Zapisz plik i uruchom serwer, aby zastosować zmiany.
 
 ## ⚙️ Konfiguracja
-Wszystkie sypermoce można dostosować w pliku **`Config.cfg`** znajdującym się w folderze **`game/csgo/addons/counterstrikesharp/plugins/jRandomSkills/`**
+Wszystkie sypermoce można dostosować w pliku **`config.cfg`** / **`skillsInfo.json`** znajdującym się w folderze **`game/csgo/addons/counterstrikesharp/plugins/jRandomSkills/configs/`**
 
+- ##### config.json
 ```json
 {
     "Settings": {
-        "LangCode": "en",               // Język pluginu: en, pl, pt-br, zh
-        "GameMode": 3,                  // Tryb gry: 
-                                        // 0 - Losowa supermoc dla każdego gracza (Brak powtórek z rzędu)
-                                        // 1 - Ta sama supermoc dla całej drużyny
-                                        // 2 - Ta sama supermoc dla wszystkich graczy
-                                        // 3 - Losowa supermoc dla każdego gracza (Brak powtórek na mapie)
-                                        // 4 - Debug: Supormoce są przydzielane po kolei
-        "KillerSkillInfo": true,        // Pokazuj supermoc zabójcy na czacie
-        "TeamMateSkillInfo": true,      // Pokazuj supermoc sojuszników na czacie
-        "SummaryAfterTheRound": true,   // Pokazuj podsumowanie z ostatniej rundy
-        "DebugMode": true,              // Zapisuj aktywność do folderu 'Debug'
-        "AlternativeSkillButton": null, // Możliwe przyciski:
-                                        // null, "Attack", "Jump", "Duck", "Forward", "Back",
-                                        // "Use", "Cancel", "Left", "Right", "Moveleft",
-                                        // "Moveright", "Attack2", "Run", "Reload", "Alt1",
-                                        // "Alt2", "Speed", "Walk", "Zoom", "Weapon1",
-                                        // "Weapon2", "Bullrush", "Grenade1", "Grenade2",
-                                        // "Attack3", "Scoreboard", "Inspect"
-        "SkillTimeBeforeStart": 7.0,    // Ile sekund przed końcem freeze time należy zakończyć 
-                                        // losowanie umiejętności? (freezetime - SkillTimeBeforeStart)
-        "SkillDescriptionDuration": 7.0,// Jak długo opis umiejętności powinien być widoczny?
-        "DisableSpectateHUD": false,    // Wyłącz HUD HTML bedąc martwym
-        "FlashingHtmlHudFix": true,     // Włącz FlashingHtmlHudFix
-        "CS2TraceRayDebug": false,      // Włącz widoczność ścieżki dla LongKnife, LongZeus
-        ...
-    },
-    "SkillsInfo": [
-        {
-            "NeedsTeammates": false,    // Wymaga innych graczy w drużynie
-            "OnlyTeam": 0,              // Dostępność supermocy:
-                                        // 0 - Wszyscy
-                                        // 2 - Terrorist
-                                        // 3 - CounterTerrorist
-            "Color": "#ff0000",         // Kolor supermocy
-            "Active": true,             // Włączona przy uruchamianiu
-            "Name": "Aimbot"            // Nazwa supermocy
+        "GameMode": 3,                   // Tryb gry: 
+                                         // 0 - Losowa supermoc dla każdego gracza (Brak powtórek z rzędu)
+                                         // 1 - Ta sama supermoc dla całej drużyny
+                                         // 2 - Ta sama supermoc dla wszystkich graczy
+                                         // 3 - Losowa supermoc dla każdego gracza (Brak powtórek na mapie)
+                                         // 4 - Debug: Supormoce są przydzielane po kolei
+        "KillerSkillInfo": true,         // Pokazuj supermoc zabójcy na czacie
+        "TeamMateSkillInfo": true,       // Pokazuj supermoc sojuszników na czacie
+        "SummaryAfterTheRound": true,    // Pokazuj podsumowanie z ostatniej rundy
+        "DebugMode": true,               // Zapisuj aktywność do folderu 'Debug'
+        "AlternativeSkillButton": null,  // Możliwe przyciski:
+                                         // null, "Attack", "Jump", "Duck", "Forward", "Back",
+                                         // "Use", "Cancel", "Left", "Right", "Moveleft",
+                                         // "Moveright", "Attack2", "Run", "Reload", "Alt1",
+                                         // "Alt2", "Speed", "Walk", "Zoom", "Weapon1",
+                                         // "Weapon2", "Bullrush", "Grenade1", "Grenade2",
+                                         // "Attack3", "Scoreboard", "Inspect"
+        "SkillTimeBeforeStart": 7.0,     // Ile sekund przed końcem freeze time należy zakończyć 
+                                         // losowanie umiejętności? (freezetime - SkillTimeBeforeStart)
+        "SkillDescriptionDuration": 7.0, // Jak długo opis umiejętności powinien być widoczny?
+        "DisplayAlwaysDescription":false,// Zawsze wyświetlaj opis umiejętności
+        "DisableSpectateHUD": false,     // Wyłącz HUD HTML bedąc martwym
+        "FlashingHtmlHudFix": true,      // Włącz FlashingHtmlHudFix
+        "CS2TraceRayDebug": false,       // Włącz widoczność ścieżki dla 'Długi Nóż', 'Długi Zeus'
+        "DisableHUDOnDeathPermission": "@jRandmosSkills/death",  // Wyłącz HUD po śmierci dla graczy z tym uprawnieniem
+        "DisableSkillsOnRoundEnd": false,// Wyłącz wszystkie umiejętności na koniec rundy (gdy widoczne jest podsumowanie)
+        "LanguageSystem": {
+            "DefaultLangCode": "en",     // Język domyślny: en, pl, fr, pt-br, zh
+            "DisableGeoLite": false,     // Wyłącz wyszukiwanie języka gracza według geolokalizacji GeoLite2 (MaxMind)
+            "LanguageInfos": [...]       // Ustawienie zmiany języków ISO na tłumaczenia
         },
-        ...
-    ]
+        "HtmlHudCustomisation": {        // Ustawienia zmiany kolorów i rozmiarów czcionek
+            ...                          // xxxl: 64px, xxl: 40px, xl: 32px
+        }                                // l: 24px, ml: 20px, m: 18px
+        ...                              // sm: 16px, s: 12px, xs: 8px
+    },
+```
+
+- ##### skillsInfo.json
+```json
+[
+    {
+        "NeedsTeammates": false,      // Wymaga innych graczy w drużynie
+        "DisableOnFreezeTime": false, // Wyłącz umiejętność podczas freeze time
+        "OnlyTeam": 0,                // Dostępność supermocy:
+                                      // 0 - Wszyscy
+                                      // 2 - Terrorist
+                                      // 3 - CounterTerrorist
+        "Color": "#ff0000",           // Kolor supermocy
+        "Active": true,               // Włączona przy uruchamianiu
+        "Name": "Aimbot"              // Nazwa supermocy
+    },
+    ...
+]
+```
+
+- ##### playersLanguage.json
+```json
+{
+    "76561198150092992": "pl",     // "SteamID": "nazwa pliku tłumaczenia"
+    ...
 }
 ```
 
@@ -289,6 +313,90 @@ Plugin korzysta z zawartości następujących projektów:
 - [GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) by [MaxMind](https://www.maxmind.com/) - dane geolokalizacyjne
 
 ## 📋 Lista Zmian
+
+<details>
+<summary><b>v1.1.8</b></summary>
+  
+- #### Ogólne:
+    - ###### Dodano opcję `DisableHUDOnDeathPermission` do pliku konfiguracyjnego, aby wyłączyć HUD po śmierci dla graczy posiadających to konkretne uprawnienie.
+    - ###### Dodano opcję `DisableSkillsOnRoundEnd` do pliku konfiguracyjnego, aby wyłączyć wszystkie umiejętności na koniec rundy (gdy widoczne jest podsumowanie).
+    - ###### Uprawnienie `@jRandmosSkills/root` zostało zmienione na `@jRandmosSkills/owner`, aby zapobiec problemom z domeną.
+    - ###### Dodano polecenie `!hud` do włączania/wyłączania HUD (gdy HUD jest wyłączony, menu WSAD nie będzie wyświetlane).
+    - ###### Wyłączenie pierwszej umiejętności, jeżeli podczas pierwszej rundy wylosowano dwie umiejętności.
+    - ###### Komenda `!reload` odświeża również status aktywności umiejętności.
+- #### Poprawki mocy:
+    - ##### Replikator:
+        - ###### Naprawiono błąd powodujący awarie serwera po wybuchu bomby.
+        - ###### Kolizje replik są teraz bardziej dokładne.
+</details>
+
+<details>
+<summary><b>v1.1.7</b></summary>
+  
+- #### Ogólne:
+    - ###### Zaktualizowano zależności do najnowszej wersji.
+    - ###### Informacje o umiejętnościach są teraz dostępne w `skillsInfo.json` zamiast w `config.json`.
+    - ###### Dodano plik `jRandomSkills.gamedata.json`.
+    - ###### Dodano opcję wyłączenia konkretnej mocy podczas freeze time (domyślnie wyłączone: Zamiana Miejsc, Odwrót, Replikator, Trutka, Samowolka, Pilot, NoClip, Medyk, Nieśmiertelność, Fortnite, Resp Wroga, Anomalia).
+    - ###### Dodano opcje `LanguageSystem` do pliku konfiguracyjnego dla szczegółowego zarządzania przypisywaniem języka.
+    - ###### Komenda `StartGameCommand` ma teraz zmienny parametr startowy w pliku konfiguracyjnym.
+    - ###### Dodano opcję `DisplayAlwaysDescription` w pliku konfiguracyjnym, aby opis umiejętności był widoczny cały czas.
+    - ###### Dodano opcje `HtmlHudCustomisation` w pliku konfiguracyjnym do ustawiania kolorów i rozmiaru czcionki.
+    - ###### Można ustawić pusty tekst: your_skill/drawing_skill/observer_skill/XXX_select_info.
+    - ###### Opcja ustawienia uzyskanej wartości w nazwie/opisie umiejętności (`{0}`).
+    - ###### Naprawiono wyświetlanie czasu odnowienia umiejętności (zaokrąglenie w górę).
+    - ###### Komenda `!reload` odświeża teraz wszystkie parametry ze wszystkich plików konfiguracyjnych.
+    - ###### Większość kolekcji została zastąpiona strukturami bezpiecznymi dla wątków, aby uniknąć crashy serwera (pomysł: @ebat_kopat777).
+- #### Poprawki mocy:
+    - ##### Długi Nóż:
+        - ###### Prawy atak nożem również zadaje obrażenia.
+        - ###### Naprawiono błąd, w którym po śmierci umiejętność gracza była pokazywana jako `Brak`.
+    - ##### Wallhack:
+        - ###### Poświaty tworzą się tylko raz, zamiast dla każdego gracza osobno.
+        - ###### Naprawiono błąd, w którym po śmierci umiejętność gracza była pokazywana jako `Brak`.
+    - ##### Stópkarz:
+        - ###### Naprawiono błąd, w którym po śmierci umiejętność gracza była pokazywana jako `Brak`.
+    - ##### Zamiana Miejsc:
+        - ###### Dodano konfigurowalny czas blokady na początku rundy.
+    - ##### Obserwator:
+        - ###### Zmieniła się metoda poruszania się kamery.
+    - ##### NoClip:
+        - ###### Powrót do ostatniego miejsca użycia umiejętności, jeśli gracz spadnie poniżej 3000 jednostek.
+        - ###### Dodano opcję wyłączenia noclipu, gdy jest aktywny.
+    - ##### Ninja:
+        - ###### Naprawiono problem z niewidoczną bronią po śmierci.
+    - ##### Muhammed:
+        - ###### Komunikat przy eksplozji jest teraz konfigurowalny (w languages/).
+        - ###### Naprawiono błąd, w którym granat nie wybuchał.
+    - ##### Duszek:
+        - ###### Naprawiono problem z niewidoczną bronią po śmierci.
+    - ##### Strzał Wybuchowy:
+        - ###### Naprawiono błąd, w którym granat nie wybuchał.
+    - ##### Resp Wroga:
+        - ###### Dodano konfigurowalny czas blokady na początku rundy.
+    - ##### Rozbrojenie:
+        - ###### Powrót do upuszczania broni zamiast zmiany na slot3.
+        - ###### Zmniejszono szansę na upuszczenie broni: (20–50)% → (20–35)%.
+    - ##### Kurczak:
+        - ###### Zmieniła się metoda poruszania się kurczaka.
+        - ###### Gracz widzi model swojego kurczaka.
+        - ###### Naprawiono hitboxy po powrocie do normalnego modelu.
+        - ###### Naprawiono błąd, w którym po dezaktywacji umiejętności gracz otrzymywał nadmiarowe HP.
+    - ##### C4 Kamuflaż:
+        - ###### Naprawiono problem z niewidoczną bronią po śmierci.
+    - ##### Mistrz Ostrza:
+        - ###### Zmniejszono prędkość ruchu z nożem o 10% (konfigurowalne).
+    - ##### Anty Flash:
+        - ###### Dodano opcję w pliku konfiguracyjnym, umożliwiającą zmianę czasu trwania błysku twojego flash'a.
+    - ##### Błazen:
+        - ###### Naprawiono problem, w którym gracz mógł otrzymywać obrażenia od innych umiejętności lub wybuchu bomby.
+        - ###### Naprawiono błąd, w którym gracz zawsze był fioletowy.
+    - ##### Cień:
+        - ###### Dodano opcję ustawienia szansy na teleportację po trafieniu przeciwnika (w pliku konfiguracyjnym).
+    - ##### Szpieg:
+        - ###### Ustawianie modelu gracza po dezaktywacji umiejętności.
+        - ###### Domyślny model terrorystów został zmieniony.
+</details>
 
 <details>
 <summary><b>v1.1.6</b></summary>

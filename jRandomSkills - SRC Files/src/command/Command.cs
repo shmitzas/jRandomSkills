@@ -40,6 +40,7 @@ namespace src.command
                     { SplitCommands(config.NormalCommands.UseSkillCommand.Alias), ("Use/Type skill", Command_UseTypeSkill) },
                     { SplitCommands(config.NormalCommands.ConsoleCommand.Alias), ("Console command", Command_CustomCommand) },
                     { SplitCommands(config.NormalCommands.HealCommand.Alias), ("Heal", Command_Heal) },
+                    { SplitCommands(config.NormalCommands.HudCommand.Alias), ("Enable/Disable HUD", Command_HUD) },
                     { SplitCommands(config.NormalCommands.SetStaticSkillCommand.Alias), ("Set static skill", Command_SetStaticSkill) },
                     { SplitCommands(config.NormalCommands.ChangeLanguageCommand.Alias), ("Change language", Command_ChangeLanguage) },
                     { SplitCommands(config.NormalCommands.ReloadCommand.Alias), ("Reaload configs", Command_Reload) },
@@ -324,6 +325,21 @@ namespace src.command
             player.PrintToChat($" {ChatColors.Green}{player.GetTranslation("healed")}");
         }
 
+        [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_ONLY)]
+        private static void Command_HUD(CCSPlayerController? player, CommandInfo command)
+        {
+            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_hud {command.ArgString} command.");
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
+            if (!AdminManager.PlayerHasPermissions(player, config.NormalCommands.HudCommand.Permissions)) return;
+
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
+
+            playerInfo.DisplayHUD = !playerInfo.DisplayHUD;
+            SkillUtils.CloseMenu(player);
+            player.PrintToChat($" {(playerInfo.DisplayHUD ? ChatColors.Green : ChatColors.Red)}{player.GetTranslation(playerInfo.DisplayHUD ? "hud_on" : "hud_off")}");
+        }
+
         [CommandHelper(minArgs: 2, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_SetScore(CCSPlayerController? player, CommandInfo command)
         {
@@ -485,13 +501,23 @@ namespace src.command
                 Localization.Load();
                 Load();
 
-                foreach (var skill in SkillData.Skills)
-                    skill.Color = SkillsInfo.GetValue<string>(skill.Skill, "color");
+                SkillData.Skills.Clear();
+                foreach (var skill in Enum.GetValues(typeof(Skills)))
+                    if (SkillsInfo.GetValue<bool>(skill, "active"))
+                        Instance.SkillAction(skill.ToString()!, "LoadSkill");
 
                 if (player != null && player.IsValid)
                     player.PrintToChat($" {ChatColors.Green}{player.GetTranslation("reload")}");
                 else
                     Server.PrintToConsole($" {ChatColors.Green}{Localization.GetTranslation("reload")}");
+
+                foreach (var target in Instance.SkillPlayer)
+                {
+                    if (SkillsInfo.GetValue<bool>(target.Skill, "active") == false)
+                        target.Skill = Event.noneSkill.Skill;
+                    if (SkillsInfo.GetValue<bool>(target.SpecialSkill, "active") == false)
+                        target.SpecialSkill = Event.noneSkill.Skill;
+                }
             }
         }
     }

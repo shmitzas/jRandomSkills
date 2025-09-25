@@ -438,6 +438,8 @@
   "healed": "Você foi curado.",
   "game_start": "Jogo iniciado!",
   "reload": "Os idiomas e as configurações foram recarregados.",
+  "hud_on": "O HUD foi ativado.",
+  "hud_off": "O HUD foi desativado.",
 
   "vote_started": "Votação iniciada: '{0}'",
   "vote_timeout": "Votação '{0}' expirou!",

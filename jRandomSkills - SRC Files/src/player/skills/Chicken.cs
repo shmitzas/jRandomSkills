@@ -112,7 +112,7 @@ namespace src.player.skills
                 {
                     if (string.IsNullOrEmpty(model))
                         model = player.Team == CsTeam.Terrorist ? defaultTModel : defaultCTModel;
-
+                    
                     pawn.SetModel(model);
                     var originalRender = pawn.Render;
                     pawn.Render = Color.FromArgb(255, originalRender.R, originalRender.G, originalRender.B);

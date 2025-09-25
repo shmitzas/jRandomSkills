@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Utils;
 using src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
@@ -48,7 +49,7 @@ namespace src.player
         {
             if (player == null) return;
             var skillPlayer = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (skillPlayer == null) return;
+            if (skillPlayer == null || !skillPlayer.DisplayHUD) return;
 
             string infoLine = "";
             string skillLine = "";
@@ -86,7 +87,7 @@ namespace src.player
                     }
                 } else if (player?.IsValid == true)
                 {
-                    if (player.Team is CsTeam.Spectator or CsTeam.None && Config.LoadedConfig.DisableSpectateHUD)
+                    if ((player.Team is CsTeam.Spectator or CsTeam.None && Config.LoadedConfig.DisableSpectateHUD) || AdminManager.PlayerHasPermissions(player, Config.LoadedConfig.DisableHUDOnDeathPermission))
                         return;
 
                     var pawn = player.Pawn.Value;

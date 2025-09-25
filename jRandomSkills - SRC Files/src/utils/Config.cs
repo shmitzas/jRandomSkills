@@ -81,6 +81,8 @@ namespace src.utils
             public bool DisableSpectateHUD { get; set; }
             public bool FlashingHtmlHudFix { get; set; }
             public bool CS2TraceRayDebug { get; set; }
+            public string DisableHUDOnDeathPermission { get; set; }
+            public bool DisableSkillsOnRoundEnd { get; set; }
             public LanguageSystem LanguageSystem { get; set; }
             public HtmlHudCustomisation HtmlHudCustomisation {  get; set; }
             public NormalCommands NormalCommands { get; set; }
@@ -100,6 +102,8 @@ namespace src.utils
                 FlashingHtmlHudFix = true;
                 CS2TraceRayDebug = false;
                 DisableSpectateHUD = false;
+                DisableHUDOnDeathPermission = "@jRandmosSkills/death";
+                DisableSkillsOnRoundEnd = false;
 
                 LanguageSystem = new LanguageSystem
                 {
@@ -141,7 +145,8 @@ namespace src.utils
                     SkillsListCommand = new NormalCommand("supermoc, skille, listamocy, supermoce, skills, listaHabilidades, habilidades, 技能列表, 超能力列表", "@jRandmosSkills/admin"),
                     UseSkillCommand = new NormalCommand("t, useSkill, usarHabilidade, 技能使用, 使用技能", "@jRandmosSkills/admin"),
                     HealCommand = new NormalCommand("heal, ulecz, curar, tratar, 治疗, 治愈", "@jRandmosSkills/admin"),
-                    ConsoleCommand = new NormalCommand("console, sv, 控制台, 服务器", "@jRandmosSkills/root"),
+                    ConsoleCommand = new NormalCommand("console, sv, 控制台, 服务器", "@jRandmosSkills/owner"),
+                    HudCommand = new NormalCommand("hud, hood", ""),
                     SetStaticSkillCommand = new NormalCommand("ustawstatycznyskill, ustaw_statyczny_skill, setstaticskill, set_static_skill", "@jRandmosSkills/admin"),
                     ChangeLanguageCommand = new NormalCommand("lang, language, changelang, change_lang, jezyk, język", ""),
                     ReloadCommand = new NormalCommand("reload, refresh", "@jRandmosSkills/admin"),
@@ -154,7 +159,7 @@ namespace src.utils
                     SwapCommand = new VotingCommand(true, "swap, zmiana, trocar, 交换, 切换", "@jRandmosSkills/admin", 15, 90, 15, 20, 2),
                     ShuffleCommand = new VotingCommand(true, "shuffle, embaralhar, 随机排序, 洗牌", "@jRandmosSkills/admin", 15, 90, 15, 20, 2),
                     PauseCommand = new VotingCommand(true, "pause, unpause, pausar, despausar, 暂停, 恢复", "@jRandmosSkills/admin", 15, 60, 15, 2, 2),
-                    SetScoreCommand = new VotingCommand(true, "setscore, wynik, definirPontuacao, configurarPontos, 设置分数, 调整分数", "@jRandmosSkills/root", 15, 90, 15, 90, 2),
+                    SetScoreCommand = new VotingCommand(true, "setscore, wynik, definirPontuacao, configurarPontos, 设置分数, 调整分数", "@jRandmosSkills/owner", 15, 90, 15, 90, 2),
                 };
             }
         }
@@ -205,6 +210,7 @@ namespace src.utils
             public required NormalCommand UseSkillCommand { get; set; }
             public required NormalCommand HealCommand { get; set; }
             public required NormalCommand ConsoleCommand { get; set; }
+            public required NormalCommand HudCommand { get; set; }
             public required NormalCommand SetStaticSkillCommand { get; set; }
             public required NormalCommand ChangeLanguageCommand { get; set; }
             public required NormalCommand ReloadCommand { get; set; }

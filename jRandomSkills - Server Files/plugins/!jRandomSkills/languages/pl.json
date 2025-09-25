@@ -438,6 +438,8 @@
   "healed": "Zostałeś uleczony.",
   "game_start": "Gra rozpoczęta!",
   "reload": "Tłumaczenia i konfigi zostały ponownie załadowane.",
+  "hud_on": "HUD został włączony.",
+  "hud_off": "HUD został wyłączony.",
 
   "vote_started": "Głosowanie rozpoczęte: '{0}'",
   "vote_timeout": "Głosowanie '{0}' przekroczyło limit czasu!",

@@ -93,7 +93,7 @@ namespace src.player.skills
         private static void CreateReplica(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
-            var replica = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic");
+            var replica = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic_override");
             if (replica == null || playerPawn == null || !playerPawn.IsValid || playerPawn.AbsOrigin == null || playerPawn.AbsRotation == null)
                 return;
 
@@ -105,12 +105,12 @@ namespace src.player.skills
             
             replica.Flags = playerPawn.Flags;
             replica.Flags |= (uint)Flags_t.FL_DUCKING;
+            replica.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
             replica.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(replica.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             replica.SetModel(playerPawn!.CBodyComponent!.SceneNode!.GetSkeletonInstance().ModelState.ModelName);
             replica.Entity!.Name = replica.Globalname = $"Replica_{Server.TickCount}_{(player.Team == CsTeam.CounterTerrorist ? "CT" : "TT")}";
             replica.Teleport(pos, playerPawn.AbsRotation, null);
             replica.DispatchSpawn();
-            replica.AcceptInput("EnableCollision");
         }
 
         public static void OnTakeDamage(DynamicHook h)
@@ -121,18 +121,21 @@ namespace src.player.skills
             if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
                 return;
 
-            CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
             if (string.IsNullOrEmpty(param.Entity.Name)) return;
             if (!param.Entity.Name.StartsWith("Replica_")) return;
 
             var replica = param.As<CPhysicsPropMultiplayer>();
             if (replica == null || !replica.IsValid) return;
             replica.EmitSound("GlassBottle.BulletImpact", volume: 1f);
-            
+            replica.AcceptInput("Kill");
+
+            CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
+            if (attackerPawn.DesignerName != "player")
+                return;
+
             var attackerTeam = attackerPawn.TeamNum;
             var replicaTeam = replica.Globalname.EndsWith("CT") ? 3 : 2;
             SkillUtils.TakeHealth(attackerPawn, attackerTeam != replicaTeam ? 15 : 5);
-            replica.AcceptInput("Kill");
         }
 
         public class PlayerSkillInfo

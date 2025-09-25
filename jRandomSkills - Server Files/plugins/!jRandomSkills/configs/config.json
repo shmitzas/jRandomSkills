@@ -11,6 +11,8 @@
   "DisableSpectateHUD": false,
   "FlashingHtmlHudFix": true,
   "CS2TraceRayDebug": false,
+  "DisableHUDOnDeathPermission": "@jRandmosSkills/death",
+  "DisableSkillsOnRoundEnd": false,
   "LanguageSystem": {
     "DefaultLangCode": "en",
     "DisableGeoLite": false,
@@ -74,7 +76,11 @@
     },
     "ConsoleCommand": {
       "Alias": "console, sv, 控制台, 服务器",
-      "Permissions": "@jRandmosSkills/root"
+      "Permissions": "@jRandmosSkills/owner"
+    },
+    "HudCommand": {
+      "Alias": "hud, hood",
+      "Permissions": ""
     },
     "SetStaticSkillCommand": {
       "Alias": "ustawstatycznyskill, ustaw_statyczny_skill, setstaticskill, set_static_skill",
@@ -150,7 +156,7 @@
       "TimeToNextSameVoting": 90.0,
       "MinimumPlayersToStartVoting": 2,
       "Alias": "setscore, wynik, definirPontuacao, configurarPontos, 设置分数, 调整分数",
-      "Permissions": "@jRandmosSkills/root"
+      "Permissions": "@jRandmosSkills/owner"
     }
   }
 }

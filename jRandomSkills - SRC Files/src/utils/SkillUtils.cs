@@ -201,7 +201,7 @@ namespace src.utils
             if (player == null || !player.IsValid) return;
 
             var playerInfo = jRandomSkills.Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo == null) return;
+            if (playerInfo == null || !playerInfo.DisplayHUD) return;
 
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == playerInfo.Skill);
             if (skillData == null) return;
