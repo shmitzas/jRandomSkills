@@ -29,7 +29,6 @@ namespace src.player.skills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
             AddMoney(player, -(int)(playerInfo.SkillChance ?? 0));
-            playerInfo.SkillChance = 0;
         }
 
         private static void AddMoney(CCSPlayerController player, int money)

@@ -2,12 +2,14 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Commands;
 using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.Utils;
 using src.command;
 using src.player;
 using src.utils;
 using System.Collections.Concurrent;
 using System.Reflection;
 using WASDSharedAPI;
+using static CounterStrikeSharp.API.Core.Listeners;
 
 namespace src
 {
@@ -25,7 +27,7 @@ namespace src
         public override string ModuleName => "[CS2] [ jRandomSkills ]";
         public override string ModuleAuthor => "D3X, Juzlus";
         public override string ModuleDescription => "Plugin adds random skills every round for CS2 by D3X. Modified by Juzlus.";
-        public override string ModuleVersion => "1.1.8";
+        public override string ModuleVersion => "1.1.9 BETA";
 
         public override void Load(bool hotReload)
         {
@@ -40,6 +42,8 @@ namespace src
             Command.Load();
             WASDMenuAPI.WASDMenuAPI.LoadPlugin(Instance, hotReload);
             LoadAllSkills();
+
+            Instance.RegisterListener<OnServerPrecacheResources>((ResourceManifest manifest) => manifest.AddResource("models/actors/ghost_speaker.vmdl"));
         }
 
         internal void LoadAllSkills()
@@ -105,6 +109,7 @@ namespace src
         public DateTime SkillDescriptionHudExpired { get; set; }
         public string? PrintHTML { get; set; }
         public bool DisplayHUD { get; set; }
+        public bool SkillUsed = false;
     }
 
     public class jSkill_SkillInfo(Skills skill, string color, bool display)

@@ -89,7 +89,7 @@ namespace src.command
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_SetSkill(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_setskill {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_setskill {command.ArgString} command.");
             if (!AdminManager.PlayerHasPermissions(player, config.NormalCommands.SetSkillCommand.Permissions)) return;
             var targetPlayer = Utilities.GetPlayers().FirstOrDefault(p => !p.IsBot
                                                                           && (p.SteamID.ToString().Equals(command.GetArg(1), StringComparison.CurrentCultureIgnoreCase)
@@ -176,7 +176,7 @@ namespace src.command
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_ONLY)]
         private static void Command_SkillsListMenu(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_skills {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_skills {command.ArgString} command.");
             if (player == null || !AdminManager.PlayerHasPermissions(player, config.NormalCommands.SkillsListCommand.Permissions)) return;
             Menu.DisplaySkillsList(player);
         }
@@ -184,7 +184,7 @@ namespace src.command
         [CommandHelper(minArgs: 1, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_ChangeMap(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_map {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_map {command.ArgString} command.");
             if (player != null && player.IsValid && !AdminManager.PlayerHasPermissions(player, config.VotingCommands.ChangeMapCommand.Permissions))
             {
                 if (!config.VotingCommands.ChangeMapCommand.EnableVoting) return;
@@ -196,7 +196,7 @@ namespace src.command
 
         private static void ChangeMap(CommandInfo command)
         {
-            string map = command.GetArg(1);
+            string map = command.GetArg(1).ToLower();
 
             if (string.IsNullOrEmpty(map))
             {
@@ -217,7 +217,7 @@ namespace src.command
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_StartGame(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_start {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_start {command.ArgString} command.");
             if (player != null && player.IsValid && !AdminManager.PlayerHasPermissions(player, config.VotingCommands.StartGameCommand.Permissions))
             {
                 if (!config.VotingCommands.StartGameCommand.EnableVoting) return;
@@ -251,7 +251,7 @@ namespace src.command
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_Swap(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_swap {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_swap {command.ArgString} command.");
             if (player != null && player.IsValid && !AdminManager.PlayerHasPermissions(player, config.VotingCommands.SwapCommand.Permissions))
             {
                 if (!config.VotingCommands.SwapCommand.EnableVoting) return;
@@ -272,7 +272,7 @@ namespace src.command
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_Shuffle(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_shuffle {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_shuffle {command.ArgString} command.");
             if (player != null && player.IsValid && !AdminManager.PlayerHasPermissions(player, config.VotingCommands.ShuffleCommand.Permissions))
             {
                 if (!config.VotingCommands.ShuffleCommand.EnableVoting) return;
@@ -298,7 +298,7 @@ namespace src.command
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_Pause(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_pause {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_pause {command.ArgString} command.");
             if (player != null && player.IsValid && !AdminManager.PlayerHasPermissions(player, config.VotingCommands.PauseCommand.Permissions))
             {
                 if (!config.VotingCommands.PauseCommand.EnableVoting) return;
@@ -318,7 +318,7 @@ namespace src.command
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_Heal(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_heal {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_heal {command.ArgString} command.");
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid || player.LifeState != (byte)LifeState_t.LIFE_ALIVE) return;
             if (!AdminManager.PlayerHasPermissions(player, config.NormalCommands.HealCommand.Permissions)) return;
             SkillUtils.AddHealth(player.PlayerPawn.Value, 100);
@@ -328,7 +328,7 @@ namespace src.command
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_ONLY)]
         private static void Command_HUD(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_hud {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_hud {command.ArgString} command.");
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
             if (!AdminManager.PlayerHasPermissions(player, config.NormalCommands.HudCommand.Permissions)) return;
 
@@ -343,7 +343,7 @@ namespace src.command
         [CommandHelper(minArgs: 2, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_SetScore(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_setscore {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_setscore {command.ArgString} command.");
             if (player != null && player.IsValid && !AdminManager.PlayerHasPermissions(player, config.VotingCommands.SetScoreCommand.Permissions))
             {
                 if (!config.VotingCommands.SetScoreCommand.EnableVoting) return;
@@ -368,7 +368,7 @@ namespace src.command
         [CommandHelper(minArgs: 1, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_CustomCommand(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_console {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_console {command.ArgString} command.");
             if (player == null || !AdminManager.PlayerHasPermissions(player, config.NormalCommands.ConsoleCommand.Permissions)) return;
             string param = command.ArgString;
             Server.ExecuteCommand(param);
@@ -377,7 +377,7 @@ namespace src.command
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_SetStaticSkill(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_setstaticskill {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_setstaticskill {command.ArgString} command.");
             if (!AdminManager.PlayerHasPermissions(player, config.NormalCommands.SetStaticSkillCommand.Permissions)) return;
             var targetPlayer = Utilities.GetPlayers().FirstOrDefault(p => !p.IsBot
                                                                           && (p.SteamID.ToString().Equals(command.GetArg(1), StringComparison.CurrentCultureIgnoreCase)
@@ -472,7 +472,7 @@ namespace src.command
         [CommandHelper(minArgs: 1, whoCanExecute: CommandUsage.CLIENT_ONLY)]
         private static void Command_ChangeLanguage(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_lang {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_lang {command.ArgString} command.");
             if (player == null || !player.IsValid) return;
             if (!AdminManager.PlayerHasPermissions(player, config.NormalCommands.ChangeLanguageCommand.Permissions)) return;
 
@@ -491,7 +491,7 @@ namespace src.command
         [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
         private static void Command_Reload(CCSPlayerController? player, CommandInfo command)
         {
-            Debug.WriteToDebug($"Player {player?.PlayerPawn} used the css_lang {command.ArgString} command.");
+            Debug.WriteToDebug($"Player {player?.PlayerName} used the css_lang {command.ArgString} command.");
             if (!AdminManager.PlayerHasPermissions(player, config.NormalCommands.ReloadCommand.Permissions)) return;
 
             lock (setLock)

@@ -317,6 +317,29 @@ This plugin uses content from the following projects:
 ## 📋 Changelog
 
 <details>
+<summary><b>v1.1.9 BETA</b></summary>
+
+- #### General:
+    - ###### Update the dependency to the latest version.
+    - ###### Signature update (jRandomSkills.gamedata.json).
+    - ###### FlashingHtmlHudFix is disabled during warm-up.
+    - ###### Fixed incorrect debug text display when using the command.
+    - ###### Improved the functionality of the !map command.
+    - ###### Added the `YourSkillChatInfo` option to the configuration to disable the description of your skill in chat.
+    - ###### Disabling player skill when changing maps.
+    - ###### More coming soon
+- #### Skill improvements:
+    - ##### Third Eye:
+        - ###### Model added to camera.
+    - ##### Spectator:
+        - ###### Model added to camera.
+    - ##### Falcon Eye:
+        - ###### Model added to camera.
+    - ##### Jackal:
+        - ###### Temporarily disabled for rewrite.
+</details>
+
+<details>
 <summary><b>v1.1.8</b></summary>
   
 - #### General:

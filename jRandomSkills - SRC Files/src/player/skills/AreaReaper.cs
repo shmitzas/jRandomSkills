@@ -29,7 +29,7 @@ namespace src.player.skills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
-            if (playerInfo.SkillChance == 1)
+            if (playerInfo.SkillUsed)
             {
                 player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("areareaper_used_info")}");
                 return;
@@ -45,7 +45,7 @@ namespace src.player.skills
             if (bombTargets.Length == 2)
             {
                 bombTargets[site].AcceptInput("Disable");
-                playerInfo.SkillChance = 1;
+                playerInfo.SkillUsed = true;
                 player.PrintToChat($" {ChatColors.Green}{player.GetTranslation("areareaper_site_disabled", (site == 0 ? 'A' : 'B'))}");
             }
             else
@@ -56,7 +56,7 @@ namespace src.player.skills
         {
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
-            playerInfo.SkillChance = 0;
+            playerInfo.SkillUsed = false;
             SkillUtils.CreateMenu(player, [(player.GetTranslation("bombsite_a"), "a")], (player.GetTranslation("bombsite_b"), "b"));
         }
 

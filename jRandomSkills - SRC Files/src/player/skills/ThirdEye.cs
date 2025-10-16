@@ -70,7 +70,8 @@ namespace src.player.skills
             {
                 orginalCameraRaw = cameraInfo.Item1;
                 newCameraRaw = cameraInfo.Item2.EntityHandle.Raw;
-            } else
+            }
+            else
             {
                 orginalCameraRaw = pawn!.CameraServices!.ViewEntity.Raw;
                 newCameraRaw = CreateCamera(player);
@@ -95,11 +96,15 @@ namespace src.player.skills
             if (camera == null || !camera.IsValid) return 0;
 
             var pawn = player.PlayerPawn.Value;
-            camera.Render = Color.FromArgb(0, 255, 255, 255);
-            camera.Teleport(pawn!.AbsOrigin, pawn.EyeAngles);
-            camera.DispatchSpawn();
+            Server.NextFrame(() =>
+            {
+                camera.SetModel("models/actors/ghost_speaker.vmdl");
+                camera.Render = Color.FromArgb(0, 255, 255, 255);
+                camera.Teleport(pawn!.AbsOrigin, pawn.EyeAngles);
+                camera.DispatchSpawn();
+            });
 
-            cameras.AddOrUpdate(player.SteamID, (pawn.CameraServices!.ViewEntity.Raw, camera), (v,k) => (pawn.CameraServices!.ViewEntity.Raw, camera));
+            cameras.AddOrUpdate(player.SteamID, (pawn.CameraServices!.ViewEntity.Raw, camera), (v, k) => (pawn.CameraServices!.ViewEntity.Raw, camera));
             return camera.EntityHandle.Raw;
         }
 

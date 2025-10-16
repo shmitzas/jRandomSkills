@@ -29,11 +29,11 @@ namespace src.player.skills
             foreach (var player in distancerPlayers.Keys)
             {
                 var playerInfo = jRandomSkills.Instance.SkillPlayer.FirstOrDefault(s => s.SteamID == player?.SteamID);
-                if (playerInfo == null) return;
+                if (playerInfo == null) continue;
 
                 var playerPawn = player.PlayerPawn.Value;
-                if (playerPawn == null || !playerPawn.IsValid) return;
-                if (playerPawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) return;
+                if (playerPawn == null || !playerPawn.IsValid) continue;
+                if (playerPawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) continue;
 
                 string closetEnemy = "Bot";
                 double closetDistance = double.MaxValue;

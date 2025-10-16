@@ -106,9 +106,14 @@ namespace src.player.skills
             if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null) return 0;
             Vector pos = new(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + SkillsInfo.GetValue<float>(skillName, "distance"));
 
-            camera.Render = Color.FromArgb(0, 255, 255, 255);
-            camera.Teleport(pos, new QAngle(90, 0, 0));
-            camera.DispatchSpawn();
+            Server.NextFrame(() =>
+            {
+                camera.SetModel("models/actors/ghost_speaker.vmdl");
+                camera.Render = Color.FromArgb(0, 255, 255, 255);
+                camera.Teleport(pos, new QAngle(90, 0, 0));
+                camera.DispatchSpawn();
+            });
+
             cameras.AddOrUpdate(player.SteamID, (pawn.CameraServices!.ViewEntity.Raw, camera), (k, v) => (pawn.CameraServices!.ViewEntity.Raw, camera));
             return camera.EntityHandle.Raw;
         }

@@ -26,7 +26,7 @@ namespace src.player
         private static void OnMapStart(string mapName)
         {
             Instance.GameRules = null;
-            Event.staticSkills.Clear();
+            Event.OnMapChange();
         }
 
         private static void InitializeGameRules()
@@ -41,7 +41,7 @@ namespace src.player
         {
             if (Instance?.GameRules == null || Instance?.GameRules?.Handle == IntPtr.Zero)
                 InitializeGameRules();
-            else if (Instance != null && Config.LoadedConfig.FlashingHtmlHudFix)
+            else if (Instance != null && Config.LoadedConfig.FlashingHtmlHudFix && !Instance.GameRules.WarmupPeriod)
                 Instance.GameRules.GameRestart = Instance.GameRules?.RestartRoundTime < Server.CurrentTime;
         }
 

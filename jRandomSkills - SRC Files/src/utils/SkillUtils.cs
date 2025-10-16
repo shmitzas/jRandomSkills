@@ -81,10 +81,11 @@ namespace src.utils
             if (player == null || !player.IsValid) return;
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid || playerPawn.CBodyComponent == null || playerPawn.CBodyComponent.SceneNode == null) return;
+            if (scale <= 0) return;
 
             playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = scale;
             Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
-            Server.NextFrame(() => playerPawn.AcceptInput("SetScale", playerPawn, playerPawn, scale.ToString()));
+            Server.NextFrame(() => playerPawn.AcceptInput("SetScale", null, null, scale.ToString()));
         }
 
         public static void CreateHEGrenadeProjectile(Vector pos, QAngle angle, Vector vel, int teamNum)

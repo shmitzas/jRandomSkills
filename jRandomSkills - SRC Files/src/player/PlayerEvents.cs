@@ -285,6 +285,7 @@ namespace src.player
                     SkillChance = 1,
                     PrintHTML = null,
                     DisplayHUD = true,
+                    SkillUsed = false,
                 });
 
                 string welcomeMsg = player.GetTranslation("welcome_message", "welcome");
@@ -342,13 +343,35 @@ namespace src.player
         {
             lock (setLock)
             {
-                foreach (var player in Utilities.GetPlayers().Where(p => !p.IsBot))
+                foreach (var player in Utilities.GetPlayers().Where(p => p != null && !p.IsBot && p.IsValid))
                 {
                     var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    if (playerInfo == null) return;
+                    if (playerInfo == null) continue;
+
                     Instance.SkillAction(playerInfo.Skill.ToString(), "DisableSkill", [player]);
                     Instance.SkillAction(playerInfo.Skill.ToString(), "NewRound");
+
+                    playerInfo.Skill = noneSkill.Skill;
+                    playerInfo.SpecialSkill = noneSkill.Skill;
+                    playerInfo.PrintHTML = null;
+                    playerInfo.SkillChance = 1;
+                    playerInfo.SkillUsed = false;
                 }
+            }
+        }
+
+        public static void OnMapChange()
+        {
+            lock (setLock)
+            {
+                isTransmitRegistered = false;
+                Instance.AddTimer(.1f, () => DisableAll());
+                Instance.RemoveListener<CheckTransmit>(CheckTransmit);
+                playersSkills.Clear();
+                staticSkills.Clear();
+                ctSkill = noneSkill;
+                tSkill = noneSkill;
+                allSkill = noneSkill;
             }
         }
 
@@ -391,18 +414,7 @@ namespace src.player
                 if (Config.LoadedConfig.DisableSkillsOnRoundEnd)
                 {
                     isTransmitRegistered = false;
-                    Instance.AddTimer(1f, () =>
-                    {
-                        DisableAll();
-                        foreach (var player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
-                        {
-                            var skillPlayer = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                            if (skillPlayer == null) continue;
-                            skillPlayer.Skill = noneSkill.Skill;
-                            skillPlayer.SpecialSkill = noneSkill.Skill;
-                            skillPlayer.PrintHTML = null;
-                        }
-                    });
+                    Instance.AddTimer(1f, () => DisableAll());
                     Instance.RemoveListener<CheckTransmit>(CheckTransmit);
                 }
                 return HookResult.Continue;
@@ -426,7 +438,7 @@ namespace src.player
                 Instance.SkillAction(playerInfo.Skill.ToString(), "DisableSkill", [victim]);
 
                 if (victim == attacker) return HookResult.Continue;
-                if (Config.LoadedConfig.KillerSkillInfo)
+                if (Config.LoadedConfig.KillerSkillChatInfo)
                 {
                     var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
                     if (attackerInfo != null)
@@ -517,13 +529,13 @@ namespace src.player
                     var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (skillPlayer == null) continue;
 
+                    skillPlayer.IsDrawing = false;
                     if (player.PlayerPawn.Value == null || !player.PlayerPawn.IsValid)
                     {
                         skillPlayer.Skill = Skills.None;
                         continue;
                     }
 
-                    skillPlayer.IsDrawing = false;
                     jSkill_SkillInfo randomSkill = noneSkill;
 
                     if (Instance?.GameRules != null && Instance?.GameRules.WarmupPeriod == false)
@@ -595,7 +607,7 @@ namespace src.player
                     Debug.WriteToDebug($"Player {skillPlayer.PlayerName} has got the skill \"{player.GetSkillName(randomSkill.Skill)}\".");
                     skillPlayer.SkillDescriptionHudExpired = DateTime.Now.AddSeconds(Config.LoadedConfig.SkillDescriptionDuration);
 
-                    if (Config.LoadedConfig.TeamMateSkillInfo)
+                    if (Config.LoadedConfig.TeamMateSkillChatInfo)
                     {
                         Instance?.AddTimer(.5f, () =>
                         {
@@ -692,7 +704,7 @@ namespace src.player
                         return;
                 }
 
-                if (randomSkill.Display)
+                if (randomSkill.Display && Config.LoadedConfig.YourSkillChatInfo)
                     SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{player.GetSkillName(randomSkill.Skill)}{ChatColors.Lime}: {player.GetSkillDescription(randomSkill.Skill)}", false);
 
                 skillPlayer.Skill = randomSkill.Skill;

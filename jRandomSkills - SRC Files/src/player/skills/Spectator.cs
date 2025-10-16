@@ -104,10 +104,14 @@ namespace src.player.skills
             var pos = pawn.AbsOrigin - SkillUtils.GetForwardVector(pawn.EyeAngles) * SkillsInfo.GetValue<float>(skillName, "distance");
             pos.Z += pawn.ViewOffset.Z;
 
-            camera.Render = Color.FromArgb(0, 255, 255, 255);
-            camera.Teleport(pos, new QAngle(0, pawn.EyeAngles.Y, 0));
-            camera.DispatchSpawn();
-            camera.AcceptInput("SetParent", pawn, pawn, "!activator");
+            Server.NextFrame(() =>
+            {
+                camera.SetModel("models/actors/ghost_speaker.vmdl");
+                camera.Render = Color.FromArgb(0, 255, 255, 255);
+                camera.Teleport(pos, new QAngle(0, pawn.EyeAngles.Y, 0));
+                camera.DispatchSpawn();
+                camera.AcceptInput("SetParent", pawn, pawn, "!activator");
+            });
 
             if (cameras.TryGetValue(player.SteamID, out var cameraInfo))
                 cameras.AddOrUpdate(player.SteamID, (cameraInfo.Item1, camera, pawn), (k, v) => (cameraInfo.Item1, camera, pawn));

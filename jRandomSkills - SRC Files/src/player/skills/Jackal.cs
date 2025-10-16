@@ -2,7 +2,6 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
-using System.Drawing;
 using static src.jRandomSkills;
 using System.Collections.Concurrent;
 using src.utils;
@@ -14,10 +13,12 @@ namespace src.player.skills
         private const Skills skillName = Skills.Jackal;
         private static readonly ConcurrentDictionary<ulong, byte> playersInAction = [];
         private static readonly ConcurrentDictionary<CCSPlayerController, ConcurrentQueue<CBeam>> stepBeams = [];
+        private static readonly string particleName = "particles/ui/hud/ui_map_def_utility_trail.vpcf";
 
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, SkillsInfo.GetValue<string>(skillName, "color"));
+            Instance.RegisterListener<Listeners.OnServerPrecacheResources>((ResourceManifest manifest) => manifest.AddResource(particleName));
         }
 
         public static void NewRound()
@@ -28,38 +29,6 @@ namespace src.player.skills
                         beam.AcceptInput("Kill");
             stepBeams.Clear();
             playersInAction.Clear();
-        }
-
-        public static void OnTick()
-        {
-            if (Server.TickCount % 8 != 0) return;
-            foreach (var step in stepBeams.ToList())
-            {
-                var player = step.Key;
-                if (!player.IsValid)
-                {
-                    stepBeams.TryRemove(player, out _);
-                    continue;
-                }
-
-                var pawn = player.PlayerPawn.Value;
-                if (pawn == null || !pawn.IsValid || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE || pawn.AbsOrigin == null) continue;
-
-                var beams = step.Value;
-                Vector lastBeamVector = (beams != null && beams.Count > 0 && beams.Last() != null)
-                    ? beams.Last().EndPos : pawn.AbsOrigin;
-
-                var newBeam = CreateBeamStep(step.Key.Team, lastBeamVector, pawn.AbsOrigin);
-                if (newBeam != null)
-                    step.Value.Enqueue(newBeam);
-
-                if (beams?.Count >= SkillsInfo.GetValue<int>(skillName, "maxStepBeam"))
-                {
-                    if (beams.TryPeek(out var beam))
-                        beam.AcceptInput("Kill");
-                    step.Value.TryDequeue(out _);
-                }
-            }
         }
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
@@ -85,23 +54,27 @@ namespace src.player.skills
             }
         }
 
-        public static CBeam? CreateBeamStep(CsTeam team, Vector start, Vector stop)
+        public static void CreatePlayerTrail(CCSPlayerPawn playerPawn)
         {
-            CBeam beam = Utilities.CreateEntityByName<CBeam>("beam")!;
-            if (beam == null) return null;
+            if (playerPawn == null || !playerPawn.IsValid || playerPawn.AbsOrigin == null) return;
 
-            beam.DispatchSpawn();
-            if (!beam.IsValid) return null;
+            CParticleSystem particle = Utilities.CreateEntityByName<CParticleSystem>("info_particle_system")!;
+            if (particle == null) return;
 
-            beam.Render = team == CsTeam.Terrorist ? Color.FromArgb(100, 255, 165, 0) : Color.FromArgb(100, 173, 216, 230);
-            beam.Width = 2.0f;
-            beam.EndWidth = 2.0f;
-            beam.Teleport(start);
+            particle.EffectName = particleName;
+            particle.StartActive = true;
 
-            beam.EndPos.X = stop.X;
-            beam.EndPos.Y = stop.Y;
-            beam.EndPos.Z = stop.Z;
-            return beam;
+            particle.Teleport(playerPawn.AbsOrigin);
+            particle.DispatchSpawn();
+
+            particle.AcceptInput("SetParent", playerPawn, particle, "!activator");
+            particle.AcceptInput("Start");
+
+            Instance.AddTimer(3f, () => {
+                if (particle != null && particle.IsValid)
+                    particle.AcceptInput("Kill");
+                CreatePlayerTrail(playerPawn);
+            });
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -110,7 +83,10 @@ namespace src.player.skills
             playersInAction.TryAdd(player.SteamID, 0);
             foreach (var _player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.PawnIsAlive && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
                 if (!stepBeams.ContainsKey(_player))
+                {
                     stepBeams.TryAdd(_player, []);
+                    CreatePlayerTrail(player.PlayerPawn.Value);
+                }
         }
 
         public static void DisableSkill(CCSPlayerController player)

@@ -70,8 +70,9 @@ namespace src.utils
         public class SettingsModel
         {
             public int GameMode { get; set; }
-            public bool KillerSkillInfo { get; set; }
-            public bool TeamMateSkillInfo { get; set; }
+            public bool YourSkillChatInfo { get; set; }
+            public bool KillerSkillChatInfo { get; set; }
+            public bool TeamMateSkillChatInfo { get; set; }
             public bool SummaryAfterTheRound { get; set; }
             public bool DebugMode { get; set; }
             public string? AlternativeSkillButton { get; set; }
@@ -91,8 +92,9 @@ namespace src.utils
             public SettingsModel()
             {
                 GameMode = (int)GameModes.NoRepeat;
-                KillerSkillInfo = true;
-                TeamMateSkillInfo = true;
+                YourSkillChatInfo = true;
+                KillerSkillChatInfo = true;
+                TeamMateSkillChatInfo = true;
                 SummaryAfterTheRound = true;
                 DebugMode = true;
                 AlternativeSkillButton = null;

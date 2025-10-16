@@ -44,7 +44,7 @@ namespace src.player.skills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
-            if (playerInfo.SkillChance == 1)
+            if (playerInfo.SkillUsed)
             {
                 player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("areareaper_used_info")}");
                 return;
@@ -60,7 +60,7 @@ namespace src.player.skills
             }
 
             ResetMoney(enemy);
-            playerInfo.SkillChance = 1;
+            playerInfo.SkillUsed = true;
             player.PrintToChat($" {ChatColors.Green}" + player.GetTranslation("bankrupt_player_info", enemy.PlayerName));
             enemy.PrintToChat($" {ChatColors.Red}" + player.GetTranslation("bankrupt_enemy_info"));
         }
@@ -69,7 +69,7 @@ namespace src.player.skills
         {
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
-            playerInfo.SkillChance = 0;
+            playerInfo.SkillUsed = false;
 
             var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
             if (enemies.Length > 0)

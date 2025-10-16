@@ -28,7 +28,7 @@ namespace src.player.skills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
-            if (playerInfo.SkillChance == 1)
+            if (playerInfo.SkillUsed)
             {
                 player.PrintToChat($" {ChatColors.Red}{player.GetTranslation("areareaper_used_info")}");
                 return;
@@ -48,7 +48,7 @@ namespace src.player.skills
                 playerInfo.Skill = skill.Skill;
                 if (skill.Skill != skillName)
                     playerInfo.SpecialSkill = skillName;
-                playerInfo.SkillChance = 1;
+                playerInfo.SkillUsed = true;
 
                 if (SkillsInfo.GetValue<bool>(skill.Skill, "disableOnFreezeTime") && SkillUtils.IsFreezeTime())
                     Instance?.AddTimer(Math.Max((float)(Event.GetFreezeTimeEnd() - DateTime.Now).TotalSeconds, 0), () => {
@@ -72,7 +72,7 @@ namespace src.player.skills
         {
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
-            playerInfo.SkillChance = 0;
+            playerInfo.SkillUsed = false;
 
             var skills = GetSkills(player);
             var firstSkill = skills[Instance.Random.Next(skills.Count)];
