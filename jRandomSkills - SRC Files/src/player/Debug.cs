@@ -2,6 +2,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
+using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
 using src.utils;
 using static CounterStrikeSharp.API.Core.Listeners;
@@ -86,6 +87,19 @@ namespace src.player
             Instance.RegisterListener<OnMapStart>((mapName) =>
             {
                 WriteToDebug($"Map changed: {mapName}.");
+                Instance.AddTimer(5f, () =>
+                {
+                    if (Instance?.GameRules?.WarmupPeriod == true)
+                    {
+                        Server.ExecuteCommand("mp_warmup_end");
+                        Localization.PrintTranslationToChatAll($" {ChatColors.Green}{{0}}", ["game_start"]);
+                    }
+                    else
+                    {
+                        Server.ExecuteCommand("mp_restartgame 2");
+                        Instance?.AddTimer(2.0f, () => Localization.PrintTranslationToChatAll($" {ChatColors.Green}{{0}}", ["game_start"]));
+                    }
+                }, TimerFlags.STOP_ON_MAPCHANGE);
             });
 
             Instance.RegisterEventHandler<EventPlayerShoot>((@event, info) =>
