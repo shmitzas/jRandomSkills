@@ -22,7 +22,7 @@ namespace src.utils
         public static void PrintToChat(CCSPlayerController player, string msg, bool isError)
         {
             string checkIcon = isError ? $"{ChatColors.DarkRed}✖{ChatColors.LightRed}" : $"{ChatColors.Green}✔{ChatColors.Lime}";
-            player.PrintToChat($" {ChatColors.DarkRed}► {ChatColors.Green}[{ChatColors.DarkRed} {jRandomSkills.Tag} {ChatColors.Green}] {checkIcon} {msg}");
+            player.PrintToChat($"[{ChatColors.DarkRed} {jRandomSkills.Tag} {ChatColors.Default}] {ChatColors.Gold}{checkIcon} {ChatColors.Default}{msg}");
         }
 
         public static bool IsFreezeTime()

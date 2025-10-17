@@ -20,7 +20,7 @@ namespace src
         public Random Random { get; } = new Random();
         public CCSGameRules? GameRules { get; set; }
         public IWasdMenuManager? MenuManager;
-        public const string Tag = "jRandomSkills";
+        public const string Tag = "Rampage.lt";
 
         public override string ModuleName => "[CS2] [ jRandomSkills ]";
         public override string ModuleAuthor => "D3X, Juzlus";
